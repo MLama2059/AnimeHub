@@ -1,0 +1,38 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36414.22
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AnimeHubApi", "AnimeHubApi\AnimeHubApi.csproj", "{8E315067-7610-4F02-9A0F-89DC78E21230}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AnimeHubClient", "AnimeHubClient\AnimeHubClient.csproj", "{41AAE7A8-B611-472F-8C03-53FB3ABA2C38}"
+EndProject
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "AnimeHub.Shared", "AnimeHub.Shared\AnimeHub.Shared.shproj", "{5F107946-2589-4008-96E2-78C6327F87D6}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{8E315067-7610-4F02-9A0F-89DC78E21230}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8E315067-7610-4F02-9A0F-89DC78E21230}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8E315067-7610-4F02-9A0F-89DC78E21230}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8E315067-7610-4F02-9A0F-89DC78E21230}.Release|Any CPU.Build.0 = Release|Any CPU
+		{41AAE7A8-B611-472F-8C03-53FB3ABA2C38}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{41AAE7A8-B611-472F-8C03-53FB3ABA2C38}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{41AAE7A8-B611-472F-8C03-53FB3ABA2C38}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{41AAE7A8-B611-472F-8C03-53FB3ABA2C38}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {6F6BA3CF-46A6-4341-8D7F-47429AB805B5}
+	EndGlobalSection
+	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		AnimeHub.Shared\AnimeHub.Shared.projitems*{41aae7a8-b611-472f-8c03-53fb3aba2c38}*SharedItemsImports = 5
+		AnimeHub.Shared\AnimeHub.Shared.projitems*{5f107946-2589-4008-96e2-78c6327f87d6}*SharedItemsImports = 13
+		AnimeHub.Shared\AnimeHub.Shared.projitems*{8e315067-7610-4f02-9a0f-89dc78e21230}*SharedItemsImports = 5
+	EndGlobalSection
+EndGlobal

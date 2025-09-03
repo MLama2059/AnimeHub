@@ -1,0 +1,53 @@
+﻿@page "/fetchanime"
+@using AnimeHubApi.Models
+@inject HttpClient Http
+
+<h3>Anime List</h3>
+
+@if (animeList == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Title</th>
+                <th>Genre</th>
+                <th>Episodes</th>
+                <th>Year Published</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var anime in animeList)
+            {
+                <tr>
+                    <td>@anime.Id</td>
+                    <td>@anime.Title</td>
+                    <td>@anime.Genre</td>
+                    <td>@anime.Episodes</td>
+                    <td>@anime.YearPublished</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+
+@code {
+    private List<Anime>? animeList;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            animeList = await Http.GetFromJsonAsync<List<Anime>>("api/anime");
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"Error fetching anime data: {ex.Message}");
+        }
+    }
+}
