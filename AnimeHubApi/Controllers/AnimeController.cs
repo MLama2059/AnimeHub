@@ -43,21 +43,39 @@ namespace AnimeHubApi.Controllers
             return CreatedAtAction(nameof(GetAnimeById), new { id = newAnime.Id }, newAnime);
         }
 
-        [HttpPut]
+        [HttpPut("{id}")]
         public async Task<IActionResult> UpdateAnime(int id, Anime updatedAnime)
         {
-            var anime = await _context.Animes.FindAsync(id);
-            if (anime is null)
-                return NotFound();
+            if (id != updatedAnime.Id)
+            {
+                return BadRequest();
+            }
 
-            anime.Id = updatedAnime.Id;
-            anime.Title = updatedAnime.Title;
-            anime.Genre = updatedAnime.Genre;
-            anime.Episodes = updatedAnime.Episodes;
-            anime.YearPublished = updatedAnime.YearPublished;
+            // Set the entity's state to Modified. EF Core will handle updating all properties.
+            _context.Entry(updatedAnime).State = EntityState.Modified;
 
-            await _context.SaveChangesAsync();
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!AnimeExists(id))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+
             return NoContent();
+        }
+
+        private bool AnimeExists(int id)
+        {
+            return _context.Animes.Any(e => e.Id == id);
         }
 
         [HttpDelete("{id}")]
