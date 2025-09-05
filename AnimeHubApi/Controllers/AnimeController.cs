@@ -1,5 +1,6 @@
 ﻿using AnimeHubApi.Data;
 using AnimeHubApi.Models;
+using AnimeHubApi.Repository.IRepository;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -10,22 +11,24 @@ namespace AnimeHubApi.Controllers
     [ApiController]
     public class AnimeController : ControllerBase
     {
-        private readonly AnimeDbContext _context;
-        public AnimeController(AnimeDbContext context)
+        private readonly IAnimeRepository _animeRepository;
+
+        public AnimeController(IAnimeRepository animeRepository)
         {
-            _context = context;
+            _animeRepository = animeRepository;
         }
 
         [HttpGet]
         public async Task<ActionResult<List<Anime>>> GetAnime()
         {
-            return Ok(await _context.Animes.ToListAsync());
+            var animes = await _animeRepository.GetAllAsync();
+            return Ok(animes);
         }
 
         [HttpGet("{id}")]
         public async Task<ActionResult<Anime>> GetAnimeById(int id)
         {
-            var anime = await _context.Animes.FindAsync(id);
+            var anime = await _animeRepository.GetByIdAsync(id);
             if (anime is null)
                 return NotFound();
 
@@ -38,55 +41,34 @@ namespace AnimeHubApi.Controllers
             if (newAnime is null)
                 return BadRequest();
 
-            _context.Animes.Add(newAnime);
-            await _context.SaveChangesAsync();
-            return CreatedAtAction(nameof(GetAnimeById), new { id = newAnime.Id }, newAnime);
+            var createdAnime = await _animeRepository.AddAsync(newAnime);
+            return CreatedAtAction(nameof(GetAnimeById), new { id = createdAnime.Id }, createdAnime);
         }
 
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateAnime(int id, Anime updatedAnime)
         {
-            if (id != updatedAnime.Id)
+            if (!_animeRepository.Exists(id))
+            {
+                return NotFound();
+            }
+
+            var success = await _animeRepository.UpdateAsync(id, updatedAnime);
+            if (!success)
             {
                 return BadRequest();
-            }
-
-            // Set the entity's state to Modified. EF Core will handle updating all properties.
-            _context.Entry(updatedAnime).State = EntityState.Modified;
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!AnimeExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
             }
 
             return NoContent();
         }
 
-        private bool AnimeExists(int id)
-        {
-            return _context.Animes.Any(e => e.Id == id);
-        }
-
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteAnime(int id)
         {
-            var anime = await _context.Animes.FindAsync(id);
-            if (anime is null)
+            var success = await _animeRepository.DeleteAsync(id);
+            if (!success)
                 return NotFound();
 
-            _context.Animes.Remove(anime);
-            await _context.SaveChangesAsync();
             return NoContent();
         }
     }

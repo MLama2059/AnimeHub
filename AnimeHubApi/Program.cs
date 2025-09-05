@@ -1,4 +1,6 @@
 using AnimeHubApi.Data;
+using AnimeHubApi.Repository;
+using AnimeHubApi.Repository.IRepository;
 using Microsoft.EntityFrameworkCore;
 using Scalar.AspNetCore;
 
@@ -11,6 +13,8 @@ builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 builder.Services.AddDbContext<AnimeDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+builder.Services.AddScoped<IAnimeRepository, AnimeRepository>();
 
 //Add the CORS service registration
 builder.Services.AddCors(options =>
