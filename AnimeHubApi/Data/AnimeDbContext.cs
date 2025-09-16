@@ -1,4 +1,4 @@
-﻿using AnimeHubApi.Models;
+﻿using AnimeHub.Shared.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace AnimeHubApi.Data
@@ -6,6 +6,7 @@ namespace AnimeHubApi.Data
     public class AnimeDbContext(DbContextOptions<AnimeDbContext> options) : DbContext(options)
     {
         public DbSet<Anime> Animes => Set<Anime>();
+        public DbSet<Category> Categories => Set <Category>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -36,6 +37,16 @@ namespace AnimeHubApi.Data
                     Episodes = 47, // (as of Season 2 end)
                     YearPublished = 2020
                 }
+            );
+
+            modelBuilder.Entity<Category>().HasData(
+                new Category { Id = 1, Name = "Shounen" },
+                new Category { Id = 2, Name = "Fantasy" },
+                new Category { Id = 3, Name = "Sci-Fi" },
+                new Category { Id = 4, Name = "Slice of Life" },
+                new Category { Id = 5, Name = "Isekai" },
+                new Category { Id = 6, Name = "Horror" },
+                new Category { Id = 7, Name = "Mecha" }
             );
         }
     }

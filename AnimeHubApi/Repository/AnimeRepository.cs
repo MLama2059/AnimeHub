@@ -1,5 +1,5 @@
 ﻿using AnimeHubApi.Data;
-using AnimeHubApi.Models;
+using AnimeHub.Shared.Models;
 using AnimeHubApi.Repository.IRepository;
 using Microsoft.EntityFrameworkCore;
 using System.Threading.Tasks;
@@ -36,7 +36,7 @@ namespace AnimeHubApi.Repository
 
         public bool Exists(int id)
         {
-            return _context.Animes.Any(x => x.Id == id);
+            return _context.Animes.Any(u => u.Id == id);
         }
 
         public async Task<List<Anime>> GetAllAsync()

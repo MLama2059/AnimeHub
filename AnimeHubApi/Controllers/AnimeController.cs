@@ -1,5 +1,5 @@
 ﻿using AnimeHubApi.Data;
-using AnimeHubApi.Models;
+using AnimeHub.Shared.Models;
 using AnimeHubApi.Repository.IRepository;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;

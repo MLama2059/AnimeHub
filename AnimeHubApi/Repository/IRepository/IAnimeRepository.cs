@@ -1,4 +1,4 @@
-﻿using AnimeHubApi.Models;
+﻿using AnimeHub.Shared.Models;
 
 namespace AnimeHubApi.Repository.IRepository
 {

@@ -1,4 +1,4 @@
-﻿namespace AnimeHubApi.Models
+﻿namespace AnimeHub.Shared.Models
 {
     public class Anime
     {
