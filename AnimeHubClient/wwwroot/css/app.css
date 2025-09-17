@@ -1,10 +1,135 @@
-html, body {
-    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+/* Font Awesome import */
+@import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css');
+
+/*Google font import*/
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap');
+
+/* CSS Variables from the tutorial */
+:root {
+    --main-color: #ffdd95;
+    --black: #222;
+    --light-black: #1a1a1a;
+    --bg-color: #0d0d0d;
+    --white: #fff;
+    --light-white: #aaa;
 }
 
-h1:focus {
+* {
+    box-sizing: border-box;
+    padding: 0;
+    margin: 0;
+    text-decoration: none;
     outline: none;
+    border: none;
+    text-transform: capitalize;
+    transition: .2s all linear;
+    font-family: "Poppins", sans-serif;
 }
+
+html {
+    font-size: 80%;
+    scroll-padding-top: 7rem;
+    scroll-behavior: smooth;
+    overflow-x: hidden;
+}
+
+::-webkit-scrollbar {
+    width: .8rem;
+}
+
+::-webkit-scrollbar-thumb {
+    background-color: var(--main-color);
+}
+
+::-webkit-scrollbar-track {
+    background-color: none;
+}
+
+body {
+/*    background-color: var(--bg-color);*/
+}
+
+.header .flex{
+    display: flex;
+    align-items: center;
+}
+
+#menu-btn {
+    font-size: 2.5rem;
+    color: var(--black);
+    margin-right: 1rem;
+    cursor: pointer;
+}
+
+.header .flex .logo {
+    margin-right: auto;
+
+}
+
+.header .flex .logo a {
+    font-size: 2.5rem;
+    color: var(--black);
+    font-weight: bold;
+    font-style: italic;
+}
+
+.header .flex .search-form {
+    display: flex;
+    align-items:center;
+    gap: 1rem;
+}
+
+.header .flex .search-form .search-bar {
+    background-color: var(--light-black);
+    border-radius: .5rem;
+    padding: 1rem 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    width: 50rem;
+}
+
+.header .flex .search-form .search-bar input{
+    width: 100%;
+    background: none;
+    font-size: 1.8rem;
+    color: var(--white);
+}
+
+    .header .flex .search-form .search-bar input::-webkit-search-cancel-button{
+        appearance: none;
+    }
+
+    .header .flex .search-form .search-bar label{
+        font-size: 2rem;
+        color: var(--white);
+        cursor: pointer;
+    }
+
+    .header .flex .search-form a{
+        display: block;
+        font-size: 2rem;
+        text-align: center;
+        height: 4rem;
+        width: 4.5rem;
+        line-height: 4rem;
+        border-radius: .5rem;
+        color: var(--white);
+        background-color:var(--light-black);
+    }
+
+        .header .flex .search-form a:hover{
+            background-color: var(--main-color);
+            color: var(--black);
+        }
+
+    .header .flex .search-form .search-bar label:hover{
+        color: var(--main-color);
+    }
+
+    h1:focus {
+        outline: none;
+    }
 
 a, .btn-link {
     color: #0071c1;

@@ -1,18 +1,17 @@
 ﻿@page "/fetchanime"
-@using AnimeHub.Shared.Models
 @inject HttpClient Http
 @inject NavigationManager Navigation
 @inject IJSRuntime JSRuntime
 
 <h3>Anime List</h3>
 
-@if (animeList == null)
+@if (Animes == null)
 {
     <p><em>Loading...</em></p>
 }
 else
 {
-    <table class="table">
+    <table class="table table-bordered table-striped">
         <thead>
             <tr>
                 <th>Id</th>
@@ -23,7 +22,7 @@ else
             </tr>
         </thead>
         <tbody>
-            @foreach (var anime in animeList)
+            @foreach (var anime in Animes)
             {
                 <tr>
                     <td>@anime.Id</td>
@@ -44,13 +43,13 @@ else
 }
 
 @code {
-    private List<Anime>? animeList;
+    private List<Anime>? Animes;
 
     protected override async Task OnInitializedAsync()
     {
         try
         {
-            animeList = await Http.GetFromJsonAsync<List<Anime>>("api/anime");
+            Animes = await Http.GetFromJsonAsync<List<Anime>>("api/anime");
         }
         catch (Exception ex)
         {
