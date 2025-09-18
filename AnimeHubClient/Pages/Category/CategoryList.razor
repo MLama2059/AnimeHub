@@ -1,4 +1,5 @@
-﻿@* @page "/category"
+﻿@page "/category"
+@using AnimeHub.Shared.Models.Dtos.Category
 @inject HttpClient Http
 
 @if (IsProcessing)
@@ -20,7 +21,7 @@ else
                 <a href="category/create" class="btn btn-lg btn-secondary"><i class="bi bi-plus-square"></i> Add New Category</a>
             </div>
         </div>
-        @if (Categories.Any())
+        @if (Categories != null && Categories.Any())
         {
             <table class="table table-bordered table-striped">
                 <thead>
@@ -50,7 +51,7 @@ else
 
 @code {
     private bool IsProcessing { get; set; } = true;
-    private List<Category>? Categories;
+    private List<CategoryReadDto>? Categories;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -66,11 +67,11 @@ else
     {
         try
         {
-            Categories = await Http.GetFromJsonAsync<List<Category>>("api/category");
+            Categories = await Http.GetFromJsonAsync<List<CategoryReadDto>>("api/category");
         }
         catch (Exception ex)
         {
             Console.Error.WriteLine($"Error fetching category data: {ex.Message}");
         }
     }
-} *@
+}

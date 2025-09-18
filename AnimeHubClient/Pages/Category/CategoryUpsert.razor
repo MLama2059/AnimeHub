@@ -1,5 +1,6 @@
-﻿@* @page "/category/create"
+﻿@page "/category/create"
 @page "/category/update/{Id:int}"
+@using AnimeHub.Shared.Models.Dtos.Category
 @inject HttpClient Http
 @inject NavigationManager Navigation
 
@@ -48,8 +49,9 @@ else
 @code {
     [Parameter]
     public int Id { get; set; }
-    [SupplyParameterFromForm]
-    private Category Category { get; set; } = new Category();
+
+    // Single form model, can be either Create or Update DTO
+    private CategoryUpdateDto Category { get; set; } = new();
 
     private bool IsProcessing { get; set; } = true;
 
@@ -67,24 +69,29 @@ else
     {
         if (Id > 0)
         {
-            Category = await Http.GetFromJsonAsync<Category>($"api/category/{Id}");
+            var result = await Http.GetFromJsonAsync<CategoryReadDto>($"api/category/{Id}");
+            if (result != null)
+            {
+                Category.Id = result.Id;
+                Category.Name = result.Name;
+            }
         }
     }
 
     private async Task UpsertCategory()
     {
         IsProcessing = true;
-        if (Category.Id == 0)
+        if (Id == 0)
         {
             // Create
-            await Http.PostAsJsonAsync<Category>("api/Category", Category);
+            await Http.PostAsJsonAsync("api/Category", new CategoryCreateDto { Name = Category.Name });
         }
         else
         {
             // Update
-            await Http.PutAsJsonAsync<Category>($"api/category/{Category.Id}", Category);
+            await Http.PutAsJsonAsync($"api/category/{Category.Id}", Category);
         }
         IsProcessing = false;
         Navigation.NavigateTo("category");
     }
-} *@
+}
