@@ -27,9 +27,8 @@ namespace AnimeHubApi.Repository
         {
             var category = await _context.Categories.FindAsync(id);
             if (category is null)
-            {
                 return false;
-            }
+
             _context.Categories.Remove(category);
             await _context.SaveChangesAsync();
             return true;
@@ -42,31 +41,27 @@ namespace AnimeHubApi.Repository
 
         public async Task<List<Category>> GetAllAsync()
         {
-            return await _context.Categories.ToListAsync();
+            return await _context.Categories
+                .Include(c => c.Animes)
+                .ToListAsync();
         }
 
         public async Task<Category?> GetByIdAsync(int id)
         {
-            return await _context.Categories.FindAsync(id);
+            return await _context.Categories
+                .Include(c => c.Animes)
+                .FirstOrDefaultAsync(c => c.Id == id);
         }
 
-        public async Task<bool> UpdateAsync(int id, Category category)
+        public async Task<bool> UpdateAsync(Category category)
         {
-            if (id != category.Id)
-            {
+            var existingCategory = await _context.Categories.FindAsync(category.Id);
+            if (existingCategory == null)
                 return false;
-            }
-            _context.Entry(category).State = EntityState.Modified;
 
-            try
-            {
-                await _context.SaveChangesAsync();
-                return true;
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                return false;
-            }
+            existingCategory.Name = category.Name;
+            await _context.SaveChangesAsync();
+            return true;
         }
     }
 }
