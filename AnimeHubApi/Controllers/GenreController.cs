@@ -1,4 +1,5 @@
 ﻿using AnimeHub.Shared.Models;
+using AnimeHub.Shared.Models.Dtos.Genre;
 using AnimeHubApi.Repository;
 using AnimeHubApi.Repository.IRepository;
 using Microsoft.AspNetCore.Http;
@@ -18,14 +19,21 @@ namespace AnimeHubApi.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<List<Genre>>> GetCategory()
+        public async Task<ActionResult<List<GenreReadDto>>> GetCategory()
         {
             var genres = await _genreRepository.GetAllAsync();
-            return Ok(genres);
+
+            var genreDtos = genres.Select(g => new GenreReadDto
+            {
+                Id = g.Id,
+                Name = g.Name
+            }).ToList();
+
+            return Ok(genreDtos);
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<Genre>> GetCategoryById(int id)
+        public async Task<ActionResult<GenreReadDto>> GetCategoryById(int id)
         {
             var genre = await _genreRepository.GetByIdAsync(id);
             if (genre is null)
@@ -33,46 +41,51 @@ namespace AnimeHubApi.Controllers
                 return NotFound();
             }
 
+            var dto = new GenreReadDto { Id = genre.Id, Name = genre.Name };
+
             return Ok(genre);
         }
 
         [HttpPost]
-        public async Task<ActionResult<Genre>> AddCategory(Genre newGenre)
+        public async Task<ActionResult<GenreReadDto>> AddCategory(GenreUpsertDto genreDto)
         {
-            if (newGenre is null)
+            if (genreDto is null)
             {
                 return BadRequest();
             }
 
-            var createdGenre = await _genreRepository.AddAsync(newGenre);
-            return CreatedAtAction(nameof(GetCategoryById), new { id = createdGenre.Id }, createdGenre);
+            var genre = new Genre { Name = genreDto.Name };
+            var createdGenre = await _genreRepository.AddAsync(genre);
+
+            var dto = new GenreReadDto { Id = createdGenre.Id, Name = createdGenre.Name };
+            return CreatedAtAction(nameof(GetCategoryById), new { id = dto.Id }, dto);
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateCategory(int id, Genre updatedGenre)
+        public async Task<IActionResult> UpdateCategory(int id, GenreUpsertDto genreDto)
         {
             if (!_genreRepository.Exists(id))
             {
                 return NotFound();
             }
 
-            updatedGenre.Id = id;
-            var success = await _genreRepository.UpdateAsync(updatedGenre);
+            var genre = new Genre { Id = id, Name = genreDto.Name };
+            var success = await _genreRepository.UpdateAsync(genre);
             if (!success)
             {
-                return BadRequest();
+                return BadRequest("Update failed");
             }
 
             return NoContent();
         }
 
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteCategory(int id)
+        public async Task<IActionResult> DeleteGenre(int id)
         {
             var success = await _genreRepository.DeleteAsync(id);
             if (!success)
             {
-                return BadRequest();
+                return NotFound();
             }
             return NoContent();
         }

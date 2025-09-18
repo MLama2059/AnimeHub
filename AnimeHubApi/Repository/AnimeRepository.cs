@@ -25,7 +25,13 @@ namespace AnimeHubApi.Repository
 
             _context.Animes.Add(anime);
             await _context.SaveChangesAsync();
-            return anime;
+
+            // Re-fetch anime including Category and Genres
+            return await _context.Animes
+                .Include(a => a.Category)
+                .Include(a => a.AnimeGenres)
+                    .ThenInclude(ag => ag.Genre)
+                .FirstOrDefaultAsync(a => a.Id == anime.Id);
         }
 
         public async Task<bool> DeleteAsync(int id)
