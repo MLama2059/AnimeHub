@@ -45,7 +45,7 @@ namespace AnimeHubApi.Controllers
             }
             
             var createdCategory = await _categoryRepository.AddAsync(newCategory);
-            return CreatedAtAction(nameof(GetCategoryById), new { Id = createdCategory.Id }, createdCategory);
+            return CreatedAtAction(nameof(GetCategoryById), new { id = createdCategory.Id }, createdCategory);
         }
 
         [HttpPut("{id}")]
@@ -56,7 +56,8 @@ namespace AnimeHubApi.Controllers
                 return NotFound();
             }
 
-            var success = await _categoryRepository.UpdateAsync(id, updatedCategory);
+            updatedCategory.Id = id;
+            var success = await _categoryRepository.UpdateAsync(updatedCategory);
             if (!success)
             {
                 return BadRequest();
@@ -71,7 +72,7 @@ namespace AnimeHubApi.Controllers
             var success = await _categoryRepository.DeleteAsync(id);
             if (!success)
             {
-                return NotFound();
+                return BadRequest();
             }
             return NoContent();
         }

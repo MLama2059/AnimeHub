@@ -4,6 +4,7 @@ using AnimeHubApi.Repository.IRepository;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using AnimeHub.Shared.Models.Dtos;
 
 namespace AnimeHubApi.Controllers
 {
@@ -12,12 +13,10 @@ namespace AnimeHubApi.Controllers
     public class AnimeController : ControllerBase
     {
         private readonly IAnimeRepository _animeRepository;
-        private readonly ICategoryRepository _categoryRepository;
 
-        public AnimeController(IAnimeRepository animeRepository, ICategoryRepository categoryRepository)
+        public AnimeController(IAnimeRepository animeRepository)
         {
             _animeRepository = animeRepository;
-            _categoryRepository = categoryRepository;
         }
 
         [HttpGet]
@@ -38,35 +37,47 @@ namespace AnimeHubApi.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<Anime>> AddAnime(Anime newAnime)
+        public async Task<ActionResult<Anime>> AddAnime(AnimeDto animeDto)
         {
-            if (newAnime is null)
-                return BadRequest("Anime data is required");
+            if (animeDto is null)
+                return BadRequest();
 
-            // Ensure category exists
-            var category = await _categoryRepository.GetByIdAsync(newAnime.CategoryId);
-            if (category == null)
-                return BadRequest($"Category with Id {newAnime.CategoryId} does not exist");
+            var anime = new Anime
+            {
+                Title = animeDto.Title,
+                Episodes = animeDto.Episodes,
+                YearPublished = animeDto.YearPublished,
+                CategoryId = animeDto.CategoryId,
+                Description = animeDto.Description,
+                Author = animeDto.Author,
+                ImageUrl = animeDto.ImageUrl,
+                Rating = animeDto.Rating
+            };
 
-            var createdAnime = await _animeRepository.AddAsync(newAnime);
+            var createdAnime = await _animeRepository.AddAsync(anime, animeDto.GenreIds);
             return CreatedAtAction(nameof(GetAnimeById), new { id = createdAnime.Id }, createdAnime);
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateAnime(int id, Anime updatedAnime)
+        public async Task<IActionResult> UpdateAnime(int id, [FromBody] AnimeDto animeDto)
         {
-            if (updatedAnime == null || id != updatedAnime.Id)
-                return BadRequest("Invalid anime data");
-
             if (!_animeRepository.Exists(id))
                 return NotFound();
 
-            // Ensure category exists
-            var category = await _categoryRepository.GetByIdAsync(updatedAnime.CategoryId);
-            if (category == null)
-                return BadRequest($"Category with Id {updatedAnime.CategoryId} does not exist");
+            var anime = new Anime
+            {
+                Id = id,
+                Title = animeDto.Title,
+                Episodes = animeDto.Episodes,
+                YearPublished = animeDto.YearPublished,
+                CategoryId = animeDto.CategoryId,
+                Description = animeDto.Description,
+                Author = animeDto.Author,
+                ImageUrl = animeDto.ImageUrl,
+                Rating = animeDto.Rating
+            };
 
-            var success = await _animeRepository.UpdateAsync(id, updatedAnime);
+            var success = await _animeRepository.UpdateAsync(anime, animeDto.GenreIds);
             if (!success)
                 return BadRequest("Update failed");
 

@@ -12,6 +12,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Models\Anime.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\AnimeGenre.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\Category.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Models\Dtos\AnimeDto.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\Genre.cs" />
   </ItemGroup>
 </Project>
