@@ -1,4 +1,4 @@
-﻿@page "/update-anime/{Id:int}"
+﻿@* @page "/update-anime/{Id:int}"
 @inject HttpClient Http
 @inject NavigationManager Navigation
 
@@ -60,4 +60,4 @@ else
         await Http.PutAsJsonAsync($"api/anime/{anime!.Id}", anime);
         Navigation.NavigateTo("fetchanime");
     }
-}
+} *@

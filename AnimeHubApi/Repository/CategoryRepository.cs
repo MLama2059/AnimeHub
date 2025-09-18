@@ -9,9 +9,9 @@ namespace AnimeHubApi.Repository
 {
     public class CategoryRepository : ICategoryRepository
     {
-        private readonly AnimeDbContext _context;
+        private readonly ApplicationDbContext _context;
 
-        public CategoryRepository(AnimeDbContext context)
+        public CategoryRepository(ApplicationDbContext context)
         {
             _context = context;
         }

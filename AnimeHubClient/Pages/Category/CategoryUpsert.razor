@@ -1,4 +1,4 @@
-﻿@page "/category/create"
+﻿@* @page "/category/create"
 @page "/category/update/{Id:int}"
 @inject HttpClient Http
 @inject NavigationManager Navigation
@@ -87,4 +87,4 @@ else
         IsProcessing = false;
         Navigation.NavigateTo("category");
     }
-}
+} *@

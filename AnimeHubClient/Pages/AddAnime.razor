@@ -1,4 +1,4 @@
-﻿@page "/add-anime"
+﻿@* @page "/add-anime"
 @inject HttpClient Http
 @inject NavigationManager Navigation
 
@@ -37,4 +37,4 @@
         await Http.PostAsJsonAsync("api/anime", newAnime);
         Navigation.NavigateTo("fetchanime");
     }
-}
+} *@

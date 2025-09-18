@@ -1,4 +1,4 @@
-﻿@page "/fetchanime"
+﻿@* @page "/fetchanime"
 @inject HttpClient Http
 @inject NavigationManager Navigation
 @inject IJSRuntime JSRuntime
@@ -68,4 +68,4 @@ else
             Navigation.NavigateTo(Navigation.Uri, forceLoad: true);
         }
     }
-}
+} *@

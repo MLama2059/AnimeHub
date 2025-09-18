@@ -5,12 +5,12 @@ using System.Text;
 
 namespace AnimeHub.Shared.Models
 {
-    public class Category
+    public class Genre
     {
         public int Id { get; set; }
         [Required, StringLength(50)]
         public string Name { get; set; } = string.Empty;
         // Navigation property
-        public ICollection<Anime> Animes { get; set; } = new List<Anime>();
+        public ICollection<AnimeGenre> AnimeGenres { get; set; } = new List<AnimeGenre>();
     }
 }

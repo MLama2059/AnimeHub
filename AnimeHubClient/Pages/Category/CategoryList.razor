@@ -1,4 +1,4 @@
-﻿@page "/category"
+﻿@* @page "/category"
 @inject HttpClient Http
 
 @if (IsProcessing)
@@ -73,4 +73,4 @@ else
             Console.Error.WriteLine($"Error fetching category data: {ex.Message}");
         }
     }
-}
+} *@
