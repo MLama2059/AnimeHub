@@ -7,6 +7,7 @@ namespace AnimeHub.Shared.Models.Dtos.Anime
 {
     public class AnimeUpdateDto
     {
+        public int Id { get; set; }  // Needed to identify which anime to update
         [Required]
         public string Title { get; set; } = string.Empty;
         public string? Description { get; set; }
@@ -21,8 +22,8 @@ namespace AnimeHub.Shared.Models.Dtos.Anime
         public int YearPublished { get; set; }
 
         [Required]
-        public int CategoryId { get; set; }          // Link to category
+        public int CategoryId { get; set; } // Link to category
 
-        public List<int> GenreIds { get; set; } = new();  // Link to genres (many-to-many)
+        public List<int> GenreIds { get; set; } = new(); // Link to genres (many-to-many)
     }
 }

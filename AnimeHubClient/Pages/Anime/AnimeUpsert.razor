@@ -1,0 +1,188 @@
+﻿@page "/anime/create"
+@page "/anime/update/{Id:int}"
+@using AnimeHub.Shared.Models.Dtos.Anime
+@using AnimeHub.Shared.Models.Dtos.Category
+@using AnimeHub.Shared.Models.Dtos.Genre
+@inject HttpClient Http
+@inject NavigationManager Navigation
+@inject ISnackbar Snackbar
+
+@if (IsProcessing)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <div class="card shadow border-0 mt-4">
+        <div class="card-header bg-black bg-gradient m-lg-0 py-3">
+            <div class="row">
+                <div class="col-12 text-center">
+                    <h2 class="text-white py-2">@(Id > 0 ? "Update" : "Create") Anime</h2>
+                </div>
+            </div>
+        </div>
+        <div class="card-body p-4">
+            <EditForm Model="Anime" FormName="AnimeUpsertForm" OnValidSubmit="UpsertAnime">
+                <DataAnnotationsValidator></DataAnnotationsValidator>
+
+                <div class="border p-3 mt-4">
+                    <div class="form-floating py-3 col-12">
+                        <InputText @bind-Value="Anime.Title" class="form-control" id="Title"></InputText>
+                        <label for="Title">Title</label>
+                        <ValidationMessage For="@(() => Anime.Title)"></ValidationMessage>
+                    </div>
+                    <div class="form-floating py-3 col-12">
+                        <InputTextArea @bind-Value="Anime.Description" class="form-control" id="Description"></InputTextArea>
+                        <label for="Description">Description</label>
+                        <ValidationMessage For="@(() => Anime.Description)"></ValidationMessage>
+                    </div>
+                    <div class="form-floating py-3 col-12">
+                        <InputText @bind-Value="Anime.Author" class="form-control" id="Author"></InputText>
+                        <label for="Author">Author</label>
+                        <ValidationMessage For="@(() => Anime.Author)"></ValidationMessage>
+                    </div>
+                    <div class="form-floating py-3 col-12">
+                        <InputText @bind-Value="Anime.ImageUrl" class="form-control" id="ImageUrl"></InputText>
+                        <label for="ImageUrl">Image Url</label>
+                        <ValidationMessage For="@(() => Anime.ImageUrl)"></ValidationMessage>
+                    </div>
+                    <div class="form-floating py-3 col-12">
+                        <InputNumber @bind-Value="Anime.Rating" class="form-control" id="Rating"></InputNumber>
+                        <label for="Rating">Rating</label>
+                        <ValidationMessage For="@(() => Anime.Rating)"></ValidationMessage>
+                    </div>
+                    <div class="form-floating py-3 col-12">
+                        <InputNumber @bind-Value="Anime.Episodes" class="form-control" id="Episodes"></InputNumber>
+                        <label for="Episodes">Episodes</label>
+                        <ValidationMessage For="@(() => Anime.Episodes)"></ValidationMessage>
+                    </div>
+                    <div class="form-floating py-3 col-12">
+                        <InputNumber @bind-Value="Anime.YearPublished" class="form-control" id="YearPublished"></InputNumber>
+                        <label for="YearPublished">YearPublished</label>
+                        <ValidationMessage For="@(() => Anime.YearPublished)"></ValidationMessage>
+                    </div>
+                    <div class="form-floating py-3 col-12">
+                        <MudSelect @bind-Value="Anime.CategoryId" Label="Select Category" HelperText="Enum" AdornmentColor="Color.Secondary">
+                            @if (Categories != null)
+                            {
+                                @foreach (var category in Categories)
+                                {
+                                    <MudSelectItem Value="@category.Id">@category.Name</MudSelectItem>
+                                } 
+                            }
+                        </MudSelect>
+                        @* <label for="Category">Category</label> *@
+                        <ValidationMessage For="@(() => Anime.CategoryId)"></ValidationMessage>
+                    </div>
+                    <div class="form-floating py-3 col-12">
+                        <label class="Genres">Genres</label>
+                        <MudGrid>
+                            @if (Genres != null)
+                            {
+                                @foreach (var genre in Genres)
+                                {
+                                    @* <MudItem xs="6" sm="4">
+                                        <MudCheckBox T="bool"
+                                                     Label="@genre.Name"
+                                                     Checked="@Anime.GenreIds.Contains(genre.Id)"
+                                                     @onchange="@(e => OnGenreChanged(genre.Id, e.Value))" />
+                                    </MudItem> *@
+                                }
+                            }
+                        </MudGrid>
+                        <ValidationMessage For="@(() => Anime.GenreIds)"></ValidationMessage>
+                    </div>
+                    <div class="row mt-3">
+                        <div class="col-6 col-md-3">
+                            <button type="submit" class="btn btn-primary form-control" disabled="@IsProcessing">
+                                <i class="bi bi-bookmark-check"></i> @(Id > 0 ? "Update" : "Create")
+                            </button>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <a href="anime" class="btn btn-secondary form-control" disabled="@IsProcessing">
+                                <i class="bi bi-box-arrow-in-left"></i> Back to List
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </EditForm>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    // Single form model, can be either Create or Update DTO
+    private AnimeUpdateDto Anime { get; set; } = new();
+    private List<CategoryReadDto> Categories;
+    private List<GenreReadDto> Genres;
+
+    private bool IsProcessing { get; set; } = true;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await LoadAnime();
+            IsProcessing = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task LoadAnime()
+    {
+        if (Id > 0)
+        {
+            var result = await Http.GetFromJsonAsync<AnimeReadDto>($"api/anime/{Id}");
+            if (result != null)
+            {
+                Anime.Id = result.Id;
+                Anime.Title = result.Title;
+                Anime.Description = result.Description;
+                Anime.Author = result.Author;
+                Anime.ImageUrl = result.ImageUrl;
+                Anime.Rating = result.Rating;
+                Anime.Episodes = result.Episodes;
+                // Anime.CategoryId = result.CategoryId;
+                Anime.Title = result.Title;
+
+            }
+        }
+    }
+
+    private async Task UpsertAnime()
+    {
+        IsProcessing = true;
+        if (Id == 0)
+        {
+            // Create
+            await Http.PostAsJsonAsync("api/anime", new AnimeCreateDto { Title = Anime.Title });
+            Snackbar.Add("Anime created successfully.", Severity.Success);
+        }
+        else
+        {
+            // Update
+            await Http.PutAsJsonAsync($"api/category/{Anime.Id}", Anime);
+            Snackbar.Add("Anime updated successfully.", Severity.Success);
+        }
+        IsProcessing = false;
+        Navigation.NavigateTo("category");
+    }
+
+    private void OnGenreChanged(int genreId, bool isChecked)
+    {
+        if (isChecked)
+        {
+            if (!Anime.GenreIds.Contains(genreId))
+                Anime.GenreIds.Add(genreId);
+        }
+        else
+        {
+            if (Anime.GenreIds.Contains(genreId))
+                Anime.GenreIds.Remove(genreId);
+        }
+    }
+
+}

@@ -1,0 +1,128 @@
+﻿@page "/anime"
+@using AnimeHub.Shared.Models.Dtos.Anime
+@using AnimeHubClient.Shared
+@inject HttpClient Http
+@inject IDialogService Dialog
+@inject ISnackbar Snackbar
+
+@if (IsProcessing)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <div class="card shadow border-0 mt-4">
+        <div class="card-header bg-black bg-gradient m-lg-0 py-3">
+            <div class="row">
+                <div class="col-12 text-center">
+                    <h2 class="text-white py-2">Anime List</h2>
+                </div>
+            </div>
+        </div>
+        <div class="card-body p-4">
+            <div class="col-12 text-end">
+                <a href="anime/create" class="btn btn-lg btn-secondary"><i class="bi bi-plus-square"></i> Add New Anime</a>
+            </div>
+        </div>
+        @if (Animes != null && Animes.Any())
+        {
+            <table class="table table-bordered table-striped">
+                <thead>
+                    <tr>
+                        <th>Title</th>
+                        <th>Episodes</th>
+                        <th>Year</th>
+                        <th>Category</th>
+                        <th>Genres</th>
+                        @* <th>Description</th> *@
+                        @* <th>Author</th> *@
+                        @* <th>Image</th> *@
+                        <th>Rating</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var anime in Animes)
+                    {
+                        <tr>
+                            <td>@anime.Title</td>
+                            <td>@anime.Episodes</td>
+                            <td>@anime.YearPublished</td>
+                            <td>@anime.CategoryName</td>
+                            <td>@string.Join(", ", @anime.Genres)</td>
+                            @* <td>@anime.Description</td> *@
+                            @* <td>@anime.Author</td> *@
+                            @* <td>@anime.ImageUrl</td> *@
+                            <td>@anime.Rating</td>
+                            <td>
+                                <a href="@($"anime/update/{anime.Id}")" class="btn btn-primary"><i class="bi bi-pencil-square"></i> Edit</a>
+                                <button class="btn btn-danger" @onclick="() => DeleteAnime(anime.Id)"><i class="bi bi-trash"></i> Delete</button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+    </div>
+}
+
+@code {
+    private bool IsProcessing { get; set; } = true;
+    private List<AnimeReadDto>? Animes;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await LoadAnimes();
+            IsProcessing = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task LoadAnimes()
+    {
+        try
+        {
+            Animes = await Http.GetFromJsonAsync<List<AnimeReadDto>>("api/anime");
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"Error fetching category data: {ex.Message}");
+        }
+    }
+
+    private async Task DeleteAnime(int id)
+    {
+        var parameters = new DialogParameters<ConfirmationDialog>
+        {
+            { x => x.ContentText, "Are you sure you want to delete?"  },
+            { x => x.ButtonText, "Delete" }
+        };
+
+        var options = new DialogOptions
+        {
+            CloseButton = true,
+            MaxWidth = MaxWidth.ExtraLarge,  // keeps the dialog compact
+            FullWidth = false,  // lets it size naturally
+        };
+
+        var dialog = await Dialog.ShowAsync<ConfirmationDialog>("Confirm Delete", parameters, options);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            // Call API to delete
+            var response = await Http.DeleteAsync($"api/anime/{id}");
+            if (response.IsSuccessStatusCode)
+            {
+                Snackbar.Add("Anime deleted successfully!", Severity.Success);
+                await LoadAnimes(); // Reload list
+            }
+            else
+            {
+                Snackbar.Add("Failed to delete anime.", Severity.Error);
+            }
+        }
+    }
+}

@@ -21,8 +21,8 @@ namespace AnimeHub.Shared.Models.Dtos.Anime
         public int YearPublished { get; set; }
 
         [Required]
-        public int CategoryId { get; set; }           // Link to category
+        public int CategoryId { get; set; } // Link to category
 
-        public List<int> GenreIds { get; set; } = new();  // Link to genres (many-to-many)
+        public List<int> GenreIds { get; set; } = new(); // Link to genres (many-to-many)
     }
 }
