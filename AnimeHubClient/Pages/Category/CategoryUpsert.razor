@@ -3,6 +3,7 @@
 @using AnimeHub.Shared.Models.Dtos.Category
 @inject HttpClient Http
 @inject NavigationManager Navigation
+@inject ISnackbar Snackbar
 
 @if (IsProcessing)
 {
@@ -85,11 +86,13 @@ else
         {
             // Create
             await Http.PostAsJsonAsync("api/Category", new CategoryCreateDto { Name = Category.Name });
+            Snackbar.Add("Category created successfully.", Severity.Success);
         }
         else
         {
             // Update
             await Http.PutAsJsonAsync($"api/category/{Category.Id}", Category);
+            Snackbar.Add("Category updated successfully.", Severity.Success);
         }
         IsProcessing = false;
         Navigation.NavigateTo("category");

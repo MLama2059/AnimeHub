@@ -1,6 +1,9 @@
 ﻿@page "/category"
 @using AnimeHub.Shared.Models.Dtos.Category
+@using AnimeHubClient.Shared
 @inject HttpClient Http
+@inject IDialogService Dialog
+@inject ISnackbar Snackbar
 
 @if (IsProcessing)
 {
@@ -39,7 +42,7 @@ else
                             </td>
                             <td>
                                 <a href="@($"category/update/{category.Id}")" class="btn btn-primary"><i class="bi bi-pencil-square"></i> Edit</a>
-                                <button class="btn btn-danger"><i class="bi bi-trash"></i> Delete</button>
+                                <button class="btn btn-danger" @onclick="() => DeleteCategory(category.Id)"><i class="bi bi-trash"></i> Delete</button>
                             </td>
                         </tr>
                     }
@@ -72,6 +75,41 @@ else
         catch (Exception ex)
         {
             Console.Error.WriteLine($"Error fetching category data: {ex.Message}");
+        }
+    }
+
+    private async Task DeleteCategory(int id)
+    {
+        var parameters = new DialogParameters<ConfirmationDialog>
+        {
+            { x => x.ContentText, "Are you sure you want to delete?"  },
+            { x => x.ButtonText, "Delete" }
+        };
+
+        var options = new DialogOptions
+        {
+            CloseButton = true,
+            MaxWidth = MaxWidth.ExtraLarge,  // keeps the dialog compact
+            FullWidth = false,  // lets it size naturally
+        };
+
+        var dialog = await Dialog.ShowAsync<ConfirmationDialog>("Confirm Delete", parameters, options);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            // Call API to delete
+            var response = await Http.DeleteAsync($"api/category/{id}");
+            if (response.IsSuccessStatusCode)
+            {
+                Snackbar.Add("Category deleted successfully!", Severity.Success);
+                await LoadCategories(); // Reload list
+            }
+            else
+            {
+                Snackbar.Add("Failed to delete category.", Severity.Error);
+            }
+
         }
     }
 }
