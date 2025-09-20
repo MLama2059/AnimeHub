@@ -36,8 +36,10 @@ namespace AnimeHubApi.Controllers
                 Author = a.Author,
                 ImageUrl = a.ImageUrl,
                 Rating = a.Rating,
+                CategoryId = a.CategoryId,
                 CategoryName = a.Category?.Name ?? string.Empty,
-                Genres = a.AnimeGenres?.Select(ag => ag.Genre.Name).ToList() ?? new List<string>()
+                Genres = a.AnimeGenres?.Select(ag => ag.Genre.Name).ToList() ?? new List<string>(),
+                GenreIds = a.AnimeGenres?.Select(ag => ag.GenreId).ToList() ?? new List<int>()
             }).ToList();
 
             return Ok(animeDtos);
@@ -60,8 +62,10 @@ namespace AnimeHubApi.Controllers
                 Author = anime.Author,
                 ImageUrl = anime.ImageUrl,
                 Rating = anime.Rating,
+                CategoryId = anime.CategoryId,
                 CategoryName = anime.Category?.Name ?? string.Empty,
-                Genres = anime.AnimeGenres?.Select(ag => ag.Genre.Name).ToList() ?? new List<string>()
+                Genres = anime.AnimeGenres?.Select(ag => ag.Genre.Name).ToList() ?? new List<string>(),
+                GenreIds = anime.AnimeGenres?.Select(ag => ag.GenreId).ToList() ?? new List<int>()
             };
 
             return Ok(animeDto);

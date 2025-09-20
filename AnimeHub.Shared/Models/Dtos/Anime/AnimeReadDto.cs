@@ -12,8 +12,10 @@ namespace AnimeHub.Shared.Models.Dtos.Anime
         public int YearPublished { get; set; }
 
         // Linked entities
-        public string CategoryName { get; set; } = string.Empty;  // From Category table
-        public List<string> Genres { get; set; } = new();         // List of genre names
+        public int CategoryId { get; set; } // For AnimeUpsert page
+        public string CategoryName { get; set; } = string.Empty; // From Category table
+        public List<int> GenreIds { get; set; } = new(); // For AnimeUpsert page
+        public List<string> Genres { get; set; } = new(); // List of genre names
 
         // Extra info
         public string? Description { get; set; }

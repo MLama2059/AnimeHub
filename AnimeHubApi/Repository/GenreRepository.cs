@@ -33,7 +33,7 @@ namespace AnimeHubApi.Repository
 
         public bool Exists(int id)
         {
-            return _context.Categories.Any(u => u.Id == id);
+            return _context.Genres.Any(u => u.Id == id);
         }
 
         public async Task<List<Genre>> GetAllAsync()

@@ -19,7 +19,7 @@ namespace AnimeHubApi.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<List<GenreReadDto>>> GetCategory()
+        public async Task<ActionResult<List<GenreReadDto>>> GetGenres()
         {
             var genres = await _genreRepository.GetAllAsync();
 
@@ -33,7 +33,7 @@ namespace AnimeHubApi.Controllers
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<GenreReadDto>> GetCategoryById(int id)
+        public async Task<ActionResult<GenreReadDto>> GetGenreById(int id)
         {
             var genre = await _genreRepository.GetByIdAsync(id);
             if (genre is null)
@@ -43,11 +43,11 @@ namespace AnimeHubApi.Controllers
 
             var dto = new GenreReadDto { Id = genre.Id, Name = genre.Name };
 
-            return Ok(genre);
+            return Ok(dto);
         }
 
         [HttpPost]
-        public async Task<ActionResult<GenreReadDto>> AddCategory(GenreUpsertDto genreDto)
+        public async Task<ActionResult<GenreReadDto>> AddGenre(GenreUpsertDto genreDto)
         {
             if (genreDto is null)
             {
@@ -58,11 +58,11 @@ namespace AnimeHubApi.Controllers
             var createdGenre = await _genreRepository.AddAsync(genre);
 
             var dto = new GenreReadDto { Id = createdGenre.Id, Name = createdGenre.Name };
-            return CreatedAtAction(nameof(GetCategoryById), new { id = dto.Id }, dto);
+            return CreatedAtAction(nameof(GetGenreById), new { id = dto.Id }, dto);
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateCategory(int id, GenreUpsertDto genreDto)
+        public async Task<IActionResult> UpdateGenre(int id, GenreUpsertDto genreDto)
         {
             if (!_genreRepository.Exists(id))
             {

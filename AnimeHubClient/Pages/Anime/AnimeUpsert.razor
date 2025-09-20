@@ -62,36 +62,41 @@ else
                         <ValidationMessage For="@(() => Anime.YearPublished)"></ValidationMessage>
                     </div>
                     <div class="form-floating py-3 col-12">
-                        <MudSelect @bind-Value="Anime.CategoryId" Label="Select Category" HelperText="Enum" AdornmentColor="Color.Secondary">
+                        <InputSelect @bind-Value="Anime.CategoryId" class="form-select" id="Category">
+                            <option value="0" disabled>-- Select Category --</option>
                             @if (Categories != null)
                             {
                                 @foreach (var category in Categories)
                                 {
-                                    <MudSelectItem Value="@category.Id">@category.Name</MudSelectItem>
-                                } 
-                            }
-                        </MudSelect>
-                        @* <label for="Category">Category</label> *@
-                        <ValidationMessage For="@(() => Anime.CategoryId)"></ValidationMessage>
-                    </div>
-                    <div class="form-floating py-3 col-12">
-                        <label class="Genres">Genres</label>
-                        <MudGrid>
-                            @if (Genres != null)
-                            {
-                                @foreach (var genre in Genres)
-                                {
-                                    @* <MudItem xs="6" sm="4">
-                                        <MudCheckBox T="bool"
-                                                     Label="@genre.Name"
-                                                     Checked="@Anime.GenreIds.Contains(genre.Id)"
-                                                     @onchange="@(e => OnGenreChanged(genre.Id, e.Value))" />
-                                    </MudItem> *@
+                                    <option value="@category.Id">@category.Name</option>
                                 }
                             }
-                        </MudGrid>
-                        <ValidationMessage For="@(() => Anime.GenreIds)"></ValidationMessage>
+                        </InputSelect>
+                        <label for="Category">Category</label>
+                        <ValidationMessage For="@(() => Anime.CategoryId)"></ValidationMessage>
                     </div>
+                    <div class="mb-3 col-12">
+                        <label class="form-label">Genres</label>
+                        @if (Genres != null)
+                        {
+                            @foreach (var genre in Genres)
+                            {
+                                <div class="form-check">
+                                    <input class="form-check-input"
+                                           type="checkbox"
+                                           id="genre-@genre.Id"
+                                           value="@genre.Id"
+                                           checked="@Anime.GenreIds.Contains(genre.Id)"
+                                           @onchange="e => ToggleGenre(genre.Id, (bool)e.Value!)" />
+                                    <label class="form-check-label" for="genre-@genre.Id">
+                                        @genre.Name
+                                    </label>
+                                </div>
+                            }
+                        }
+                        <ValidationMessage For="@(() => Anime.GenreIds)" />
+                    </div>
+
                     <div class="row mt-3">
                         <div class="col-6 col-md-3">
                             <button type="submit" class="btn btn-primary form-control" disabled="@IsProcessing">
@@ -116,8 +121,8 @@ else
 
     // Single form model, can be either Create or Update DTO
     private AnimeUpdateDto Anime { get; set; } = new();
-    private List<CategoryReadDto> Categories;
-    private List<GenreReadDto> Genres;
+    private List<CategoryReadDto>? Categories;
+    private List<GenreReadDto>? Genres { get; set; } = new();
 
     private bool IsProcessing { get; set; } = true;
 
@@ -145,11 +150,13 @@ else
                 Anime.ImageUrl = result.ImageUrl;
                 Anime.Rating = result.Rating;
                 Anime.Episodes = result.Episodes;
-                // Anime.CategoryId = result.CategoryId;
-                Anime.Title = result.Title;
-
+                Anime.YearPublished = result.YearPublished;
+                Anime.CategoryId = result.CategoryId;
+                Anime.GenreIds = result.GenreIds ?? new List<int>();
             }
         }
+        Categories = await Http.GetFromJsonAsync<List<CategoryReadDto>>("api/category");
+        Genres = await Http.GetFromJsonAsync<List<GenreReadDto>>("api/genre");
     }
 
     private async Task UpsertAnime()
@@ -158,20 +165,39 @@ else
         if (Id == 0)
         {
             // Create
-            await Http.PostAsJsonAsync("api/anime", new AnimeCreateDto { Title = Anime.Title });
-            Snackbar.Add("Anime created successfully.", Severity.Success);
+            var response = await Http.PostAsJsonAsync("api/anime", new AnimeCreateDto
+            {
+                Title = Anime.Title,
+                Description = Anime.Description,
+                Author = Anime.Author,
+                ImageUrl = Anime.ImageUrl,
+                Rating = Anime.Rating,
+                Episodes = Anime.Episodes,
+                YearPublished = Anime.YearPublished,
+                CategoryId = Anime.CategoryId,
+                GenreIds = Anime.GenreIds
+            });
+
+            if (response.IsSuccessStatusCode)
+                Snackbar.Add("Anime created successfully.", Severity.Success);
+            else
+                Snackbar.Add("Failed to create anime.", Severity.Error);
         }
         else
         {
             // Update
-            await Http.PutAsJsonAsync($"api/category/{Anime.Id}", Anime);
-            Snackbar.Add("Anime updated successfully.", Severity.Success);
+            var response = await Http.PutAsJsonAsync($"api/anime/{Anime.Id}", Anime);
+
+            if (response.IsSuccessStatusCode)
+                Snackbar.Add("Anime updated successfully.", Severity.Success);
+            else
+                Snackbar.Add("Failed to update anime.", Severity.Error);
         }
         IsProcessing = false;
-        Navigation.NavigateTo("category");
+        Navigation.NavigateTo("anime");
     }
 
-    private void OnGenreChanged(int genreId, bool isChecked)
+    private void ToggleGenre(int genreId, bool isChecked)
     {
         if (isChecked)
         {
@@ -180,9 +206,7 @@ else
         }
         else
         {
-            if (Anime.GenreIds.Contains(genreId))
-                Anime.GenreIds.Remove(genreId);
+            Anime.GenreIds.Remove(genreId);
         }
     }
-
 }
