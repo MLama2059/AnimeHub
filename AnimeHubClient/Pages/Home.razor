@@ -1,24 +1,84 @@
-﻿@* @page "/"
+﻿@page "/"
+@inject HttpClient Http
 
-<PageTitle>Home</PageTitle>
-
-<header class="header">
-    <section class="flex">
-        <div class="logo">
-            <div id="menu-btn" class="fas fa-bars-staggered"></div>
-            <a href="/">AnimeHub</a>
+<div class="container mt-5 py-5">
+    <!-- Hero -->
+    <div class="rounded-5 mt-5 mb-5 hero d-flex align-items-center justify-content-between" style="height:500px; background:url('/images/hero.jpg'); background-size:cover; background-position:center; background-repeat:no-repeat">
+        <div class="text-white bg-dark bg-opacity-50 p-3 rounded-5 align-items-center" style="height:100%">
+            <h1 class="display-6">Welcome to AnimeHub</h1>
+            <p class="lead mb-2">Discover top picks, explore genres, and find your next favorite anime.</p>
+            <a class="btn btn-primary" href="/anime">Browse All Anime</a>
         </div>
+    </div>
 
-        <div class="search-form">
-            <form action="" class="search-bar">
-                <input type="search" placeholder="Search anime..." id="searchBox" maxlength="100" />
-                <label for="searchBox" class="fas fa-search"></label>
-            </form>
-            <a href="filter.razor" class="fas fa-filter"></a>
-        </div>
-
-        <a href="login.razor"><i class="fas fa-user"></i>Login</a>
-
-        <div id="search-toggler" class="fas fa-search"></div>
+    <!-- Featured -->
+    <section class="mb-4">
+        <h4>Featured</h4>
+        @if (IsLoading)
+        {
+            <div class="py-4 text-center"><MudProgressCircular Indeterminate="true" /></div>
+        }
+        else if (Featured.Count == 0)
+        {
+            <div>No featured anime yet.</div>
+        }
+        else
+        {
+            <div class="row g-3">
+                @foreach (var a in Featured)
+                {
+                    <div class="col-6 col-sm-4 col-md-3 col-lg-2">
+                        <AnimeCard Anime="a" />
+                    </div>
+                }
+            </div>
+        }
     </section>
-</header> *@
+
+    <!-- Latest -->
+    <section>
+        <h4>Latest Additions</h4>
+        @if (Animes == null)
+        {
+            <div class="py-4 text-center"><MudProgressCircular Indeterminate="true" /></div>
+        }
+        else
+        {
+            <div class="row g-3">
+                @foreach (var anime in Animes.Take(12))
+                {
+                    <div class="col-6 col-sm-4 col-md-3 col-lg-2">
+                        <AnimeCard Anime="anime" />
+                    </div>
+                }
+            </div>
+        }
+    </section>
+</div>
+
+@code {
+    private bool IsLoading = true;
+    private List<AnimeReadDto> Animes = new();
+    private List<AnimeReadDto> Featured = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            Animes = await Http.GetFromJsonAsync<List<AnimeReadDto>>("api/anime") ?? new List<AnimeReadDto>();
+            // Featured: top by Rating then Year
+            Featured = Animes.OrderByDescending(x => x.Rating).ThenByDescending(x => x.YearPublished).Take(8).ToList();
+            Animes = Animes.OrderByDescending(x => x.YearPublished).ToList();
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"Home load error: {ex.Message}");
+            Animes = new List<AnimeReadDto>();
+            Featured = new List<AnimeReadDto>();
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+}

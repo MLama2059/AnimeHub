@@ -1,0 +1,33 @@
+﻿@inject NavigationManager Navigation
+
+<MudCard Class="anime-card" Style="position:relative; overflow:hidden;">
+    <!-- Cover Image -->
+    <MudCardMedia Image="@SafeImageUrl" Height="250" Class="cursor-pointer"
+                  @onclick='() => Navigation.NavigateTo($"/anime/{Anime.Id}")' />
+
+    <!-- Overlay (hidden until hover) -->
+    <div class="overlay" @onclick='() => Navigation.NavigateTo($"/anime/{Anime.Id}")'>
+        <div class="overlay-content">
+            <MudText Typo="Typo.subtitle2">@Anime.Title</MudText>
+            <MudText Typo="Typo.caption">Ep: @Anime.Episodes | @Anime.YearPublished</MudText>
+            <MudText Typo="Typo.caption">
+                <MudIcon Icon="@Icons.Material.Filled.Star" Color="Color.Warning" /> @Anime.Rating
+            </MudText>
+
+        </div>
+    </div>
+
+    <!-- Title below card -->
+    <MudCardContent>
+        <MudText Typo="Typo.body1" Class="cursor-pointer text-ellipsis"
+                 @onclick='() => Navigation.NavigateTo($"/anime/{Anime.Id}")'>
+            @Anime.Title
+        </MudText>
+    </MudCardContent>
+</MudCard>
+
+@code {
+    [Parameter] public AnimeReadDto Anime { get; set; } = new();
+
+    private string SafeImageUrl => string.IsNullOrWhiteSpace(Anime.ImageUrl) ? "/images/placeholder.jpg" : Anime.ImageUrl;
+}
