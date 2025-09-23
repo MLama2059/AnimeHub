@@ -1,0 +1,36 @@
+﻿@inject NavigationManager Navigation
+
+<MudDialog>
+    <DialogContent>
+        <MudGrid>
+            <MudItem xs="12" sm="4">
+                <MudImage Src="@Anime.ImageUrl" Alt="@Anime.Title" Width="100" Height="100" />
+            </MudItem>
+            <MudItem xs="12" sm="8">
+                <MudText Typo="Typo.h5">@Anime.Title</MudText>
+                <MudText Typo="Typo.body2" Class="mb-2">@Anime.Description</MudText>
+
+                <MudChipSet T="string">
+                    @foreach (var genre in Anime.Genres)
+                    {
+                        <MudChip Color="Color.Primary" Variant="Variant.Outlined">@genre</MudChip>
+                    }
+                </MudChipSet>
+
+                <MudRating Value="@Anime.Rating" MaxValue="10" ReadOnly="true" Class="mt-2" />
+
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@(() => Navigation.NavigateTo($"/anime/details/{Anime.Id}"))" Class="mt-3">
+                    View Full Details
+                </MudButton>
+            </MudItem>
+        </MudGrid>
+    </DialogContent>
+</MudDialog>
+
+@code {
+    [CascadingParameter] public IMudDialogInstance MudDialog { get; set; } = default!;
+
+    [Parameter] public AnimeReadDto Anime { get; set; } = new();
+
+    void Close() => MudDialog.Close();
+}

@@ -1,0 +1,83 @@
+﻿@page "/anime/details/{Id:int}"
+@inject HttpClient Http
+@inject IJSRuntime JS
+
+<MudContainer Class="mt-4">
+    @if (Anime == null)
+    {
+        <MudText Typo="Typo.h5" Color="Color.Error">Loading anime details...</MudText>
+    }
+    else
+    {
+        <MudPaper Class="p-4 rounded-lg shadow-lg">
+            <MudGrid>
+                <!-- Anime Poster -->
+                <MudItem xs="12" md="4">
+                    <MudImage Src="@SafeImageUrl" 
+                              Alt="@Anime.Title" 
+                              Class="rounded-lg w-100" />
+                </MudItem>
+
+                <!-- Anime Info -->
+                <MudItem xs="12" md="8">
+                    <MudText Typo="Typo.h4" GutterBottom="true">@Anime.Title</MudText>
+                    <MudText Typo="Typo.body1" Class="mb-3">@Anime.Description</MudText>
+
+                    <MudText Typo="Typo.subtitle2">
+                        <b>Author:</b> @Anime.Author
+                    </MudText>
+                    <MudText Typo="Typo.subtitle2">
+                        <b>Year Published:</b> @Anime.YearPublished
+                    </MudText>
+                    <MudText Typo="Typo.subtitle2">
+                        <b>Episodes:</b> @Anime.Episodes
+                    </MudText>
+                    <MudText Typo="Typo.subtitle2">
+                        <b>Category:</b> @Anime.CategoryName
+                    </MudText>
+
+                    <!-- Genres -->
+                    <MudText Typo="Typo.subtitle2" Class="mt-2"><b>Genres:</b></MudText>
+                    @if (Anime.Genres != null && Anime.Genres.Any())
+                    {
+                        <MudChipSet T="string">
+                            @foreach (var genre in Anime.Genres)
+                            {
+                                <MudChip T="string" Color="Color.Primary" Variant="Variant.Outlined">@genre</MudChip>
+                            }
+                        </MudChipSet>
+                    }
+                    else
+                    {
+                        <MudText Typo="Typo.body2" Color="Color.Secondary">No genres assigned</MudText>
+                    }
+
+                    <!-- Back button -->
+                    <MudButton Variant="Variant.Outlined" Color="Color.Secondary" 
+                               Class="mt-4" OnClick="GoBack">
+                        ← Back
+                    </MudButton>
+                </MudItem>
+            </MudGrid>
+        </MudPaper>
+    }
+</MudContainer>
+
+@code {
+    [Parameter] public int Id { get; set; }
+
+    private AnimeReadDto? Anime { get; set; }
+
+    private string SafeImageUrl => string.IsNullOrWhiteSpace(Anime.ImageUrl) ? "/images/placeholder.jpg" : Anime.ImageUrl;
+
+    protected override async Task OnInitializedAsync()
+    {
+        Anime = await Http.GetFromJsonAsync<AnimeReadDto>($"api/anime/{Id}");
+    }
+
+    private async Task GoBack()
+    {
+        // Go back to the previous page (homepage, list, etc.)
+        await JS.InvokeVoidAsync("history.back");
+    }
+}
