@@ -28,11 +28,12 @@ namespace AnimeHubApi.Controllers
                 Id = a.Id,
                 Title = a.Title,
                 Episodes = a.Episodes,
-                YearPublished = a.YearPublished,
+                PremieredYear = a.PremieredYear,
                 Description = a.Description,
-                Author = a.Author,
+                Studio = a.Studio,
                 ImageUrl = a.ImageUrl,
                 Rating = a.Rating,
+                Status = a.Status,
                 CategoryId = a.CategoryId,
                 CategoryName = a.Category?.Name ?? string.Empty,
                 Genres = a.AnimeGenres?.Select(ag => ag.Genre.Name).ToList() ?? new List<string>(),
@@ -54,11 +55,12 @@ namespace AnimeHubApi.Controllers
                 Id = anime.Id,
                 Title = anime.Title,
                 Episodes = anime.Episodes,
-                YearPublished = anime.YearPublished,
+                PremieredYear = anime.PremieredYear,
                 Description = anime.Description,
-                Author = anime.Author,
+                Studio = anime.Studio,
                 ImageUrl = anime.ImageUrl,
                 Rating = anime.Rating,
+                Status = anime.Status,
                 CategoryId = anime.CategoryId,
                 CategoryName = anime.Category?.Name ?? string.Empty,
                 Genres = anime.AnimeGenres?.Select(ag => ag.Genre.Name).ToList() ?? new List<string>(),
@@ -78,11 +80,12 @@ namespace AnimeHubApi.Controllers
             {
                 Title = animeDto.Title,
                 Episodes = animeDto.Episodes,
-                YearPublished = animeDto.YearPublished,
+                PremieredYear = animeDto.PremieredYear,
                 Description = animeDto.Description,
-                Author = animeDto.Author,
+                Studio = animeDto.Studio,
                 ImageUrl = animeDto.ImageUrl,
                 Rating = animeDto.Rating,
+                Status = animeDto.Status,
                 CategoryId = animeDto.CategoryId
             };
 
@@ -96,11 +99,12 @@ namespace AnimeHubApi.Controllers
                 Id = createdAnime.Id,
                 Title = createdAnime.Title,
                 Episodes = createdAnime.Episodes,
-                YearPublished = createdAnime.YearPublished,
+                PremieredYear = createdAnime.PremieredYear,
                 Description = createdAnime.Description,
-                Author = createdAnime.Author,
+                Studio = createdAnime.Studio,
                 ImageUrl = createdAnime.ImageUrl,
                 Rating = createdAnime.Rating,
+                Status = createdAnime.Status,
                 CategoryName = createdAnime.Category?.Name ?? string.Empty,
                 Genres = createdAnime.AnimeGenres?
                     .Where(ag => ag.Genre != null)
@@ -154,7 +158,6 @@ namespace AnimeHubApi.Controllers
             return Ok(relativePath);
         }
 
-
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateAnime(int id, [FromBody] AnimeUpdateDto animeDto)
         {
@@ -166,11 +169,12 @@ namespace AnimeHubApi.Controllers
                 Id = id,
                 Title = animeDto.Title,
                 Episodes = animeDto.Episodes,
-                YearPublished = animeDto.YearPublished,
+                PremieredYear = animeDto.PremieredYear,
                 Description = animeDto.Description,
-                Author = animeDto.Author,
+                Studio = animeDto.Studio,
                 ImageUrl = animeDto.ImageUrl,
                 Rating = animeDto.Rating,
+                Status = animeDto.Status,
                 CategoryId = animeDto.CategoryId
             };
 

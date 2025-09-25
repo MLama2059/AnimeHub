@@ -8,8 +8,8 @@ namespace AnimeHub.Shared.Models.Dtos.Anime
     {
         public int Id { get; set; }
         public string Title { get; set; } = string.Empty;
-        public int Episodes { get; set; }
-        public int YearPublished { get; set; }
+        public int? Episodes { get; set; }
+        public int? PremieredYear { get; set; }
 
         // Linked entities
         public int CategoryId { get; set; } // For AnimeUpsert page
@@ -19,8 +19,9 @@ namespace AnimeHub.Shared.Models.Dtos.Anime
 
         // Extra info
         public string? Description { get; set; }
-        public string? Author { get; set; }
+        public string? Studio { get; set; }
         public string? ImageUrl { get; set; }
         public double Rating { get; set; }
+        public string? Status { get; set; }
     }
 }

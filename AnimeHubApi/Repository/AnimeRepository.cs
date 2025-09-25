@@ -91,11 +91,12 @@ namespace AnimeHubApi.Repository
 
             existingAnime.Title = anime.Title;
             existingAnime.Episodes = anime.Episodes;
-            existingAnime.YearPublished = anime.YearPublished;
+            existingAnime.PremieredYear = anime.PremieredYear;
             existingAnime.Description = anime.Description;
-            existingAnime.Author = anime.Author;
+            existingAnime.Studio = anime.Studio;
             existingAnime.ImageUrl = anime.ImageUrl;
             existingAnime.Rating = anime.Rating;
+            existingAnime.Status = anime.Status;
             existingAnime.CategoryId = anime.CategoryId;
 
             // Update genres

@@ -7,15 +7,16 @@ namespace AnimeHub.Shared.Models
         public int Id { get; set; }
         [Required, StringLength(100)]
         public string Title { get; set; } = string.Empty;
-        [Range(1, 2000)]
-        public int Episodes { get; set; }
+        [Range(1, 5000)]
+        public int? Episodes { get; set; }
         [Range(1900, 2100)]
-        public int YearPublished { get; set; }
+        public int? PremieredYear { get; set; }
         public string? Description { get; set; }
-        public string? Author { get; set; }
+        public string? Studio { get; set; }
         public string? ImageUrl { get; set; }
         [Range(0, 10)]
         public double Rating { get; set; }
+        public string? Status { get; set; }
 
         // Foreign Key -> Category
         public int CategoryId { get; set; }

@@ -11,15 +11,13 @@ namespace AnimeHub.Shared.Models.Dtos.Anime
         [Required]
         public string Title { get; set; } = string.Empty;
         public string? Description { get; set; }
-        public string? Author { get; set; }
+        public string? Studio { get; set; }
         public string? ImageUrl { get; set; }
         public double Rating { get; set; }
-
+        public int? Episodes { get; set; }
+        public int? PremieredYear { get; set; }
         [Required]
-        public int Episodes { get; set; }
-
-        [Required]
-        public int YearPublished { get; set; }
+        public string? Status { get; set; }
 
         [Required]
         public int CategoryId { get; set; } // Link to category

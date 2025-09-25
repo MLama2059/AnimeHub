@@ -3,6 +3,7 @@ using AnimeHubApi.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace AnimeHubApi.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250925111809_AddAllGenres")]
+    partial class AddAllGenres
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -29,34 +32,31 @@ namespace AnimeHubApi.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("Author")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<int>("CategoryId")
                         .HasColumnType("int");
 
                     b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("Episodes")
+                    b.Property<int>("Episodes")
                         .HasColumnType("int");
 
                     b.Property<string>("ImageUrl")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("PremieredYear")
-                        .HasColumnType("int");
-
                     b.Property<double>("Rating")
                         .HasColumnType("float");
-
-                    b.Property<string>("Status")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Studio")
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
+
+                    b.Property<int>("YearPublished")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
@@ -68,38 +68,35 @@ namespace AnimeHubApi.Migrations
                         new
                         {
                             Id = 1,
+                            Author = "Masashi Kishimoto",
                             CategoryId = 1,
                             Description = "Ninja action adventure",
                             Episodes = 500,
-                            PremieredYear = 2007,
                             Rating = 9.0,
-                            Status = "Completed",
-                            Studio = "Studio Pierrot",
-                            Title = "Naruto Shippuden"
+                            Title = "Naruto Shippuden",
+                            YearPublished = 2007
                         },
                         new
                         {
                             Id = 2,
+                            Author = "Koyoharu Gotouge",
                             CategoryId = 1,
                             Description = "Fantasy action adventure",
                             Episodes = 55,
-                            PremieredYear = 2019,
                             Rating = 9.1999999999999993,
-                            Status = "Airing",
-                            Studio = "Ufotable",
-                            Title = "Demon Slayer: Kimetsu no Yaiba"
+                            Title = "Demon Slayer: Kimetsu no Yaiba",
+                            YearPublished = 2019
                         },
                         new
                         {
                             Id = 3,
+                            Author = "Studio Ghibli",
                             CategoryId = 2,
                             Description = "Fantasy adventure movie",
                             Episodes = 1,
-                            PremieredYear = 2001,
                             Rating = 9.5,
-                            Status = "Completed",
-                            Studio = "Studio Ghibli",
-                            Title = "Spirited Away"
+                            Title = "Spirited Away",
+                            YearPublished = 2001
                         });
                 });
 

@@ -37,9 +37,9 @@ else
                         <ValidationMessage For="@(() => Anime.Description)"></ValidationMessage>
                     </div>
                     <div class="form-floating py-3 col-12">
-                        <InputText @bind-Value="Anime.Author" class="form-control" id="Author"></InputText>
-                        <label for="Author">Author</label>
-                        <ValidationMessage For="@(() => Anime.Author)"></ValidationMessage>
+                        <InputText @bind-Value="Anime.Studio" class="form-control" id="Studio"></InputText>
+                        <label for="Studio">Studio</label>
+                        <ValidationMessage For="@(() => Anime.Studio)"></ValidationMessage>
                     </div>
                     <div class="form-floating py-3 col-12">
                         <InputFile OnChange="OnFileSelected" id="AnimeImage" class="form-control pb-3" accept="image/x-png,image/jpeg" />
@@ -71,9 +71,14 @@ else
                         <ValidationMessage For="@(() => Anime.Episodes)"></ValidationMessage>
                     </div>
                     <div class="form-floating py-3 col-12">
-                        <InputNumber @bind-Value="Anime.YearPublished" class="form-control" id="YearPublished"></InputNumber>
-                        <label for="YearPublished">YearPublished</label>
-                        <ValidationMessage For="@(() => Anime.YearPublished)"></ValidationMessage>
+                        <InputNumber @bind-Value="Anime.PremieredYear" class="form-control" id="PremieredYear"></InputNumber>
+                        <label for="PremieredYear">Premiered</label>
+                        <ValidationMessage For="@(() => Anime.PremieredYear)"></ValidationMessage>
+                    </div>
+                    <div class="form-floating py-3 col-12">
+                        <InputText @bind-Value="Anime.Status" class="form-control" id="Status"></InputText>
+                        <label for="Status">Status</label>
+                        <ValidationMessage For="@(() => Anime.Status)"></ValidationMessage>
                     </div>
                     <div class="form-floating py-3 col-12">
                         <InputSelect @bind-Value="Anime.CategoryId" class="form-select" id="Category">
@@ -167,11 +172,12 @@ else
                 Anime.Id = result.Id;
                 Anime.Title = result.Title;
                 Anime.Description = result.Description;
-                Anime.Author = result.Author;
+                Anime.Studio = result.Studio;
                 Anime.ImageUrl = result.ImageUrl;
                 Anime.Rating = result.Rating;
                 Anime.Episodes = result.Episodes;
-                Anime.YearPublished = result.YearPublished;
+                Anime.PremieredYear = result.PremieredYear;
+                Anime.Status = result.Status;
                 Anime.CategoryId = result.CategoryId;
                 Anime.GenreIds = result.GenreIds ?? new List<int>();
 
@@ -245,11 +251,12 @@ else
                 {
                     Title = Anime.Title,
                     Description = Anime.Description,
-                    Author = Anime.Author,
+                    Studio = Anime.Studio,
                     ImageUrl = Anime.ImageUrl,
                     Rating = Anime.Rating,
                     Episodes = Anime.Episodes,
-                    YearPublished = Anime.YearPublished,
+                    PremieredYear = Anime.PremieredYear,
+                    Status = Anime.Status,
                     CategoryId = Anime.CategoryId,
                     GenreIds = Anime.GenreIds
                 });
