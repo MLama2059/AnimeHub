@@ -1,13 +1,116 @@
 ﻿@page "/"
 @inject HttpClient Http
+@inject NavigationManager Navigation
 
-<div class="container mt-5 py-5">
-    <!-- Hero -->
-    <div class="rounded-5 mt-5 mb-5 hero d-flex align-items-center justify-content-between" style="height:500px; background:url('/images/hero1.jpg'); background-size:cover; background-position:center; background-repeat:no-repeat">
-        <div class="text-white bg-dark bg-opacity-50 p-3 rounded-5 align-items-center" style="height:50%">
-            <h1 class="display-6">Welcome to AnimeHub</h1>
-            <p class="lead mb-2">Discover top picks, explore genres, and find your next favorite anime.</p>
-            <a class="btn btn-primary" href="/anime">Browse All Anime</a>
+<div class="container-fluid p-0">
+    <div class="row">
+        <div class="col-12 hero-section text-center text-black py-5">
+            <h1 class="display-3 fw-bold mb-3">Welcome to AnimeHub</h1>
+            <p class="lead">Your destination for all things anime. Discover, rate, and explore a world of stories.</p>
+        </div>
+    </div>
+
+    <div class="row mt-5">
+        <div class="col text-center">
+            <h2 class="display-4 fw-bold mb-4">Top Rated Anime</h2>
+        </div>
+
+        <div class="col-12">
+            <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4 justify-content-center">
+                @if (TopAnimes != null && TopAnimes.Any())
+                {
+                    foreach (var anime in TopAnimes)
+                    {
+                        <div class="col d-flex justify-content-center">
+                            <div class="card shadow-sm anime-card" style="width: 18rem;">
+                                <img src="@(Http.BaseAddress?.ToString() + anime.ImageUrl)" class="card-img-top anime-img-top" alt="@anime.Title" />
+                                <div class="card-body">
+                                    <h5 class="card-title text-truncate">@anime.Title</h5>
+                                    <p class="card-text text-muted mb-1">Rating: @anime.Rating</p>
+                                    <a href="anime/@anime.Id" class="btn btn-primary mt-2">View Details</a>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <p>No top-rated anime to display.</p>
+                }
+            </div>
+        </div>
+
+        <div class="row mt-5">
+            <div class="col-12 text-center">
+                <h2 class="display-5 fw-bold mb-4">Browse by Category</h2>
+            </div>
+            <div class="col-12">
+                <div class="row row-cols-2 row-cols-sm-3 row-cols-md-4 row-cols-lg-5 g-3 justify-content-center">
+                    @if (Categories != null && Categories.Any())
+                    {
+                        foreach (var category in Categories)
+                        {
+                            <div class="col d-flex justify-content-center">
+                                <a href="category/@category.Id" class="btn btn-outline-secondary w-100">@category.Name</a>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <p>No categories to display.</p>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="row mt-5">
+            <div class="col-12 text-center">
+                <h2 class="display-5 fw-bold mb-4">Browse by Genre</h2>
+            </div>
+            <div class="col-12">
+                <div class="row row-cols-2 row-cols-sm-3 row-cols-md-4 row-cols-lg-5 g-3 justify-content-center">
+                    @if (Genres != null && Genres.Any())
+                    {
+                        foreach (var genre in Genres)
+                        {
+                            <div class="col d-flex justify-content-center">
+                                <a href="genre/@genre.Id" class="btn btn-outline-secondary w-100">@genre.Name</a>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <p>No genres to display.</p>
+                    }
+                </div>
+            </div>
         </div>
     </div>
 </div>
+
+@code {
+    private List<AnimeReadDto>? TopAnimes { get; set; }
+    private List<CategoryReadDto>? Categories { get; set; }
+    private List<GenreReadDto>? Genres { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            TopAnimes = await Http.GetFromJsonAsync<List<AnimeReadDto>>("api/anime");
+            Categories = await Http.GetFromJsonAsync<List<CategoryReadDto>>("api/category");
+            Genres = await Http.GetFromJsonAsync<List<GenreReadDto>>("api/genre");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"An error occurred while fetching home page data: {ex.Message}");
+        }
+    }
+}
+
+<style>
+    .hero-section {
+        background: url('/images/hero1.jpg') no-repeat center center;
+        background-size: cover;
+    }
+</style>
