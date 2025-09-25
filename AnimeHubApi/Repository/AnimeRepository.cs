@@ -43,6 +43,15 @@ namespace AnimeHubApi.Repository
             if (anime is null)
                 return false;
 
+            if (!string.IsNullOrEmpty(anime.ImageUrl))
+            {
+                var filePath = Path.Combine(Directory.GetCurrentDirectory(), anime.ImageUrl.Replace("/", Path.DirectorySeparatorChar.ToString()));
+
+                // Delete the file if it exists
+                if (File.Exists(filePath))
+                    File.Delete(filePath);
+            }
+
             _context.Animes.Remove(anime);
             await _context.SaveChangesAsync();
             return true;

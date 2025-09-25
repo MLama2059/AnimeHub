@@ -50,6 +50,36 @@
     display: block;
 }
 
+/*test*/
+.hero-area {
+    position: relative;
+    background: url('/images/hero1.jpg') no-repeat center;
+    color: white;
+    height: 400px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 2rem;
+}
+
+.hero-content {
+    max-width: 600px;
+    background: rgba(0,0,0,0.6);
+    padding: 1.5rem;
+    border-radius: 12px;
+}
+
+.section-title {
+    margin: 2rem 0 1rem;
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+
+.anime-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1rem;
+}
 
 
 

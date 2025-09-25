@@ -68,7 +68,7 @@
 
     private AnimeReadDto? Anime { get; set; }
 
-    private string SafeImageUrl => string.IsNullOrWhiteSpace(Anime.ImageUrl) ? "/images/placeholder.jpg" : Anime.ImageUrl;
+    private string SafeImageUrl => string.IsNullOrWhiteSpace(Anime.ImageUrl) ? "/images/placeholder1.jpg" : Anime.ImageUrl;
 
     protected override async Task OnInitializedAsync()
     {

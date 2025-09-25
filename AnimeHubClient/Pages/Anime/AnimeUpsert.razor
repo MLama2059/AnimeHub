@@ -7,9 +7,9 @@
 @inject NavigationManager Navigation
 @inject ISnackbar Snackbar
 
-@if (IsProcessing)
+@if (IsLoading)
 {
-    <p><em>Loading...</em></p>
+    <div class="py-4 text-center"><MudProgressCircular Indeterminate="true" /></div>
 }
 else
 {
@@ -42,10 +42,24 @@ else
                         <ValidationMessage For="@(() => Anime.Author)"></ValidationMessage>
                     </div>
                     <div class="form-floating py-3 col-12">
-                        <InputText @bind-Value="Anime.ImageUrl" class="form-control" id="ImageUrl"></InputText>
-                        <label for="ImageUrl">Image Url</label>
-                        <ValidationMessage For="@(() => Anime.ImageUrl)"></ValidationMessage>
+                        <InputFile OnChange="OnFileSelected" id="AnimeImage" class="form-control pb-3" accept="image/x-png,image/jpeg" />
+                        <label for="AnimeImage">Upload Image</label>
                     </div>
+
+                    <!-- Preview -->
+                    @if (!string.IsNullOrEmpty(PreviewImageUrl))
+                    {
+                        <div class="mt-3 text-center">
+                            <img src="@PreviewImageUrl" class="img-fluid rounded shadow-sm" style="max-height:200px;" />
+                        </div>
+                    }
+                    else if (!string.IsNullOrEmpty(UploadedImageUrl))
+                    {
+                        <div class="mt-3 text-center">
+                            <img src="@($"{ApiBaseUrl}{UploadedImageUrl}")" class="img-fluid rounded shadow-sm" style="max-height:200px;" />
+                        </div>
+                    }
+
                     <div class="form-floating py-3 col-12">
                         <InputNumber @bind-Value="Anime.Rating" class="form-control" id="Rating"></InputNumber>
                         <label for="Rating">Rating</label>
@@ -99,12 +113,12 @@ else
 
                     <div class="row mt-3">
                         <div class="col-6 col-md-3">
-                            <button type="submit" class="btn btn-primary form-control" disabled="@IsProcessing">
+                            <button type="submit" class="btn btn-primary form-control" disabled="@IsLoading">
                                 <i class="bi bi-bookmark-check"></i> @(Id > 0 ? "Update" : "Create")
                             </button>
                         </div>
                         <div class="col-6 col-md-3">
-                            <a href="anime" class="btn btn-secondary form-control" disabled="@IsProcessing">
+                            <a href="anime" class="btn btn-secondary form-control" disabled="@IsLoading">
                                 <i class="bi bi-box-arrow-in-left"></i> Back to List
                             </a>
                         </div>
@@ -121,19 +135,26 @@ else
 
     // Single form model, can be either Create or Update DTO
     private AnimeUpdateDto Anime { get; set; } = new();
+
     private List<CategoryReadDto>? Categories;
     private List<GenreReadDto>? Genres { get; set; } = new();
 
-    private bool IsProcessing { get; set; } = true;
+    private bool IsLoading { get; set; } = true;
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
+    private IBrowserFile? SelectedFile;
+    private string? PreviewImageUrl;   // Base64 local preview
+    private string? UploadedImageUrl;  // Server path from API
+    private string? ApiBaseUrl { get; set; }
+
+
+    protected override async Task OnParametersSetAsync()
     {
-        if (firstRender)
-        {
-            await LoadAnime();
-            IsProcessing = false;
-            StateHasChanged();
-        }
+        // Set the API base URL from the HttpClient
+        ApiBaseUrl = Http.BaseAddress?.ToString();
+
+        await LoadAnime();
+        IsLoading = false;
+        StateHasChanged();
     }
 
     private async Task LoadAnime()
@@ -153,47 +174,107 @@ else
                 Anime.YearPublished = result.YearPublished;
                 Anime.CategoryId = result.CategoryId;
                 Anime.GenreIds = result.GenreIds ?? new List<int>();
+
+                // Ensure the path uses forward slashes for web access
+                UploadedImageUrl = result.ImageUrl?.Replace("\\", "/");
             }
         }
+        else // Handle case for new anime creation (Id == 0)
+        {
+            // Reset the Anime object and image URLs for a new entry
+            Anime = new AnimeUpdateDto();
+            PreviewImageUrl = null;
+            UploadedImageUrl = null;
+        }
+
         Categories = await Http.GetFromJsonAsync<List<CategoryReadDto>>("api/category");
         Genres = await Http.GetFromJsonAsync<List<GenreReadDto>>("api/genre");
     }
 
     private async Task UpsertAnime()
     {
-        IsProcessing = true;
-        if (Id == 0)
+        IsLoading = true;
+
+        try
         {
-            // Create
-            var response = await Http.PostAsJsonAsync("api/anime", new AnimeCreateDto
+            // Check if a new file has been selected
+            if (SelectedFile != null)
             {
-                Title = Anime.Title,
-                Description = Anime.Description,
-                Author = Anime.Author,
-                ImageUrl = Anime.ImageUrl,
-                Rating = Anime.Rating,
-                Episodes = Anime.Episodes,
-                YearPublished = Anime.YearPublished,
-                CategoryId = Anime.CategoryId,
-                GenreIds = Anime.GenreIds
-            });
+                // Create a byte array with the file's size
+                var buffer = new byte[(int)SelectedFile.Size];
 
-            if (response.IsSuccessStatusCode)
-                Snackbar.Add("Anime created successfully.", Severity.Success);
+                // Read the file stream into the buffer
+                await SelectedFile.OpenReadStream(5 * 1024 * 1024).ReadAsync(buffer);
+
+                var content = new MultipartFormDataContent();
+                var fileContent = new ByteArrayContent(buffer);
+                fileContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(SelectedFile.ContentType);
+                content.Add(fileContent, "file", SelectedFile.Name);
+
+                // Send the existing image URL to the API as a query parameter
+                // This URL will be null on a new create, and the old path on an update.
+                string oldImageUrlParam = string.IsNullOrEmpty(Anime.ImageUrl) ? "" : $"&oldImageUrl={Uri.EscapeDataString(Anime.ImageUrl)}";
+
+                // Upload the new image to the API
+                var response = await Http.PostAsync($"api/anime/upload-image?{oldImageUrlParam}", content);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    // Get the new image path from the API
+                    UploadedImageUrl = await response.Content.ReadAsStringAsync();
+                    Anime.ImageUrl = UploadedImageUrl;
+                }
+                else
+                {
+                    Snackbar.Add("Image upload failed.", Severity.Error);
+                    IsLoading = false;
+                    return; // Stop the process if image upload fails
+                }
+            }
             else
-                Snackbar.Add("Failed to create anime.", Severity.Error);
+            {
+                // If no new file, retain the existing ImageUrl from the loaded Anime object
+                // This is crucial for updates where the user doesn't change the image
+                Anime.ImageUrl = UploadedImageUrl;
+            }
+
+            if (Id == 0)
+            {
+                // Create
+                var response = await Http.PostAsJsonAsync("api/anime", new AnimeCreateDto
+                {
+                    Title = Anime.Title,
+                    Description = Anime.Description,
+                    Author = Anime.Author,
+                    ImageUrl = Anime.ImageUrl,
+                    Rating = Anime.Rating,
+                    Episodes = Anime.Episodes,
+                    YearPublished = Anime.YearPublished,
+                    CategoryId = Anime.CategoryId,
+                    GenreIds = Anime.GenreIds
+                });
+
+                if (response.IsSuccessStatusCode)
+                    Snackbar.Add("Anime created successfully.", Severity.Success);
+                else
+                    Snackbar.Add("Failed to create anime.", Severity.Error);
+            }
+            else
+            {
+                // Update
+                var response = await Http.PutAsJsonAsync($"api/anime/{Anime.Id}", Anime);
+
+                if (response.IsSuccessStatusCode)
+                    Snackbar.Add("Anime updated successfully.", Severity.Success);
+                else
+                    Snackbar.Add("Failed to update anime.", Severity.Error);
+            }
         }
-        else
+        finally
         {
-            // Update
-            var response = await Http.PutAsJsonAsync($"api/anime/{Anime.Id}", Anime);
-
-            if (response.IsSuccessStatusCode)
-                Snackbar.Add("Anime updated successfully.", Severity.Success);
-            else
-                Snackbar.Add("Failed to update anime.", Severity.Error);
+            IsLoading = false; 
         }
-        IsProcessing = false;
+
         Navigation.NavigateTo("anime");
     }
 
@@ -208,5 +289,32 @@ else
         {
             Anime.GenreIds.Remove(genreId);
         }
+    }
+
+    private async Task OnFileSelected(InputFileChangeEventArgs e)
+    {
+        SelectedFile = e.File;
+
+        if (SelectedFile == null)
+            return;
+
+        if (!SelectedFile.ContentType.StartsWith("image/"))
+        {
+            Snackbar.Add("Please select a valid image file.", Severity.Warning);
+            return;
+        }
+
+        if (SelectedFile.Size > 5 * 1024 * 1024)
+        {
+            Snackbar.Add("File size exceeds 5 MB.", Severity.Warning);
+            return;
+        }
+
+        // Base 64 Preview
+        var buffer = new byte[(int)SelectedFile.Size];
+        await SelectedFile.OpenReadStream(5 * 1024 * 1024).ReadAsync(buffer); // 5MB max
+        PreviewImageUrl = $"data:{SelectedFile.ContentType};base64,{Convert.ToBase64String(buffer)}";
+
+        UploadedImageUrl = null; // Reset uploaded URL until upload completes
     }
 }

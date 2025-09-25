@@ -103,14 +103,14 @@ else
         var options = new DialogOptions
         {
             CloseButton = true,
-            MaxWidth = MaxWidth.ExtraLarge,  // keeps the dialog compact
-            FullWidth = false,  // lets it size naturally
+            MaxWidth = MaxWidth.ExtraLarge,
+            FullWidth = false,
         };
 
         var dialog = await Dialog.ShowAsync<ConfirmationDialog>("Confirm Delete", parameters, options);
         var result = await dialog.Result;
 
-        if (!result.Canceled)
+        if (result != null && !result.Canceled)
         {
             // Call API to delete
             var response = await Http.DeleteAsync($"api/anime/{id}");

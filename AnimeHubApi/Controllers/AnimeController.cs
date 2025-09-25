@@ -15,10 +15,7 @@ namespace AnimeHubApi.Controllers
     {
         private readonly IAnimeRepository _animeRepository;
 
-        public AnimeController(IAnimeRepository animeRepository)
-        {
-            _animeRepository = animeRepository;
-        }
+        public AnimeController(IAnimeRepository animeRepository) => _animeRepository = animeRepository;
 
         [HttpGet]
         public async Task<ActionResult<List<AnimeReadDto>>> GetAnimes()
@@ -113,6 +110,50 @@ namespace AnimeHubApi.Controllers
 
             return CreatedAtAction(nameof(GetAnimeById), new { id = readDto.Id }, readDto);
         }
+
+        [HttpPost("upload-image")]
+        public async Task<IActionResult> UploadImage(IFormFile file, [FromQuery] string? oldImageUrl)
+        {
+            if (file == null || file.Length == 0)
+                return BadRequest("No file selected.");
+
+            // Delete the old file if it exists
+            if (!string.IsNullOrEmpty(oldImageUrl))
+            {
+                var oldFilePath = Path.Combine(Directory.GetCurrentDirectory(), oldImageUrl.Replace("/", Path.DirectorySeparatorChar.ToString()));
+                if (System.IO.File.Exists(oldFilePath))
+                {
+                    try
+                    {
+                        System.IO.File.Delete(oldFilePath);
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Could not delete old image file: {ex.Message}");
+                    }
+                }
+            }
+
+            // Ensure folder exists
+            var uploadFolder = Path.Combine(Directory.GetCurrentDirectory(), "Images", "Animes");
+            if (!Directory.Exists(uploadFolder))
+                Directory.CreateDirectory(uploadFolder);
+
+            // Generate unique filename
+            var fileName = $"{Guid.NewGuid()}{Path.GetExtension(file.FileName)}";
+            var filePath = Path.Combine(uploadFolder, fileName);
+
+            // Save file
+            using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                await file.CopyToAsync(stream);
+            }
+
+            // Return the relative path
+            var relativePath = Path.Combine("Images", "Animes", fileName).Replace("\\", "/");
+            return Ok(relativePath);
+        }
+
 
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateAnime(int id, [FromBody] AnimeUpdateDto animeDto)
