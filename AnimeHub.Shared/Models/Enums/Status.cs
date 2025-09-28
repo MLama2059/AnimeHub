@@ -9,6 +9,7 @@ namespace AnimeHub.Shared.Models.Enums
     {
         [Display(Name = "Not Yet Aired")]
         NotYetAired = 1,
+
         Airing = 2,
         Completed = 3,
         Hiatus = 4,

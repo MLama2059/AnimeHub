@@ -21,6 +21,6 @@ namespace AnimeHub.Shared.Models.Dtos.Anime
         public int CategoryId { get; set; } // Link to category
 
         public List<int> GenreIds { get; set; } = new(); // Link to genres (many-to-many)
-        public List<int> StudioIds { get; set; } = new(); // Link to studios (many-to-many)
+        public HashSet<int> StudioIds { get; set; } = new(); // Link to studios (many-to-many)
     }
 }

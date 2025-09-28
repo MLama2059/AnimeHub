@@ -2,12 +2,11 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace AnimeHub.Shared.Models
+namespace AnimeHub.Shared.Models.Dtos.Studio
 {
-    public class Studio
+    public class StudioReadDto
     {
         public int Id { get; set; }
         public string Name { get; set; } = string.Empty;
-        public ICollection<AnimeStudio> AnimeStudios { get; set; } = new List<AnimeStudio>();
     }
 }

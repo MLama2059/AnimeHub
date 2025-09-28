@@ -25,6 +25,6 @@ namespace AnimeHub.Shared.Models
 
         // Many-to-many with Genre
         public ICollection<AnimeGenre> AnimeGenres { get; set; } = new List<AnimeGenre>();
-        public ICollection<AnimeStudio> AnimeStudios { get; set; } = new List<AnimeStudio>();
+        public ICollection<AnimeStudio> AnimeStudios { get; set; } = new HashSet<AnimeStudio>();
     }
 }

@@ -85,7 +85,7 @@ namespace AnimeHubApi.Controllers
             var success = await _genreRepository.DeleteAsync(id);
             if (!success)
             {
-                return NotFound();
+                return BadRequest("Delete failed");
             }
             return NoContent();
         }

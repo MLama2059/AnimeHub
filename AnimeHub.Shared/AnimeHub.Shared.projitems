@@ -21,6 +21,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)Models\Dtos\Category\CategoryReadDto.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\Dtos\Genre\GenreReadDto.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\Dtos\Genre\GenreUpsertDto.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Models\Dtos\Studio\StudioReadDto.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Models\Dtos\Studio\StudioUpsertDto.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\Enums\Season.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\Enums\Status.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\Genre.cs" />

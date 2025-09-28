@@ -1,8 +1,11 @@
-﻿@* @page "/anime/create"
+﻿@page "/anime/create"
 @page "/anime/update/{Id:int}"
 @using AnimeHub.Shared.Models.Dtos.Anime
 @using AnimeHub.Shared.Models.Dtos.Category
 @using AnimeHub.Shared.Models.Dtos.Genre
+@using AnimeHub.Shared.Models.Dtos.Studio
+@using AnimeHub.Shared.Models.Enums
+@using System.ComponentModel.DataAnnotations
 @inject HttpClient Http
 @inject NavigationManager Navigation
 @inject ISnackbar Snackbar
@@ -36,10 +39,44 @@ else
                         <label for="Description">Description</label>
                         <ValidationMessage For="@(() => Anime.Description)"></ValidationMessage>
                     </div>
-                    <div class="form-floating py-3 col-12">
-                        <InputText @bind-Value="Anime.Studio" class="form-control" id="Studio"></InputText>
-                        <label for="Studio">Studio</label>
-                        <ValidationMessage For="@(() => Anime.Studio)"></ValidationMessage>
+                    @* <div class="form-floating py-3 col-12">
+                        <label for="Studios" class="form-label">Studios</label>
+                        <select class="form-select" multiple @onchange="StudioSelectionChanged">
+                            <option value="0" disabled>-- Select Studios --</option>
+                            @if (Studios != null)
+                            {
+                                @foreach (var studio in Studios)
+                                {
+                                    <option value="@studio.Id">@studio.Name</option>
+                                }
+                            }
+                        </select>
+                        <ValidationMessage For="@(() => Anime.StudioIds)"></ValidationMessage>
+                    </div> *@
+                    @* Add MudBlazor using directive at the top if you don't have it: @using MudBlazor *@
+
+                    <div class="form-floating mb-3 col-12">
+                        @* <label class="mud-input-label">Studios</label> *@
+
+                        <MudSelect T="int"
+                                   Label="Select Studios"
+                                   Variant="Variant.Outlined"
+                                   SelectedValues="Anime.StudioIds"
+                                   SelectedValuesChanged="@(vals => Anime.StudioIds = new HashSet<int>(vals))"
+                                   MultiSelection="true"
+                                   Margin="Margin.Dense"
+                                   Clearable="true"
+                                   ToStringFunc="@(new Func<int, string>(ConvertStudioIdToName))">
+
+                            @if (Studios != null)
+                            {
+                                @foreach (var studio in Studios)
+                                {
+                                    <MudSelectItem T="int" Value="@studio.Id">@studio.Name</MudSelectItem>
+                                }
+                            }
+                        </MudSelect>
+                        <ValidationMessage For="@(() => Anime.StudioIds)" />
                     </div>
                     <div class="form-floating py-3 col-12">
                         <InputFile OnChange="OnFileSelected" id="AnimeImage" class="form-control pb-3" accept="image/x-png,image/jpeg" />
@@ -71,13 +108,32 @@ else
                         <ValidationMessage For="@(() => Anime.Episodes)"></ValidationMessage>
                     </div>
                     <div class="form-floating py-3 col-12">
+                        <InputSelect @bind-Value="Anime.Season" class="form-select" id="Season">
+                            <option value="0" disabled>-- Select Season --</option>
+                            @foreach (var seasonValue in Enum.GetValues(typeof(Season)))
+                            {
+                                <option value="@((int)seasonValue)">@seasonValue.ToString()</option>
+                            }
+                        </InputSelect>
+                        <label for="Season">Season</label>
+                        <ValidationMessage For="@(() => Anime.Season)"></ValidationMessage>
+                    </div>
+                    <div class="form-floating py-3 col-12">
                         <InputNumber @bind-Value="Anime.PremieredYear" class="form-control" id="PremieredYear"></InputNumber>
                         <label for="PremieredYear">Premiered</label>
                         <ValidationMessage For="@(() => Anime.PremieredYear)"></ValidationMessage>
                     </div>
                     <div class="form-floating py-3 col-12">
-                        <InputText @bind-Value="Anime.Status" class="form-control" id="Status"></InputText>
-                        <label for="Status">Status</label>
+                        <MudSelect T="Status"
+                                   Label="Status"
+                                   @bind-Value="@AnimeStatusEnum">
+
+                            @foreach (Status statusValue in Enum.GetValues(typeof(Status)))
+                            {
+                                <MudSelectItem Value="@statusValue">@statusValue</MudSelectItem>
+                            }
+                        </MudSelect>
+                        @* <label for="Status">Status</label> *@
                         <ValidationMessage For="@(() => Anime.Status)"></ValidationMessage>
                     </div>
                     <div class="form-floating py-3 col-12">
@@ -98,20 +154,24 @@ else
                         <label class="form-label">Genres</label>
                         @if (Genres != null)
                         {
-                            @foreach (var genre in Genres)
-                            {
-                                <div class="form-check">
-                                    <input class="form-check-input"
-                                           type="checkbox"
-                                           id="genre-@genre.Id"
-                                           value="@genre.Id"
-                                           checked="@Anime.GenreIds.Contains(genre.Id)"
-                                           @onchange="e => ToggleGenre(genre.Id, (bool)e.Value!)" />
-                                    <label class="form-check-label" for="genre-@genre.Id">
-                                        @genre.Name
-                                    </label>
-                                </div>
-                            }
+                            <div class="row">
+                                @foreach (var genre in Genres)
+                                {
+                                    <div class="col-6 col-sm-4 col-md-3 col-lg-2">
+                                        <div class="form-check d-flex align-items-center">
+                                            <input class="form-check-input me-2"
+                                                   type="checkbox"
+                                                   id="genre-@genre.Id"
+                                                   value="@genre.Id"
+                                                   checked="@Anime.GenreIds.Contains(genre.Id)"
+                                                   @onchange="e => ToggleGenre(genre.Id, (bool)e.Value!)" />
+                                            <label class="form-check-label" for="genre-@genre.Id">
+                                                @genre.Name
+                                            </label>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
                         }
                         <ValidationMessage For="@(() => Anime.GenreIds)" />
                     </div>
@@ -143,6 +203,7 @@ else
 
     private List<CategoryReadDto>? Categories;
     private List<GenreReadDto>? Genres { get; set; } = new();
+    private List<StudioReadDto>? Studios { get; set; } = new();
 
     private bool IsLoading { get; set; } = true;
 
@@ -171,15 +232,16 @@ else
             {
                 Anime.Id = result.Id;
                 Anime.Title = result.Title;
+                Anime.Episodes = result.Episodes;
+                Anime.Season = (int)Enum.Parse(typeof(Season), result.Season);
+                Anime.PremieredYear = result.PremieredYear;
                 Anime.Description = result.Description;
-                Anime.Studio = result.Studio;
                 Anime.ImageUrl = result.ImageUrl;
                 Anime.Rating = result.Rating;
-                Anime.Episodes = result.Episodes;
-                Anime.PremieredYear = result.PremieredYear;
-                Anime.Status = result.Status;
+                Anime.Status = (int)Enum.Parse(typeof(Status), result.Status);
                 Anime.CategoryId = result.CategoryId;
                 Anime.GenreIds = result.GenreIds ?? new List<int>();
+                Anime.StudioIds = result.StudioIds ?? new HashSet<int>();
 
                 // Ensure the path uses forward slashes for web access
                 UploadedImageUrl = result.ImageUrl?.Replace("\\", "/");
@@ -188,13 +250,18 @@ else
         else // Handle case for new anime creation (Id == 0)
         {
             // Reset the Anime object and image URLs for a new entry
-            Anime = new AnimeUpdateDto();
+            Anime = new AnimeUpdateDto
+            {
+                GenreIds = new List<int>(),
+                StudioIds = new HashSet<int>()
+            };
             PreviewImageUrl = null;
             UploadedImageUrl = null;
         }
 
         Categories = await Http.GetFromJsonAsync<List<CategoryReadDto>>("api/category");
         Genres = await Http.GetFromJsonAsync<List<GenreReadDto>>("api/genre");
+        Studios = await Http.GetFromJsonAsync<List<StudioReadDto>>("api/studio");
     }
 
     private async Task UpsertAnime()
@@ -251,14 +318,15 @@ else
                 {
                     Title = Anime.Title,
                     Description = Anime.Description,
-                    Studio = Anime.Studio,
+                    Episodes = Anime.Episodes,
+                    Season = Anime.Season,
+                    PremieredYear = Anime.PremieredYear,
                     ImageUrl = Anime.ImageUrl,
                     Rating = Anime.Rating,
-                    Episodes = Anime.Episodes,
-                    PremieredYear = Anime.PremieredYear,
                     Status = Anime.Status,
                     CategoryId = Anime.CategoryId,
-                    GenreIds = Anime.GenreIds
+                    GenreIds = Anime.GenreIds,
+                    StudioIds = Anime.StudioIds
                 });
 
                 if (response.IsSuccessStatusCode)
@@ -297,6 +365,46 @@ else
             Anime.GenreIds.Remove(genreId);
         }
     }
+/*
+    private void StudioSelectionChanged(ChangeEventArgs e)
+    {
+        // The e.Value for a <select multiple> is an array of strings (object[]).
+        // If nothing is selected, e.Value might be null or an empty array.
+
+        if (e.Value is System.Collections.IEnumerable selectedValues)
+        {
+            // Clear the existing list
+            Anime.StudioIds.Clear();
+
+            // Iterate over the selected string values, parse them to int, and add them back
+            foreach (var value in selectedValues)
+            {
+                if (int.TryParse(value?.ToString(), out int studioId))
+                {
+                    Anime.StudioIds.Add(studioId);
+                }
+            }
+        }
+        // If the list is null (e.g., if you used a third-party component), ensure it's initialized
+        else
+        {
+            Anime.StudioIds = new List<int>();
+        }
+    }
+*/
+
+    private string ConvertStudioIdToName(int id)
+    {
+        // Find the studio object corresponding to the ID and return its Name.
+        // Use a default value if the studio isn't found (e.g., for safety).
+        return Studios?.FirstOrDefault(s => s.Id == id)?.Name ?? $"ID {id}";
+    }
+
+    private Status AnimeStatusEnum
+    {
+        get => (Status)Anime.Status;
+        set => Anime.Status = (int)value;
+    }
 
     private async Task OnFileSelected(InputFileChangeEventArgs e)
     {
@@ -324,4 +432,4 @@ else
 
         UploadedImageUrl = null; // Reset uploaded URL until upload completes
     }
-} *@
+}

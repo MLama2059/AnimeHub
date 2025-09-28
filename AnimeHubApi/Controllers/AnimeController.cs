@@ -40,7 +40,7 @@ namespace AnimeHubApi.Controllers
                 Genres = a.AnimeGenres?.Select(ag => ag.Genre.Name).ToList() ?? new List<string>(),
                 GenreIds = a.AnimeGenres?.Select(ag => ag.GenreId).ToList() ?? new List<int>(),
                 Studios = a.AnimeStudios?.Select(ast => ast.Studio.Name).ToList() ?? new List<string>(),
-                StudioIds = a.AnimeStudios?.Select(ast => ast.StudioId).ToList() ?? new List<int>(),
+                StudioIds = a.AnimeStudios?.Select(ast => ast.StudioId).ToHashSet() ?? new HashSet<int>(),
             }).ToList();
 
             return Ok(animeDtos);
@@ -69,7 +69,7 @@ namespace AnimeHubApi.Controllers
                 Genres = anime.AnimeGenres?.Select(ag => ag.Genre.Name).ToList() ?? new List<string>(),
                 GenreIds = anime.AnimeGenres?.Select(ag => ag.GenreId).ToList() ?? new List<int>(),
                 Studios = anime.AnimeStudios?.Select(ast => ast.Studio.Name).ToList() ?? new List<string>(),
-                StudioIds = anime.AnimeStudios?.Select(ast => ast.StudioId).ToList() ?? new List<int>(),
+                StudioIds = anime.AnimeStudios?.Select(ast => ast.StudioId).ToHashSet() ?? new HashSet<int>(),
             };
 
             return Ok(animeDto);
@@ -98,7 +98,7 @@ namespace AnimeHubApi.Controllers
                 Genres = a.AnimeGenres?.Select(ag => ag.Genre.Name).ToList() ?? new List<string>(),
                 GenreIds = a.AnimeGenres?.Select(ag => ag.GenreId).ToList() ?? new List<int>(),
                 Studios = a.AnimeStudios?.Select(ast => ast.Studio.Name).ToList() ?? new List<string>(),
-                StudioIds = a.AnimeStudios?.Select(ast => ast.StudioId).ToList() ?? new List<int>(),
+                StudioIds = a.AnimeStudios?.Select(ast => ast.StudioId).ToHashSet() ?? new HashSet<int>(),
             }).ToList();
 
             return Ok(animeDtos);
@@ -123,7 +123,7 @@ namespace AnimeHubApi.Controllers
                 CategoryId = animeDto.CategoryId,
                 // Initialize collections
                 AnimeGenres = new List<AnimeGenre>(),
-                AnimeStudios = new List<AnimeStudio>()
+                AnimeStudios = new HashSet<AnimeStudio>()
             };
 
             var createdAnime = await _animeRepository.AddAsync(anime, animeDto.GenreIds, animeDto.StudioIds);

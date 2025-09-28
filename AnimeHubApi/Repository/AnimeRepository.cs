@@ -45,7 +45,7 @@ namespace AnimeHubApi.Repository
                 .ToListAsync();
         }
 
-        public async Task<Anime> AddAsync(Anime anime, List<int> genreIds, List<int> studioIds)
+        public async Task<Anime> AddAsync(Anime anime, List<int> genreIds, HashSet<int> studioIds)
         {
             // Attach genres to the anime
             if (genreIds != null)
@@ -77,7 +77,7 @@ namespace AnimeHubApi.Repository
                 !;
         }
 
-        public async Task<bool> UpdateAsync(Anime anime, List<int> genreIds, List<int> studioIds)
+        public async Task<bool> UpdateAsync(Anime anime, List<int> genreIds, HashSet<int> studioIds)
         {
             var existingAnime = await _context.Animes
                 .Include(a => a.AnimeGenres)

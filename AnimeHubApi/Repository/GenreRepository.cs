@@ -13,29 +13,6 @@ namespace AnimeHubApi.Repository
             _context = context;
         }
 
-        public async Task<Genre> AddAsync(Genre genre)
-        {
-            _context.Genres.Add(genre);
-            await _context.SaveChangesAsync();
-            return genre;
-        }
-
-        public async Task<bool> DeleteAsync(int id)
-        {
-            var genre = await _context.Genres.FindAsync(id);
-            if (genre is null)
-                return false;
-
-            _context.Genres.Remove(genre);
-            await _context.SaveChangesAsync();
-            return true;
-        }
-
-        public bool Exists(int id)
-        {
-            return _context.Genres.Any(u => u.Id == id);
-        }
-
         public async Task<List<Genre>> GetAllAsync()
         {
             return await _context.Genres
@@ -52,6 +29,13 @@ namespace AnimeHubApi.Repository
                 .FirstOrDefaultAsync(g => g.Id == id);
         }
 
+        public async Task<Genre> AddAsync(Genre genre)
+        {
+            _context.Genres.Add(genre);
+            await _context.SaveChangesAsync();
+            return genre;
+        }
+
         public async Task<bool> UpdateAsync(Genre genre)
         {
             var existingGenre = await _context.Genres.FindAsync(genre.Id);
@@ -61,6 +45,22 @@ namespace AnimeHubApi.Repository
             existingGenre.Name = genre.Name;
             await _context.SaveChangesAsync();
             return true;
+        }
+
+        public async Task<bool> DeleteAsync(int id)
+        {
+            var genre = await _context.Genres.FindAsync(id);
+            if (genre is null)
+                return false;
+
+            _context.Genres.Remove(genre);
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
+        public bool Exists(int id)
+        {
+            return _context.Genres.Any(u => u.Id == id);
         }
     }
 }

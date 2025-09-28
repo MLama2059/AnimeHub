@@ -19,7 +19,7 @@ namespace AnimeHub.Shared.Models.Dtos.Anime
         public List<int> GenreIds { get; set; } = new(); // For AnimeUpsert page
         public List<string> Genres { get; set; } = new(); // List of genre names
         public List<string> Studios { get; set; } = new(); // List of studio names
-        public List<int> StudioIds { get; set; } = new(); // For AnimeUpsert page
+        public HashSet<int> StudioIds { get; set; } = new(); // For AnimeUpsert page
 
         // Extra info
         public string? Description { get; set; }

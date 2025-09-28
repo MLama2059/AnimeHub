@@ -1,4 +1,4 @@
-﻿@* @page "/anime"
+﻿@page "/anime"
 @using AnimeHub.Shared.Models.Dtos.Anime
 @using AnimeHubClient.Shared
 @inject HttpClient Http
@@ -21,7 +21,7 @@ else
         </div>
         <div class="card-body p-4">
             <div class="col-12 text-end">
-                <a href="anime/create" class="btn btn-lg btn-secondary"><i class="bi bi-plus-square"></i> Add New Anime</a>
+                <a href="anime/create" class="btn btn-secondary"><i class="bi bi-plus-square"></i> Add New Anime</a>
             </div>
         </div>
         @if (Animes != null && Animes.Any())
@@ -34,8 +34,9 @@ else
                         <th>Priemered</th>
                         <th>Status</th>
                         <th>Category</th>
-                        <th>Genres</th>
                         <th>Rating</th>
+                        <th>Genres</th>
+                        <th>Studios</th>
                         <th></th>
                     </tr>
                 </thead>
@@ -45,11 +46,13 @@ else
                         <tr>
                             <td>@anime.Title</td>
                             <td>@anime.Episodes</td>
-                            <td>@anime.PremieredYear</td>
+                            <td>@anime.Season @anime.PremieredYear</td>
                             <td>@anime.Status</td>
                             <td>@anime.CategoryName</td>
-                            <td>@string.Join(", ", @anime.Genres)</td>
                             <td>@anime.Rating</td>
+                            <td>@string.Join(", ", @anime.Genres)</td>
+                            <td>@string.Join(", ", @anime.Studios)</td>
+
                             <td>
                                 <a href="@($"anime/update/{anime.Id}")" class="btn btn-primary"><i class="bi bi-pencil-square"></i> Edit</a>
                                 <button class="btn btn-danger" @onclick="() => DeleteAnime(anime.Id)"><i class="bi bi-trash"></i> Delete</button>
@@ -121,4 +124,4 @@ else
             }
         }
     }
-} *@
+}

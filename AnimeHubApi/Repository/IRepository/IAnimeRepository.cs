@@ -6,8 +6,8 @@ namespace AnimeHubApi.Repository.IRepository
     {
         Task<List<Anime>> GetAllAsync();
         Task<Anime?> GetByIdAsync(int id);
-        Task<Anime> AddAsync(Anime anime, List<int> genreIds, List<int> studioIds);
-        Task<bool> UpdateAsync(Anime anime, List<int> genreIds, List<int> studioIds);
+        Task<Anime> AddAsync(Anime anime, List<int> genreIds, HashSet<int> studioIds);
+        Task<bool> UpdateAsync(Anime anime, List<int> genreIds, HashSet<int> studioIds);
         Task<bool> DeleteAsync(int id);
         bool Exists(int id);
 
