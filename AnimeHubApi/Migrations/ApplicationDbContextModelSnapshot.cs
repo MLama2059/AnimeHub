@@ -44,14 +44,14 @@ namespace AnimeHubApi.Migrations
                     b.Property<int?>("PremieredYear")
                         .HasColumnType("int");
 
-                    b.Property<double>("Rating")
+                    b.Property<double?>("Rating")
                         .HasColumnType("float");
 
-                    b.Property<string>("Status")
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<int>("Season")
+                        .HasColumnType("int");
 
-                    b.Property<string>("Studio")
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
 
                     b.Property<string>("Title")
                         .IsRequired()
@@ -73,8 +73,8 @@ namespace AnimeHubApi.Migrations
                             Episodes = 500,
                             PremieredYear = 2007,
                             Rating = 9.0,
-                            Status = "Completed",
-                            Studio = "Studio Pierrot",
+                            Season = 1,
+                            Status = 3,
                             Title = "Naruto Shippuden"
                         },
                         new
@@ -85,8 +85,8 @@ namespace AnimeHubApi.Migrations
                             Episodes = 55,
                             PremieredYear = 2019,
                             Rating = 9.1999999999999993,
-                            Status = "Airing",
-                            Studio = "Ufotable",
+                            Season = 2,
+                            Status = 3,
                             Title = "Demon Slayer: Kimetsu no Yaiba"
                         },
                         new
@@ -97,8 +97,8 @@ namespace AnimeHubApi.Migrations
                             Episodes = 1,
                             PremieredYear = 2001,
                             Rating = 9.5,
-                            Status = "Completed",
-                            Studio = "Studio Ghibli",
+                            Season = 3,
+                            Status = 3,
                             Title = "Spirited Away"
                         });
                 });
@@ -147,6 +147,38 @@ namespace AnimeHubApi.Migrations
                         {
                             AnimeId = 3,
                             GenreId = 3
+                        });
+                });
+
+            modelBuilder.Entity("AnimeHub.Shared.Models.AnimeStudio", b =>
+                {
+                    b.Property<int>("AnimeId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("StudioId")
+                        .HasColumnType("int");
+
+                    b.HasKey("AnimeId", "StudioId");
+
+                    b.HasIndex("StudioId");
+
+                    b.ToTable("AnimeStudios");
+
+                    b.HasData(
+                        new
+                        {
+                            AnimeId = 1,
+                            StudioId = 1
+                        },
+                        new
+                        {
+                            AnimeId = 2,
+                            StudioId = 2
+                        },
+                        new
+                        {
+                            AnimeId = 3,
+                            StudioId = 3
                         });
                 });
 
@@ -226,187 +258,351 @@ namespace AnimeHubApi.Migrations
                         new
                         {
                             Id = 5,
-                            Name = "Dementia"
+                            Name = "Cyberpunk"
                         },
                         new
                         {
                             Id = 6,
-                            Name = "Demons"
+                            Name = "Dementia"
                         },
                         new
                         {
                             Id = 7,
-                            Name = "Drama"
+                            Name = "Demons"
                         },
                         new
                         {
                             Id = 8,
-                            Name = "Ecchi"
+                            Name = "Drama"
                         },
                         new
                         {
                             Id = 9,
-                            Name = "Fantasy"
+                            Name = "Dystopian"
                         },
                         new
                         {
                             Id = 10,
-                            Name = "Game"
+                            Name = "Ecchi"
                         },
                         new
                         {
                             Id = 11,
-                            Name = "Harem"
+                            Name = "Fantasy"
                         },
                         new
                         {
                             Id = 12,
-                            Name = "Historical"
+                            Name = "Game"
                         },
                         new
                         {
                             Id = 13,
-                            Name = "Horror"
+                            Name = "Gore"
                         },
                         new
                         {
                             Id = 14,
-                            Name = "Isekai"
+                            Name = "Harem"
                         },
                         new
                         {
                             Id = 15,
-                            Name = "Josei"
+                            Name = "Historical"
                         },
                         new
                         {
                             Id = 16,
-                            Name = "Kids"
+                            Name = "Horror"
                         },
                         new
                         {
                             Id = 17,
-                            Name = "Magic"
+                            Name = "Isekai"
                         },
                         new
                         {
                             Id = 18,
-                            Name = "Martial Arts"
+                            Name = "Josei"
                         },
                         new
                         {
                             Id = 19,
-                            Name = "Mecha"
+                            Name = "Kids"
                         },
                         new
                         {
                             Id = 20,
-                            Name = "Military"
+                            Name = "Magic"
                         },
                         new
                         {
                             Id = 21,
-                            Name = "Music"
+                            Name = "Martial Arts"
                         },
                         new
                         {
                             Id = 22,
-                            Name = "Mystery"
+                            Name = "Mecha"
                         },
                         new
                         {
                             Id = 23,
-                            Name = "Parody"
+                            Name = "Military"
                         },
                         new
                         {
                             Id = 24,
-                            Name = "Police"
+                            Name = "Music"
                         },
                         new
                         {
                             Id = 25,
-                            Name = "Psychological"
+                            Name = "Mystery"
                         },
                         new
                         {
                             Id = 26,
-                            Name = "Romance"
+                            Name = "Parody"
                         },
                         new
                         {
                             Id = 27,
-                            Name = "Samurai"
+                            Name = "Police"
                         },
                         new
                         {
                             Id = 28,
-                            Name = "School"
+                            Name = "Psychological"
                         },
                         new
                         {
                             Id = 29,
-                            Name = "Sci-Fi"
+                            Name = "Romance"
                         },
                         new
                         {
                             Id = 30,
-                            Name = "Seinen"
+                            Name = "Samurai"
                         },
                         new
                         {
                             Id = 31,
-                            Name = "Shoujo"
+                            Name = "School"
                         },
                         new
                         {
                             Id = 32,
-                            Name = "Shoujo Ai"
+                            Name = "Sci-Fi"
                         },
                         new
                         {
                             Id = 33,
-                            Name = "Shounen"
+                            Name = "Seinen"
                         },
                         new
                         {
                             Id = 34,
-                            Name = "Shounen Ai"
+                            Name = "Shoujo"
                         },
                         new
                         {
                             Id = 35,
-                            Name = "Slice of Life"
+                            Name = "Shoujo Ai"
                         },
                         new
                         {
                             Id = 36,
-                            Name = "Space"
+                            Name = "Shounen"
                         },
                         new
                         {
                             Id = 37,
-                            Name = "Sports"
+                            Name = "Shounen Ai"
                         },
                         new
                         {
                             Id = 38,
-                            Name = "Super Power"
+                            Name = "Slice of Life"
                         },
                         new
                         {
                             Id = 39,
-                            Name = "Supernatural"
+                            Name = "Space"
                         },
                         new
                         {
                             Id = 40,
-                            Name = "Thriller"
+                            Name = "Sports"
                         },
                         new
                         {
                             Id = 41,
+                            Name = "Super Power"
+                        },
+                        new
+                        {
+                            Id = 42,
+                            Name = "Supernatural"
+                        },
+                        new
+                        {
+                            Id = 43,
+                            Name = "Suspense"
+                        },
+                        new
+                        {
+                            Id = 44,
+                            Name = "Thriller"
+                        },
+                        new
+                        {
+                            Id = 45,
+                            Name = "Time Travel"
+                        },
+                        new
+                        {
+                            Id = 46,
+                            Name = "Tragedy"
+                        },
+                        new
+                        {
+                            Id = 47,
                             Name = "Vampire"
+                        },
+                        new
+                        {
+                            Id = 48,
+                            Name = "Workplace"
+                        },
+                        new
+                        {
+                            Id = 49,
+                            Name = "Yaoi"
+                        },
+                        new
+                        {
+                            Id = 50,
+                            Name = "Yuri"
+                        });
+                });
+
+            modelBuilder.Entity("AnimeHub.Shared.Models.Studio", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Studios");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Name = "8bit"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Name = "A-1 Pictures"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            Name = "Bones"
+                        },
+                        new
+                        {
+                            Id = 4,
+                            Name = "CloverWorks"
+                        },
+                        new
+                        {
+                            Id = 5,
+                            Name = "David Production"
+                        },
+                        new
+                        {
+                            Id = 6,
+                            Name = "J.C.STAFF"
+                        },
+                        new
+                        {
+                            Id = 7,
+                            Name = "Kyoto Animation"
+                        },
+                        new
+                        {
+                            Id = 8,
+                            Name = "LIDENFILMS"
+                        },
+                        new
+                        {
+                            Id = 9,
+                            Name = "Madhouse"
+                        },
+                        new
+                        {
+                            Id = 10,
+                            Name = "MAPPA"
+                        },
+                        new
+                        {
+                            Id = 11,
+                            Name = "Production I.G"
+                        },
+                        new
+                        {
+                            Id = 12,
+                            Name = "Silver Link."
+                        },
+                        new
+                        {
+                            Id = 13,
+                            Name = "Studio DEEN"
+                        },
+                        new
+                        {
+                            Id = 14,
+                            Name = "Studio Ghibli"
+                        },
+                        new
+                        {
+                            Id = 15,
+                            Name = "Studio Pierrot"
+                        },
+                        new
+                        {
+                            Id = 16,
+                            Name = "Sunrise"
+                        },
+                        new
+                        {
+                            Id = 17,
+                            Name = "Toei Animation"
+                        },
+                        new
+                        {
+                            Id = 18,
+                            Name = "Trigger"
+                        },
+                        new
+                        {
+                            Id = 19,
+                            Name = "ufotable"
+                        },
+                        new
+                        {
+                            Id = 20,
+                            Name = "White Fox"
                         });
                 });
 
@@ -440,9 +636,30 @@ namespace AnimeHubApi.Migrations
                     b.Navigation("Genre");
                 });
 
+            modelBuilder.Entity("AnimeHub.Shared.Models.AnimeStudio", b =>
+                {
+                    b.HasOne("AnimeHub.Shared.Models.Anime", "Anime")
+                        .WithMany("AnimeStudios")
+                        .HasForeignKey("AnimeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("AnimeHub.Shared.Models.Studio", "Studio")
+                        .WithMany("AnimeStudios")
+                        .HasForeignKey("StudioId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Anime");
+
+                    b.Navigation("Studio");
+                });
+
             modelBuilder.Entity("AnimeHub.Shared.Models.Anime", b =>
                 {
                     b.Navigation("AnimeGenres");
+
+                    b.Navigation("AnimeStudios");
                 });
 
             modelBuilder.Entity("AnimeHub.Shared.Models.Category", b =>
@@ -453,6 +670,11 @@ namespace AnimeHubApi.Migrations
             modelBuilder.Entity("AnimeHub.Shared.Models.Genre", b =>
                 {
                     b.Navigation("AnimeGenres");
+                });
+
+            modelBuilder.Entity("AnimeHub.Shared.Models.Studio", b =>
+                {
+                    b.Navigation("AnimeStudios");
                 });
 #pragma warning restore 612, 618
         }

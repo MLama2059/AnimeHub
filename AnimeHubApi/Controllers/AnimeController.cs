@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using AnimeHub.Shared.Models.Dtos;
 using AnimeHub.Shared.Models.Dtos.Anime;
+using AnimeHub.Shared.Models.Enums;
 
 namespace AnimeHubApi.Controllers
 {
@@ -28,16 +29,18 @@ namespace AnimeHubApi.Controllers
                 Id = a.Id,
                 Title = a.Title,
                 Episodes = a.Episodes,
+                Season = a.Season.ToString(), // (Enum to String)
                 PremieredYear = a.PremieredYear,
                 Description = a.Description,
-                Studio = a.Studio,
                 ImageUrl = a.ImageUrl,
                 Rating = a.Rating,
-                Status = a.Status,
+                Status = a.Status.ToString(), // (Enum to String)
                 CategoryId = a.CategoryId,
                 CategoryName = a.Category?.Name ?? string.Empty,
                 Genres = a.AnimeGenres?.Select(ag => ag.Genre.Name).ToList() ?? new List<string>(),
-                GenreIds = a.AnimeGenres?.Select(ag => ag.GenreId).ToList() ?? new List<int>()
+                GenreIds = a.AnimeGenres?.Select(ag => ag.GenreId).ToList() ?? new List<int>(),
+                Studios = a.AnimeStudios?.Select(ast => ast.Studio.Name).ToList() ?? new List<string>(),
+                StudioIds = a.AnimeStudios?.Select(ast => ast.StudioId).ToList() ?? new List<int>(),
             }).ToList();
 
             return Ok(animeDtos);
@@ -55,23 +58,54 @@ namespace AnimeHubApi.Controllers
                 Id = anime.Id,
                 Title = anime.Title,
                 Episodes = anime.Episodes,
+                Season = anime.Season.ToString(), // (Enum to String)
                 PremieredYear = anime.PremieredYear,
                 Description = anime.Description,
-                Studio = anime.Studio,
                 ImageUrl = anime.ImageUrl,
                 Rating = anime.Rating,
-                Status = anime.Status,
+                Status = anime.Status.ToString(), // (Enum to String)
                 CategoryId = anime.CategoryId,
                 CategoryName = anime.Category?.Name ?? string.Empty,
                 Genres = anime.AnimeGenres?.Select(ag => ag.Genre.Name).ToList() ?? new List<string>(),
-                GenreIds = anime.AnimeGenres?.Select(ag => ag.GenreId).ToList() ?? new List<int>()
+                GenreIds = anime.AnimeGenres?.Select(ag => ag.GenreId).ToList() ?? new List<int>(),
+                Studios = anime.AnimeStudios?.Select(ast => ast.Studio.Name).ToList() ?? new List<string>(),
+                StudioIds = anime.AnimeStudios?.Select(ast => ast.StudioId).ToList() ?? new List<int>(),
             };
 
             return Ok(animeDto);
         }
 
+        // GET endpoint for Top Rated Anime
+        [HttpGet("top")]
+        public async Task<ActionResult<IEnumerable<AnimeReadDto>>> GetTopRatedAnimes()
+        {
+            const int count = 10; // Number of top-rated animes to return
+            var animes = await _animeRepository.GetTopRatedAnimesAsync(count);
+
+            var animeDtos = animes.Select(a => new AnimeReadDto
+            {
+                Id = a.Id,
+                Title = a.Title,
+                Episodes = a.Episodes,
+                Season = a.Season.ToString(), // (Enum to String)
+                PremieredYear = a.PremieredYear,
+                Description = a.Description,
+                ImageUrl = a.ImageUrl,
+                Rating = a.Rating,
+                Status = a.Status.ToString(), // (Enum to String)
+                CategoryId = a.CategoryId,
+                CategoryName = a.Category?.Name ?? string.Empty,
+                Genres = a.AnimeGenres?.Select(ag => ag.Genre.Name).ToList() ?? new List<string>(),
+                GenreIds = a.AnimeGenres?.Select(ag => ag.GenreId).ToList() ?? new List<int>(),
+                Studios = a.AnimeStudios?.Select(ast => ast.Studio.Name).ToList() ?? new List<string>(),
+                StudioIds = a.AnimeStudios?.Select(ast => ast.StudioId).ToList() ?? new List<int>(),
+            }).ToList();
+
+            return Ok(animeDtos);
+        }
+
         [HttpPost]
-        public async Task<ActionResult<AnimeReadDto>> AddAnime([FromBody]AnimeCreateDto animeDto)
+        public async Task<ActionResult<AnimeReadDto>> AddAnime([FromBody] AnimeCreateDto animeDto)
         {
             if (animeDto is null)
                 return BadRequest();
@@ -80,16 +114,20 @@ namespace AnimeHubApi.Controllers
             {
                 Title = animeDto.Title,
                 Episodes = animeDto.Episodes,
+                Season = (Season)animeDto.Season,
                 PremieredYear = animeDto.PremieredYear,
                 Description = animeDto.Description,
-                Studio = animeDto.Studio,
                 ImageUrl = animeDto.ImageUrl,
                 Rating = animeDto.Rating,
-                Status = animeDto.Status,
-                CategoryId = animeDto.CategoryId
+                Status = (Status)animeDto.Status,
+                CategoryId = animeDto.CategoryId,
+                // Initialize collections
+                AnimeGenres = new List<AnimeGenre>(),
+                AnimeStudios = new List<AnimeStudio>()
             };
 
-            var createdAnime = await _animeRepository.AddAsync(anime, animeDto.GenreIds);
+            var createdAnime = await _animeRepository.AddAsync(anime, animeDto.GenreIds, animeDto.StudioIds);
+
             if (createdAnime == null)
                 return BadRequest("Anime creation failed");
 
@@ -99,17 +137,15 @@ namespace AnimeHubApi.Controllers
                 Id = createdAnime.Id,
                 Title = createdAnime.Title,
                 Episodes = createdAnime.Episodes,
+                Season = createdAnime.Season.ToString(),
                 PremieredYear = createdAnime.PremieredYear,
                 Description = createdAnime.Description,
-                Studio = createdAnime.Studio,
                 ImageUrl = createdAnime.ImageUrl,
                 Rating = createdAnime.Rating,
-                Status = createdAnime.Status,
+                Status = createdAnime.Status.ToString(),
                 CategoryName = createdAnime.Category?.Name ?? string.Empty,
-                Genres = createdAnime.AnimeGenres?
-                    .Where(ag => ag.Genre != null)
-                    .Select(ag => ag.Genre.Name)
-                    .ToList() ?? new List<string>()
+                Genres = createdAnime.AnimeGenres?.Select(ag => ag.Genre.Name).ToList() ?? new List<string>(),
+                Studios = createdAnime.AnimeStudios?.Select(ast => ast.Studio.Name).ToList() ?? new List<string>(),
             };
 
             return CreatedAtAction(nameof(GetAnimeById), new { id = readDto.Id }, readDto);
@@ -169,16 +205,20 @@ namespace AnimeHubApi.Controllers
                 Id = id,
                 Title = animeDto.Title,
                 Episodes = animeDto.Episodes,
+                Season = (Season)animeDto.Season,
                 PremieredYear = animeDto.PremieredYear,
                 Description = animeDto.Description,
-                Studio = animeDto.Studio,
                 ImageUrl = animeDto.ImageUrl,
                 Rating = animeDto.Rating,
-                Status = animeDto.Status,
-                CategoryId = animeDto.CategoryId
+                Status = (Status)animeDto.Status,
+                CategoryId = animeDto.CategoryId,
+                // Initialize collections
+                AnimeGenres = new List<AnimeGenre>(),
+                AnimeStudios = new List<AnimeStudio>()
             };
 
-            var success = await _animeRepository.UpdateAsync(anime, animeDto.GenreIds);
+            var success = await _animeRepository.UpdateAsync(anime, animeDto.GenreIds, animeDto.StudioIds);
+
             if (!success)
                 return BadRequest("Update failed");
 

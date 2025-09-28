@@ -1,4 +1,4 @@
-﻿@page "/anime/details/{Id:int}"
+﻿@* @page "/anime/details/{Id:int}"
 @inject HttpClient Http
 @inject IJSRuntime JS
 
@@ -80,4 +80,4 @@
         // Go back to the previous page (homepage, list, etc.)
         await JS.InvokeVoidAsync("history.back");
     }
-}
+} *@

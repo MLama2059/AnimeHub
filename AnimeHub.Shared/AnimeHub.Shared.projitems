@@ -11,6 +11,7 @@
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)Models\Anime.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\AnimeGenre.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Models\AnimeStudio.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\Category.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\Dtos\Anime\AnimeCreateDto.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\Dtos\Anime\AnimeReadDto.cs" />
@@ -20,6 +21,9 @@
     <Compile Include="$(MSBuildThisFileDirectory)Models\Dtos\Category\CategoryReadDto.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\Dtos\Genre\GenreReadDto.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\Dtos\Genre\GenreUpsertDto.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Models\Enums\Season.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Models\Enums\Status.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\Genre.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Models\Studio.cs" />
   </ItemGroup>
 </Project>

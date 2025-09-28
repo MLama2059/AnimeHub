@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using AnimeHub.Shared.Models.Enums;
+using System.ComponentModel.DataAnnotations;
 
 namespace AnimeHub.Shared.Models
 {
@@ -9,14 +10,14 @@ namespace AnimeHub.Shared.Models
         public string Title { get; set; } = string.Empty;
         [Range(1, 5000)]
         public int? Episodes { get; set; }
+        public Season Season { get; set; }
         [Range(1900, 2100)]
         public int? PremieredYear { get; set; }
         public string? Description { get; set; }
-        public string? Studio { get; set; }
         public string? ImageUrl { get; set; }
         [Range(0, 10)]
-        public double Rating { get; set; }
-        public string? Status { get; set; }
+        public double? Rating { get; set; }
+        public Status Status { get; set; }
 
         // Foreign Key -> Category
         public int CategoryId { get; set; }
@@ -24,5 +25,6 @@ namespace AnimeHub.Shared.Models
 
         // Many-to-many with Genre
         public ICollection<AnimeGenre> AnimeGenres { get; set; } = new List<AnimeGenre>();
+        public ICollection<AnimeStudio> AnimeStudios { get; set; } = new List<AnimeStudio>();
     }
 }
