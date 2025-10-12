@@ -131,7 +131,6 @@ namespace AnimeHubApi.Data
                 new Genre { Id = 50, Name = "Yuri" }
             );
 
-
             // Seed Anime
             modelBuilder.Entity<Anime>().HasData(
                 new Anime

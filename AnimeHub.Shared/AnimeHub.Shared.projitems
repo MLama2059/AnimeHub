@@ -14,13 +14,17 @@
     <Compile Include="$(MSBuildThisFileDirectory)Models\AnimeStudio.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\Category.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\Dtos\Anime\AnimeCreateDto.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Models\Dtos\Anime\AnimeListReadDto.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\Dtos\Anime\AnimeReadDto.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\Dtos\Anime\AnimeUpdateDto.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Models\Dtos\APIParams.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\Dtos\Category\CategoryUpdateDto.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\Dtos\Category\CategoryCreateDto.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\Dtos\Category\CategoryReadDto.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\Dtos\Genre\GenreReadDto.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\Dtos\Genre\GenreUpsertDto.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Models\Dtos\PagedList.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Models\Dtos\PagedListMetadata.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\Dtos\Studio\StudioReadDto.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\Dtos\Studio\StudioUpsertDto.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\Enums\Season.cs" />

@@ -19,31 +19,29 @@ namespace AnimeHubApi.Controllers
         public AnimeController(IAnimeRepository animeRepository) => _animeRepository = animeRepository;
 
         [HttpGet]
-        public async Task<ActionResult<List<AnimeReadDto>>> GetAnimes()
+        public async Task<ActionResult<List<AnimeListReadDto>>> GetAnimes([FromQuery] APIParams apiParams)
         {
-            var animes = await _animeRepository.GetAllAsync();
+            PagedList<AnimeListReadDto> pagedList = (PagedList<AnimeListReadDto>)await _animeRepository.GetAllAsync(apiParams);
 
-            // Manual mapping to DTO
-            var animeDtos = animes.Select(a => new AnimeReadDto
+            if (pagedList is null || !pagedList.Any())
+                return NotFound();
+
+            // CRITICAL: Add Pagination Metadata to the Response Headers
+            // The client needs this info (TotalPages, TotalCount) to build the UI.
+            var metadata = new
             {
-                Id = a.Id,
-                Title = a.Title,
-                Episodes = a.Episodes,
-                Season = a.Season.ToString(), // (Enum to String)
-                PremieredYear = a.PremieredYear,
-                Description = a.Description,
-                ImageUrl = a.ImageUrl,
-                Rating = a.Rating,
-                Status = a.Status.ToString(), // (Enum to String)
-                CategoryId = a.CategoryId,
-                CategoryName = a.Category?.Name ?? string.Empty,
-                Genres = a.AnimeGenres?.Select(ag => ag.Genre.Name).ToList() ?? new List<string>(),
-                GenreIds = a.AnimeGenres?.Select(ag => ag.GenreId).ToList() ?? new List<int>(),
-                Studios = a.AnimeStudios?.Select(ast => ast.Studio.Name).ToList() ?? new List<string>(),
-                StudioIds = a.AnimeStudios?.Select(ast => ast.StudioId).ToHashSet() ?? new HashSet<int>(),
-            }).ToList();
+                pagedList.TotalCount,
+                pagedList.PageSize,
+                pagedList.CurrentPage,
+                pagedList.TotalPages,
+                pagedList.HasNext,
+                pagedList.HasPrevious
+            };
 
-            return Ok(animeDtos);
+            // Must serialize the metadata and add it to a custom response header
+            Response.Headers.Append("X-Pagination", System.Text.Json.JsonSerializer.Serialize(metadata));
+
+            return Ok(pagedList);
         }
 
         [HttpGet("{id}")]

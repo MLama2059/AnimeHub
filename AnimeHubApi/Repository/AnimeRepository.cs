@@ -3,6 +3,8 @@ using AnimeHub.Shared.Models;
 using AnimeHubApi.Repository.IRepository;
 using Microsoft.EntityFrameworkCore;
 using System.Threading.Tasks;
+using AnimeHub.Shared.Models.Dtos.Anime;
+using AnimeHub.Shared.Models.Dtos;
 
 namespace AnimeHubApi.Repository
 {
@@ -15,13 +17,40 @@ namespace AnimeHubApi.Repository
             _context = context;
         }  
 
-        public async Task<List<Anime>> GetAllAsync()
+        public async Task<PagedList<AnimeListReadDto>> GetAllAsync(APIParams apiParams)
         {
-            return await _context.Animes
+            //return await _context.Animes
+            //    .Include(a => a.Category)
+            //    .Include(a => a.AnimeGenres).ThenInclude(ag => ag.Genre)
+            //    .Include(a => a.AnimeStudios).ThenInclude(ast => ast.Studio)
+            //    .ToListAsync();
+
+            // Use .AsNoTracking() for read-only queries for better performance
+            var query = _context.Animes
                 .Include(a => a.Category)
-                .Include(a => a.AnimeGenres).ThenInclude(ag => ag.Genre)
-                .Include(a => a.AnimeStudios).ThenInclude(ast => ast.Studio)
-                .ToListAsync();
+                .AsNoTracking();
+
+            // Apply Projection
+            var projectedQuery = query
+                .Select(a => new AnimeListReadDto
+                {
+                    Id = a.Id,
+                    Title = a.Title,
+                    ImageUrl = a.ImageUrl,
+                    Rating = a.Rating,
+                    Episodes = a.Episodes,
+                    Season = a.Season.ToString(),
+                    PremieredYear = a.PremieredYear,
+                    Status = a.Status.ToString(),
+                    CategoryId = a.CategoryId,
+                    CategoryName = a.Category.Name
+                });
+
+            // Apply pagination
+            return await PagedList<AnimeListReadDto>.CreateAsync(
+                projectedQuery,
+                apiParams.PageNumber,
+                apiParams.PageSize);
         }
 
         public async Task<Anime?> GetByIdAsync(int id)
@@ -30,6 +59,7 @@ namespace AnimeHubApi.Repository
                 .Include(a => a.Category)
                 .Include(a => a.AnimeGenres).ThenInclude(ag => ag.Genre)
                 .Include(a => a.AnimeStudios).ThenInclude(ast => ast.Studio)
+                .AsNoTracking()
                 .FirstOrDefaultAsync(a => a.Id == id);
         }
 

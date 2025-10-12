@@ -56,7 +56,7 @@ namespace AnimeHubApi.Controllers
             return CreatedAtAction(nameof(GetStudioById), new { id = dto.Id }, dto);
         }
 
-        [HttpPost("{id}")]
+        [HttpPut("{id}")]
         public async Task<IActionResult> UpdateStudio(int id, StudioUpsertDto studioDto)
         {
             if (studioDto is null)

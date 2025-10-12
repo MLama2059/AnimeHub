@@ -28,9 +28,10 @@ builder.Services.AddCors(options =>
         {
             // For local development, allow any origin.
             // For production, specify your Blazor app's domain.
-            policy.AllowAnyOrigin()
+            policy.WithOrigins("https://localhost:7178", "http://localhost:5148")
                   .AllowAnyHeader()
-                  .AllowAnyMethod();
+                  .AllowAnyMethod()
+                  .WithExposedHeaders("X-Pagination");
         });
 });
 

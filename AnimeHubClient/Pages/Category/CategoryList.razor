@@ -5,9 +5,9 @@
 @inject IDialogService Dialog
 @inject ISnackbar Snackbar
 
-@if (IsProcessing)
+@if (IsLoading)
 {
-    <p><em>Loading...</em></p>
+    <div class="py-4 text-center"><MudProgressCircular Indeterminate="true" /></div>
 }
 else
 {
@@ -21,7 +21,7 @@ else
         </div>
         <div class="card-body p-4">
             <div class="col-12 text-end">
-                <a href="category/create" class="btn btn-lg btn-secondary"><i class="bi bi-plus-square"></i> Add New Category</a>
+                <a href="category/create" class="btn btn-secondary"><i class="bi bi-plus-square"></i> Add New Category</a>
             </div>
         </div>
         @if (Categories != null && Categories.Any())
@@ -41,8 +41,8 @@ else
                                 @category.Name
                             </td>
                             <td>
-                                <a href="@($"category/update/{category.Id}")" class="btn btn-primary"><i class="bi bi-pencil-square"></i> Edit</a>
-                                <button class="btn btn-danger" @onclick="() => DeleteCategory(category.Id)"><i class="bi bi-trash"></i> Delete</button>
+                                <a href="@($"category/update/{category.Id}")" class="btn btn-primary btn-sm"><i class="bi bi-pencil-square"></i> Edit</a>
+                                <button class="btn btn-danger btn-sm" @onclick="() => DeleteCategory(category.Id)"><i class="bi bi-trash"></i> Delete</button>
                             </td>
                         </tr>
                     }
@@ -53,7 +53,7 @@ else
 }
 
 @code {
-    private bool IsProcessing { get; set; } = true;
+    private bool IsLoading { get; set; } = true;
     private List<CategoryReadDto>? Categories;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -61,7 +61,7 @@ else
         if (firstRender)
         {
             await LoadCategories();
-            IsProcessing = false;
+            IsLoading = false;
             StateHasChanged();
         }
     }
@@ -109,7 +109,6 @@ else
             {
                 Snackbar.Add("Failed to delete category.", Severity.Error);
             }
-
         }
     }
 }

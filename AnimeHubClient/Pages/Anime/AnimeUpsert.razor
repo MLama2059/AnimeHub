@@ -59,7 +59,7 @@ else
                         @* <label class="mud-input-label">Studios</label> *@
 
                         <MudSelect T="int"
-                                   Label="Select Studios"
+                                   Label="Studios"
                                    Variant="Variant.Outlined"
                                    SelectedValues="Anime.StudioIds"
                                    SelectedValuesChanged="@(vals => Anime.StudioIds = new HashSet<int>(vals))"
@@ -126,11 +126,12 @@ else
                     <div class="form-floating py-3 col-12">
                         <MudSelect T="Status"
                                    Label="Status"
+                                   Variant="Variant.Outlined"
                                    @bind-Value="@AnimeStatusEnum">
 
                             @foreach (Status statusValue in Enum.GetValues(typeof(Status)))
                             {
-                                <MudSelectItem Value="@statusValue">@statusValue</MudSelectItem>
+                                <MudSelectItem Value="@statusValue">@GetEnumDisplayName(statusValue)</MudSelectItem>
                             }
                         </MudSelect>
                         @* <label for="Status">Status</label> *@
@@ -404,6 +405,27 @@ else
     {
         get => (Status)Anime.Status;
         set => Anime.Status = (int)value;
+    }
+
+    // Inside the @code block of AnimeUpsert.razor
+
+    private string GetEnumDisplayName(Enum enumValue)
+    {
+        // Use reflection to get the MemberInfo for the enum value
+        var memberInfo = enumValue.GetType().GetMember(enumValue.ToString()).FirstOrDefault();
+
+        if (memberInfo == null)
+        {
+            return enumValue.ToString(); // Fallback to raw string
+        }
+
+        // Check if the DisplayAttribute is present
+        var displayAttribute = memberInfo.GetCustomAttributes(typeof(DisplayAttribute), false)
+                                         .OfType<DisplayAttribute>()
+                                         .FirstOrDefault();
+
+        // Return the Name from the DisplayAttribute, or fallback to raw string
+        return displayAttribute?.Name ?? enumValue.ToString();
     }
 
     private async Task OnFileSelected(InputFileChangeEventArgs e)

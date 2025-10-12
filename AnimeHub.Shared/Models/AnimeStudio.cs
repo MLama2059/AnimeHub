@@ -11,7 +11,7 @@ namespace AnimeHub.Shared.Models
         public int StudioId { get; set; }
 
         // Navigation Properties
-        public Anime Anime { get; set; }
-        public Studio Studio { get; set; }
+        public Anime? Anime { get; set; }
+        public Studio? Studio { get; set; }
     }
 }
