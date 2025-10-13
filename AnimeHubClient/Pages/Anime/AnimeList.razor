@@ -22,8 +22,18 @@ else
             </div>
         </div>
         <div class="card-body p-4">
-            <div class="col-12 text-end">
-                <a href="anime/create" class="btn btn-secondary"><i class="bi bi-plus-square"></i> Add New Anime</a>
+            <div class="row">
+                <div class="col-md-6 mb-3 d-flex justify-content-between gap-2">
+                    <label for="sortDropdown" class="form-label">Sort By:</label>
+                    <select id="sortDropdown" class="form-select" @bind:after="HandleSortChange" @bind="OrderBy">
+                        <option value="title">Title (A-Z)</option>
+                        <option value="rating">Rating (Highest)</option>
+                        <option value="premiered">Premiered (Latest)</option>
+                    </select>
+                </div>
+                <div class="col-md-6 text-end">
+                    <a href="anime/create" class="btn btn-secondary"><i class="bi bi-plus-square"></i> Add New Anime</a>
+                </div>
             </div>
         </div>
         @if (AnimesList != null && AnimesList.Any())
@@ -106,6 +116,7 @@ else
     private PagedListMetadata Metadata = new();
     private int CurrentPage = 1;
     private int PageSize = 10;
+    private string OrderBy { get; set; } = "Title";
 
     protected override async Task OnInitializedAsync()
     {
@@ -122,7 +133,8 @@ else
             var queryParams = new Dictionary<string, string?>
             {
                 {"pageNumber", CurrentPage.ToString()},
-                {"pageSize", PageSize.ToString()}
+                {"pageSize", PageSize.ToString()},
+                {"orderBy", OrderBy}
             };
 
             // Construct the full URL: api/anime?pageNumber=1&pageSize=10...
@@ -211,6 +223,15 @@ else
         CurrentPage = newPage;
 
         // 3. Reload the data from the API
+        await LoadAnimes();
+    }
+
+    private async Task HandleSortChange()
+    {
+        // When the sort order changes, we must reset to the first page (page 1)
+        CurrentPage = 1;
+
+        // LoadAnimes handles setting IsLoading and calling StateHasChanged
         await LoadAnimes();
     }
 }

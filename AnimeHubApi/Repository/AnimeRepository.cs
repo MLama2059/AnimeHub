@@ -19,12 +19,6 @@ namespace AnimeHubApi.Repository
 
         public async Task<PagedList<AnimeListReadDto>> GetAllAsync(APIParams apiParams)
         {
-            //return await _context.Animes
-            //    .Include(a => a.Category)
-            //    .Include(a => a.AnimeGenres).ThenInclude(ag => ag.Genre)
-            //    .Include(a => a.AnimeStudios).ThenInclude(ast => ast.Studio)
-            //    .ToListAsync();
-
             // Use .AsNoTracking() for read-only queries for better performance
             var query = _context.Animes
                 .Include(a => a.Category)
@@ -45,6 +39,33 @@ namespace AnimeHubApi.Repository
                     CategoryId = a.CategoryId,
                     CategoryName = a.Category.Name
                 });
+
+            if (!string.IsNullOrWhiteSpace(apiParams.OrderBy))
+            {
+                switch (apiParams.OrderBy.ToLowerInvariant())
+                {
+                    case "title":
+                        projectedQuery = projectedQuery.OrderBy(a => a.Title);
+                        break;
+
+                    case "rating":
+                        projectedQuery = projectedQuery.OrderByDescending(a => a.Rating);
+                        break;
+
+                    case "premiered":
+                        projectedQuery = projectedQuery.OrderByDescending(a => a.PremieredYear).ThenByDescending(a => a.Season);
+                        break;
+
+                    default:
+                        projectedQuery = projectedQuery.OrderBy(a => a.Title);
+                        break;
+                }
+            }
+            else
+            {
+                // Default ordering
+                projectedQuery = projectedQuery.OrderBy(a => a.Title);
+            }
 
             // Apply pagination
             return await PagedList<AnimeListReadDto>.CreateAsync(
