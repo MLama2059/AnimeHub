@@ -39,22 +39,6 @@ else
                         <label for="Description">Description</label>
                         <ValidationMessage For="@(() => Anime.Description)"></ValidationMessage>
                     </div>
-                    @* <div class="form-floating py-3 col-12">
-                        <label for="Studios" class="form-label">Studios</label>
-                        <select class="form-select" multiple @onchange="StudioSelectionChanged">
-                            <option value="0" disabled>-- Select Studios --</option>
-                            @if (Studios != null)
-                            {
-                                @foreach (var studio in Studios)
-                                {
-                                    <option value="@studio.Id">@studio.Name</option>
-                                }
-                            }
-                        </select>
-                        <ValidationMessage For="@(() => Anime.StudioIds)"></ValidationMessage>
-                    </div> *@
-                    @* Add MudBlazor using directive at the top if you don't have it: @using MudBlazor *@
-
                     <div class="form-floating mb-3 col-12">
                         @* <label class="mud-input-label">Studios</label> *@
 
@@ -261,8 +245,18 @@ else
         }
 
         Categories = await Http.GetFromJsonAsync<List<CategoryReadDto>>("api/category");
-        Genres = await Http.GetFromJsonAsync<List<GenreReadDto>>("api/genre");
-        Studios = await Http.GetFromJsonAsync<List<StudioReadDto>>("api/studio");
+        var genres = await Http.GetFromJsonAsync<List<GenreReadDto>>("api/genre");
+        var studios = await Http.GetFromJsonAsync<List<StudioReadDto>>("api/studio");
+
+        if (Genres != null)
+        {
+            Genres = genres.OrderBy(g => g.Name).ToList();
+        }
+
+        if (Studios != null)
+        {
+            Studios = studios.OrderBy(s => s.Name).ToList();
+        }
     }
 
     private async Task UpsertAnime()
@@ -366,33 +360,6 @@ else
             Anime.GenreIds.Remove(genreId);
         }
     }
-/*
-    private void StudioSelectionChanged(ChangeEventArgs e)
-    {
-        // The e.Value for a <select multiple> is an array of strings (object[]).
-        // If nothing is selected, e.Value might be null or an empty array.
-
-        if (e.Value is System.Collections.IEnumerable selectedValues)
-        {
-            // Clear the existing list
-            Anime.StudioIds.Clear();
-
-            // Iterate over the selected string values, parse them to int, and add them back
-            foreach (var value in selectedValues)
-            {
-                if (int.TryParse(value?.ToString(), out int studioId))
-                {
-                    Anime.StudioIds.Add(studioId);
-                }
-            }
-        }
-        // If the list is null (e.g., if you used a third-party component), ensure it's initialized
-        else
-        {
-            Anime.StudioIds = new List<int>();
-        }
-    }
-*/
 
     private string ConvertStudioIdToName(int id)
     {

@@ -24,6 +24,19 @@ namespace AnimeHubApi.Repository
                 .Include(a => a.Category)
                 .AsNoTracking();
 
+            // Apply Searching
+            if(!string.IsNullOrWhiteSpace(apiParams.FilterOn) && !string.IsNullOrWhiteSpace(apiParams.FilterQuery))
+            {
+                var filterOn = apiParams.FilterOn.ToLowerInvariant();
+                var filterQuery = apiParams.FilterQuery.ToLowerInvariant();
+
+                if (filterOn.Equals("title"))
+                {
+                    query = query.Where(a => a.Title.ToLower().Contains(filterQuery));
+                }
+                // Add more 'else if' blocks here if you want to filter other fields later (e.g., CategoryName)
+            }
+
             // Apply Projection
             var projectedQuery = query
                 .Select(a => new AnimeListReadDto
@@ -40,6 +53,7 @@ namespace AnimeHubApi.Repository
                     CategoryName = a.Category.Name
                 });
 
+            // Apply filtering
             if (!string.IsNullOrWhiteSpace(apiParams.OrderBy))
             {
                 switch (apiParams.OrderBy.ToLowerInvariant())

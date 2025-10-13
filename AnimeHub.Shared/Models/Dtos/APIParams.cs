@@ -11,6 +11,8 @@ namespace AnimeHub.Shared.Models.Dtos
 
         private int _pageSize = 10; // Default page size
         public string? OrderBy { get; set; }
+        public string? FilterOn { get; set; }
+        public string? FilterQuery { get; set; }
 
         public int PageSize
         {
