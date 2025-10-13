@@ -25,16 +25,7 @@
                     @for (int i = 0; i < 5; i++)
                     {
                         <div class="col d-flex justify-content-center">
-                            <div class="card anime-card border-0">
-                                <div class="skeleton skeleton-image"></div>
-                                @* <div class="skeleton skeleton-text-line mt-3 mx-auto"></div> *@
-
-                                <div class="card-body">
-                                    <h5 class="skeleton skeleton-text-line mx-auto"></h5>
-                                    @* <p class="skeleton skeleton-text-line-short"></p>
-                                    <div class="skeleton skeleton-button"></div> *@
-                                </div>
-                            </div>
+                            <AnimeCardSkeleton />
                         </div>
                     }
                 }
@@ -43,18 +34,7 @@
                     @foreach (var anime in TopRatedAnimes)
                     {
                         <div class="col d-flex justify-content-center">
-                            <div class="card anime-card border-0">
-                                <a href="anime/@anime.Id"><img src="@(Http.BaseAddress?.ToString() + anime.ImageUrl)" class="card-img-top anime-img-top" alt="@anime.Title" /></a>
-                                @* <a href="anime/@anime.Id" class="text-decoration-none"><h6 class="card-title fw-bold text-truncate mt-3 text-muted">@anime.Title</h6></a> *@
-
-                                <div class="card-body">
-                                    <a href="anime/@anime.Id" class="text-decoration-none"><h6 class="card-title fw-bold text-truncate text-muted">@anime.Title</h6></a>
-
-                                    @* <h6 class="card-title text-truncate">@anime.Title</h6>
-                                    <p class="card-text text-muted mb-1"><i class="bi bi-star-fill" style="color: orange"></i> @anime.Rating</p>
-                                    <a href="anime/@anime.Id" class="btn btn-primary mt-2">View Details</a> *@
-                                </div>
-                            </div>
+                            <AnimeCard Anime="anime" />
                         </div>
                     }
                 }
@@ -115,7 +95,7 @@
 
 @code {
     private bool IsLoading { get; set; } = true;
-    private List<AnimeReadDto>? TopRatedAnimes { get; set; }
+    private List<AnimeListReadDto>? TopRatedAnimes { get; set; }
     private List<CategoryReadDto>? Categories { get; set; }
     private List<GenreReadDto>? Genres { get; set; }
 
@@ -123,7 +103,7 @@
     {
         try
         {
-            TopRatedAnimes = await Http.GetFromJsonAsync<List<AnimeReadDto>>("api/anime/top");
+            TopRatedAnimes = await Http.GetFromJsonAsync<List<AnimeListReadDto>>("api/anime/top");
             Categories = await Http.GetFromJsonAsync<List<CategoryReadDto>>("api/category");
             Genres = await Http.GetFromJsonAsync<List<GenreReadDto>>("api/genre");
         }

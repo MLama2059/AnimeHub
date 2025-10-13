@@ -1,0 +1,18 @@
+﻿@inject HttpClient Http
+
+<div class="card anime-card border-0">
+    <a href="anime/@Anime.Id">
+        <img src="@(Http.BaseAddress?.ToString() + Anime.ImageUrl)" class="card-img-top anime-img-top" alt="@Anime.Title" />
+    </a>
+
+    <div class="card-body">
+        <a href="anime/@Anime.Id" class="text-decoration-none">
+            <h6 class="card-title fw-bold text-truncate text-muted">@Anime.Title</h6>
+        </a>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public AnimeListReadDto Anime { get; set; } = default!;
+}
