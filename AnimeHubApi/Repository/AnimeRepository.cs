@@ -15,7 +15,7 @@ namespace AnimeHubApi.Repository
         public AnimeRepository(ApplicationDbContext context)
         {
             _context = context;
-        }  
+        }
 
         public async Task<PagedList<AnimeListReadDto>> GetAllAsync(APIParams apiParams)
         {
@@ -25,7 +25,7 @@ namespace AnimeHubApi.Repository
                 .AsNoTracking();
 
             // Apply Searching
-            if(!string.IsNullOrWhiteSpace(apiParams.FilterOn) && !string.IsNullOrWhiteSpace(apiParams.FilterQuery))
+            if (!string.IsNullOrWhiteSpace(apiParams.FilterOn) && !string.IsNullOrWhiteSpace(apiParams.FilterQuery))
             {
                 var filterOn = apiParams.FilterOn.ToLowerInvariant();
                 var filterQuery = apiParams.FilterQuery.ToLowerInvariant();
@@ -103,8 +103,6 @@ namespace AnimeHubApi.Repository
         {
             return await _context.Animes
                 .Include(a => a.Category)
-                .Include(a => a.AnimeGenres).ThenInclude(ag => ag.Genre)
-                .Include(a => a.AnimeStudios).ThenInclude(ast => ast.Studio)
                 .OrderByDescending(a => a.Rating)
                 .Take(count)
                 .ToListAsync();

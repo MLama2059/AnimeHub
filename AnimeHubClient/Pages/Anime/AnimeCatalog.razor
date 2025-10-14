@@ -1,0 +1,258 @@
+﻿@page "/anime-catalog"
+@using AnimeHub.Shared.Models.Dtos
+@using Microsoft.AspNetCore.WebUtilities
+@inject HttpClient Http
+@inject ISnackbar Snackbar
+@inject IJSRuntime JSRuntime
+@implements IDisposable
+
+<div class="container my-4">
+    <h2 class="text-center pb-3">Anime Catalog</h2>
+
+    @* --- Search and Sort Controls --- *@
+    <div class="row align-items-end mb-4 p-4 bg-light rounded shadow-sm">
+        @* Search Input *@
+        <div class="col-12 col-md-6 mb-3 mb-md-0">
+            <label for="searchBox" class="form-label fw-bold">Search Title:</label>
+            <div class="input-group">
+                <input type="text"
+                    class="form-control"
+                    @bind="SearchInput"
+                    @bind:event="oninput"
+                    @bind:after="StartDebounceSearch"
+                    @onkeypress="HandleEnterKeySearch"
+                    placeholder="Search anime">
+            </div>
+        </div>
+
+        @* Sort Dropdown *@
+        <div class="col-12 col-md-6">
+            <label for="sortDropdown" class="form-label fw-bold">Sort By:</label>
+            <select id="sortDropdown" class="form-select" @bind:after="HandleSortChange" @bind="OrderBy">
+                <option value="title">Title (A-Z)</option>
+                <option value="rating">Rating (Highest)</option>
+                <option value="premiered">Premiered Date (Newest)</option>
+            </select>
+        </div>
+    </div>
+
+    @* Anime Card Grid and Loading State *@
+    <div class="col-12 mt-5 pt-5">
+        <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 row-cols-xl-5 g-4 justify-content-start">
+            @if (IsLoading && AnimesList.Count == 0)
+            {
+                @for (int i = 0; i < 6; i++)
+                {
+                    <div class="col d-flex justify-content-center">
+                        <AnimeCardSkeleton />
+                    </div>
+                }
+            }
+            else if (AnimesList != null && AnimesList.Any())
+            {
+                @foreach (var anime in AnimesList)
+                {
+                    <div class="col d-flex justify-content-center">
+                        <AnimeCard Anime="anime" />
+                    </div>
+                }
+            }
+            else
+            {
+                <p class="text-center w-100 p-5">No Results.</p>
+            }
+        </div>
+    </div>
+    @* SCROLL LOADING INDICATOR *@
+    @if (IsLoading && AnimesList.Count > 0)
+    {
+        @* Show skeleton cards horizontally only when loading MORE data (list is not empty) *@
+        <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 row-cols-xl-5 g-4 justify-content-start pt-4">
+            @for (int i = 0; i < 6; i++)
+            {
+                <div class="col d-flex justify-content-center">
+                    <AnimeCardSkeleton />
+                </div>
+            }
+        </div>
+    }
+    @* End of List Message *@
+    else if (!HasMorePages && AnimesList.Any())
+    {
+        <div class="py-4 text-center">
+            <p class="text-muted fw-bold">You've reached the end of the catalog! (@AnimesList.Count total items)</p>
+        </div>
+    }
+</div>
+
+@code {
+    private List<AnimeListReadDto> AnimesList = new();
+    private PagedListMetadata Metadata = new();
+    private bool IsLoading { get; set; } = true;
+    private int CurrentPage { get; set; } = 1;
+    private int PageSize { get; set; } = 20;
+    private bool HasMorePages { get; set; } = true;
+    private string OrderBy { get; set; } = "Title";
+    private const string FilterOn = "Title";
+    // Properties for Debouncing/Search
+    private string FilterQuery { get; set; } = string.Empty; // Actual filter sent to API
+    private string SearchInput { get; set; } = string.Empty; // Value from the input box
+    private CancellationTokenSource _debounceCts = new CancellationTokenSource();
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Set initial SearchInput value to match FilterQuery (for consistency)
+        SearchInput = FilterQuery;
+        await LoadAnimes();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            // Register the .NET method to be called when the user scrolls near the bottom
+            await JSRuntime.InvokeVoidAsync("setupInfiniteScroll", DotNetObjectReference.Create(this));
+        }
+    }
+
+    // --- JS INTEROP METHOD (Called by JavaScript) ---
+    [JSInvokable]
+    public async Task LoadMoreData()
+    {
+        // Only load if we aren't already loading and there are more pages available
+        if (!IsLoading && HasMorePages)
+        {
+            CurrentPage++;
+            await LoadAnimes(append: true); // Pass a flag to indicate appending
+        }
+    }
+
+    private async Task LoadAnimes(bool append = false)
+    {
+        if (append && !HasMorePages) return;
+
+        IsLoading = true;
+        if (append) StateHasChanged();
+
+        try
+        {
+            // await Task.Delay(1000);
+            // Build the Query String
+            var queryParams = new Dictionary<string, string?>
+            {
+                {"pageNumber", CurrentPage.ToString()},
+                {"pageSize", PageSize.ToString()},
+                {"orderBy", OrderBy}
+            };
+
+            // Add Filter Params if a search query is present
+            if (!string.IsNullOrWhiteSpace(FilterQuery))
+            {
+                queryParams.Add("filterOn", FilterOn);
+                queryParams.Add("filterQuery", FilterQuery);
+            }
+
+            var queryString = new FormUrlEncodedContent(queryParams).ReadAsStringAsync().Result;
+
+            var response = await Http.GetAsync($"api/anime?{queryString}");
+            response.EnsureSuccessStatusCode();
+
+            var newAnimes = await response.Content.ReadFromJsonAsync<List<AnimeListReadDto>>()
+                ?? new List<AnimeListReadDto>();
+
+            // Append or Replace logic
+            if (append)
+            {
+                AnimesList.AddRange(newAnimes);
+            }
+            else
+            {
+                AnimesList = newAnimes;
+                CurrentPage = 1;
+            }
+
+            // Update Metadata for HasMorePages
+            if (response.Headers.TryGetValues("X-Pagination", out var headerValues))
+            {
+                var metadataJson = headerValues.FirstOrDefault();
+                if (!string.IsNullOrWhiteSpace(metadataJson))
+                {
+                    Metadata = System.Text.Json.JsonSerializer.Deserialize<PagedListMetadata>(metadataJson) ?? new PagedListMetadata();
+                    HasMorePages = Metadata.HasNext;
+                }
+            } 
+        }
+        catch (Exception ex)
+        {
+            // Console.Error.WriteLine($"Error fetching category data: {ex.Message}");
+            Snackbar.Add($"Error loading catalog: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            IsLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task HandleSortChange()
+    {
+        CurrentPage = 1; // Always reset to page 1 on sort/search
+        HasMorePages = true; // Assume there are more pages now
+        await LoadAnimes(append: false); // Replace the list
+    }
+
+    private async Task HandleEnterKeySearch(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            // Immediately update the official filter property
+            FilterQuery = SearchInput;
+
+            // Cancel any debounce delay to prevent a double-search
+            _debounceCts.Cancel();
+
+            // Call the core search method
+            await HandleSearch();
+        }
+    }
+
+    private async Task StartDebounceSearch()
+    {
+        // Cancel any pending/previous search operation
+        _debounceCts.Cancel();
+        _debounceCts = new CancellationTokenSource();
+
+        // Wait for 500ms before calling the API
+        try
+        {
+            await Task.Delay(500, _debounceCts.Token);
+
+            // Update the *official* filter property used by LoadAnimes
+            FilterQuery = SearchInput;
+
+            // Trigger the actual search
+            await HandleSearch();
+        }
+        catch (TaskCanceledException)
+        {
+            // Ignore if the task was canceled
+        }
+    }
+
+    private async Task HandleSearch()
+    {
+        CurrentPage = 1; // Always reset to page 1 on search
+        HasMorePages = true; // Assume there are more pages now
+        // IsLoading = true;
+        // Force UI to render the skeleton state now
+        // StateHasChanged();
+        await LoadAnimes(append: false); // Replace the list
+    }
+
+    // LIFECYCLE CLEANUP: Prevent memory leaks from the CancellationTokenSource
+    public void Dispose()
+    {
+        _debounceCts.Cancel();
+        _debounceCts.Dispose();
+    }
+}

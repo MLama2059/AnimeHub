@@ -59,6 +59,18 @@
         transform: translateY(-8px);
     }
 
+.anime-title {
+    /* 1. Limit the height to two lines */
+    overflow: hidden;
+    /* 2. Set the display mode and orientation */
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    /* 3. The critical property: set the maximum number of lines */
+    -webkit-line-clamp: 2;
+    /* 4. Optional: Ensure proper word wrapping */
+    word-break: break-word;
+}
+
 /* --- SKELETON LOADING STYLES --- */
 
 /* 1. Animation Definition */
@@ -95,19 +107,6 @@
     width: 90%; /* Main title length */
     margin-bottom: 0.5rem;
 }
-
-/*.skeleton-text-line-short {
-    height: 0.8rem;
-    width: 60%;*/ /* Smaller text length */
-    /*margin-bottom: 0.5rem;
-}
-
-.skeleton-button {
-    height: 2.2rem;
-    width: 100%;
-    border-radius: 4px;
-    margin-top: 0.5rem;
-}*/
 
 /*Default css*/
 

@@ -24,19 +24,23 @@ else
         <div class="card-body p-4">
             <div class="row align-items-end">
                 <div class="col-md-4">
+                    <label for="searchBox" class="form-label">Search Title:</label>
+                    <div class="input-group">
+                        <input type="text"
+                               class="form-control"
+                               @bind="SearchInput"
+                               @bind:event="oninput"
+                               @onkeypress="HandleEnterKeySearch"
+                               placeholder="Search anime">
+                    </div>
+                </div>
+                <div class="col-md-4">
                     <label for="sortDropdown" class="form-label">Sort By:</label>
                     <select id="sortDropdown" class="form-select" @bind:after="HandleSortChange" @bind="OrderBy">
                         <option value="title">Title (A-Z)</option>
                         <option value="rating">Rating (Highest)</option>
                         <option value="premiered">Premiered (Latest)</option>
                     </select>
-                </div>
-                <div class="col-md-4">
-                    <label for="searchBox" class="form-label">Search Title:</label>
-                    <div class="input-group">
-                        <input type="text" class="form-control" @bind="FilterQuery" placeholder="Search by title..." />
-                        <button class="btn btn-primary" @onclick="HandleSearch">Search</button>
-                    </div>
                 </div>
                 <div class="col-md-4 text-end">
                     <a href="anime/create" class="btn btn-secondary"><i class="bi bi-plus-square"></i> Add New Anime</a>
@@ -124,11 +128,15 @@ else
     private int CurrentPage = 1;
     private int PageSize = 10;
     private string OrderBy { get; set; } = "Title";
-    private string FilterQuery { get; set; } = string.Empty;
     private const string FilterOn = "Title";
+    // Properties for Search
+    private string FilterQuery { get; set; } = string.Empty; // Actual filter sent to API
+    private string SearchInput { get; set; } = string.Empty; // Value from the input box
 
     protected override async Task OnInitializedAsync()
     {
+        // Set initial SearchInput value to match FilterQuery (for consistency)
+        SearchInput = FilterQuery;
         await LoadAnimes();
     }
 
@@ -154,27 +162,18 @@ else
             }
 
             // Construct the full URL: api/anime?pageNumber=1&pageSize=10...
-            var uri = QueryHelpers.AddQueryString("api/anime", queryParams);
+            var queryString = new FormUrlEncodedContent(queryParams).ReadAsStringAsync().Result;
 
-            // Execute the HTTP request
-            var response = await Http.GetAsync(uri);
+            var response = await Http.GetAsync($"api/anime?{queryString}");
             response.EnsureSuccessStatusCode();
 
             // Read Pagination Metadata from the Header
-            if (response.Headers.TryGetValues("X-Pagination", out IEnumerable<string>? headerValues))
+            if (response.Headers.TryGetValues("X-Pagination", out var headerValues))
             {
-                var header = headerValues.FirstOrDefault();
-                if (!string.IsNullOrWhiteSpace(header))
+                var metadataJson = headerValues.FirstOrDefault();
+                if (!string.IsNullOrWhiteSpace(metadataJson))
                 {
-                    // LOG 1: Log the raw JSON header string
-                    Console.WriteLine($"Raw X-Pagination Header: {header}");
-
-                    Metadata = System.Text.Json.JsonSerializer.Deserialize<PagedListMetadata>(header,
-                        new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true })
-                        ?? new PagedListMetadata();
-
-                    // LOG 2: Log the deserialized values
-                    Console.WriteLine($"Metadata TotalPages: {Metadata.TotalPages}, HasNext: {Metadata.HasNext}");
+                    Metadata = System.Text.Json.JsonSerializer.Deserialize<PagedListMetadata>(metadataJson) ?? new PagedListMetadata();
                 }
             }
 
@@ -251,12 +250,21 @@ else
         await LoadAnimes();
     }
 
+    private async Task HandleEnterKeySearch(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            // Immediately update the official filter property
+            FilterQuery = SearchInput;
+
+            // Call the core search method
+            await HandleSearch();
+        }
+    }
+
     private async Task HandleSearch()
     {
-        // When searching, we must reset to the first page (page 1)
-        CurrentPage = 1;
-
-        // LoadAnimes handles setting IsLoading and calling StateHasChanged
-        await LoadAnimes();
+        CurrentPage = 1; // Always reset to page 1 on search
+        await LoadAnimes(); // Replace the list
     }
 }
