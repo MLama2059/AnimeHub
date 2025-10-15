@@ -1,5 +1,4 @@
-﻿
-@inherits LayoutComponentBase
+﻿@inherits LayoutComponentBase
 
 @* Required *@
 <MudThemeProvider />
@@ -12,9 +11,27 @@
 <MudSnackbarProvider />
 
 <div class="page">
-    <div class="sidebar">
-        <NavMenu />
-    </div>
+    <MudAppBar Elevation="2" Fixed="true" Dense="false" Class="appbar-custom-height" Color="Color.Dark">
+
+        <MudLink Href="/" Typo="Typo.h5" Underline="Underline.None" Color="Color.Inherit" Class="fw-bold">
+            AnimeHub
+        </MudLink>
+
+        <MudSpacer />
+
+        <div class="d-none d-md-flex align-center nav-link-group">
+            <MudButton Href="anime-catalog" Variant="Variant.Text" Color="Color.Inherit" Class="mx-2">Catalog</MudButton>
+            <MudButton Href="anime" Variant="Variant.Text" Color="Color.Inherit" Class="mx-2">Animes</MudButton>
+            <MudButton Href="category" Variant="Variant.Text" Color="Color.Inherit" Class="mx-2">Categories</MudButton>
+        </div>
+
+        <MudSpacer />
+
+        <MudButton Href="search" Variant="Variant.Text" Color="Color.Inherit" Class="mx-2">Search</MudButton>
+        <MudButton Href="login" Variant="Variant.Text" Color="Color.Inherit" Class="mx-2">Login</MudButton>
+        <MudButton Href="signup" Variant="Variant.Filled" Color="Color.Primary" Class="ms-2">Sign Up</MudButton>
+
+    </MudAppBar>
 
     <main class="mt-4">
         <article class="content px-4">

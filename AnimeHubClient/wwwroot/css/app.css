@@ -4,6 +4,20 @@
 /*Google font import*/
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap');
 
+main {
+    padding-top: 64px; /* Default MudAppBar height is 64px */
+}
+
+/* Custom Flexbox rule for centering the middle group of links */
+.nav-link-group {
+    /* Set the maximum width of the nav links group */
+    max-width: 500px;
+    /* Use margin auto to center the div */
+    margin: 0 auto;
+}
+
+
+
 /* --- Styles moved from Home.razor --- */
 
 /* Hero Section Styles */
@@ -107,6 +121,7 @@
     width: 90%; /* Main title length */
     margin-bottom: 0.5rem;
 }
+
 
 /*Default css*/
 
