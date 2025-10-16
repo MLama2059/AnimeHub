@@ -4,19 +4,6 @@
 /*Google font import*/
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap');
 
-main {
-    padding-top: 64px; /* Default MudAppBar height is 64px */
-}
-
-/* Custom Flexbox rule for centering the middle group of links */
-.nav-link-group {
-    /* Set the maximum width of the nav links group */
-    max-width: 500px;
-    /* Use margin auto to center the div */
-    margin: 0 auto;
-}
-
-
 
 /* --- Styles moved from Home.razor --- */
 
@@ -48,10 +35,11 @@ main {
 .anime-card {
     width: 14rem; /* Fixed width for card consistency */
     border-radius: 15px;
+    background-color: #181818;
 }
 
     .anime-card:hover .card-body a h6 {
-        color: #343a40 !important;
+        color: #ffb900 !important;
     }
 
     .anime-card .card-body a h6 {
@@ -235,3 +223,57 @@ code {
 .form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
     text-align: start;
 }
+
+/* Ensure normal appbar layout (no full height) */
+/*.mud-appbar.appbar-custom {
+    position: relative !important;
+    height: 64px !important;
+    width: 100% !important;
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    padding: 0 1rem;
+}*/
+
+/* Center link group in the middle section */
+.nav-link-group {
+    max-width: 500px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Make sure page and main flow naturally */
+.page {
+    display: block !important;
+    width: 100%;
+}
+
+main {
+    margin-top: 1rem;
+    padding: 0 1rem;
+}
+
+/* General link styles */
+.nav-item {
+/*    color: #000;  default text for light theme */
+    text-decoration: none;
+    margin: 0 1rem;
+    font-weight: 500;
+    transition: color 0.2s ease, transform 0.2s ease;
+}
+
+    /* Hover effect */
+    .nav-item:hover {
+        color: #ffb900 !important; /* yellow highlight */
+        transform: translateY(-2px);
+    }
+
+    /* Active link (Blazor NavLink auto adds .active) */
+    .nav-item.active {
+        color: #ffb900 !important;
+        font-weight: 700; /* bold */
+        border-bottom: 2px solid #ffb900; /* small underline */
+    }

@@ -1,7 +1,7 @@
 ﻿@inherits LayoutComponentBase
 
 @* Required *@
-<MudThemeProvider />
+<MudThemeProvider Theme="MyTheme" />
 <MudPopoverProvider />
 
 @* Needed for dialogs *@
@@ -11,31 +11,64 @@
 <MudSnackbarProvider />
 
 <div class="page">
-    <MudAppBar Elevation="2" Fixed="true" Dense="false" Class="appbar-custom-height" Color="Color.Dark">
+    <MudAppBar Elevation="2" Fixed="false">
 
-        <MudLink Href="/" Typo="Typo.h5" Underline="Underline.None" Color="Color.Inherit" Class="fw-bold">
+        <MudLink Href="/" Typo="Typo.h5" Underline="Underline.None" Color="Color.Primary" Class="fw-bold">
             AnimeHub
         </MudLink>
 
         <MudSpacer />
 
-        <div class="d-none d-md-flex align-center nav-link-group">
-            <MudButton Href="anime-catalog" Variant="Variant.Text" Color="Color.Inherit" Class="mx-2">Catalog</MudButton>
-            <MudButton Href="anime" Variant="Variant.Text" Color="Color.Inherit" Class="mx-2">Animes</MudButton>
-            <MudButton Href="category" Variant="Variant.Text" Color="Color.Inherit" Class="mx-2">Categories</MudButton>
-        </div>
+        <!-- Desktop Links -->
+        <MudHidden Breakpoint="Breakpoint.SmAndDown">
+            <div class="d-none d-md-flex align-center nav-link-group">
+                <MudButton Href="/" Variant="Variant.Text" Color="Color.Inherit" Class="mx-2 nav-item">Home</MudButton>
+                <MudButton Href="anime-catalog" Variant="Variant.Text" Color="Color.Inherit" Class="mx-2 nav-item">Catalog</MudButton>
+                <MudButton Href="anime" Variant="Variant.Text" Color="Color.Inherit" Class="mx-2 nav-item">Animes</MudButton>
+                <MudButton Href="category" Variant="Variant.Text" Color="Color.Inherit" Class="mx-2 nav-item">Categories</MudButton>
+            </div>
 
-        <MudSpacer />
+            <MudSpacer />
 
-        <MudButton Href="search" Variant="Variant.Text" Color="Color.Inherit" Class="mx-2">Search</MudButton>
-        <MudButton Href="login" Variant="Variant.Text" Color="Color.Inherit" Class="mx-2">Login</MudButton>
-        <MudButton Href="signup" Variant="Variant.Filled" Color="Color.Primary" Class="ms-2">Sign Up</MudButton>
+            <MudButton Href="search" Variant="Variant.Text" Color="Color.Inherit" Class="mx-2">Search</MudButton>
+            <MudButton Href="login" Variant="Variant.Text" Color="Color.Inherit" Class="mx-2">Login</MudButton>
+            <MudButton Href="signup" Variant="Variant.Filled" Color="Color.Primary" Class="ms-2">Sign Up</MudButton>
+        </MudHidden>
 
+        <!-- Mobile Hamburger -->
+        <MudHidden Breakpoint="Breakpoint.MdAndUp">
+            <MudMenu Icon="fas fa-bars" Color="Color.Inherit" AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight">
+                <MudMenuItem Href="/">Home</MudMenuItem>
+                <MudMenuItem Href="anime-catalog">Catalog</MudMenuItem>
+                <MudMenuItem Href="anime">Animes</MudMenuItem>
+                <MudMenuItem Href="category">Categories</MudMenuItem>
+                <MudMenuItem Href="search">Search</MudMenuItem>
+                <MudMenuItem Href="login">Login</MudMenuItem>
+                <MudMenuItem Href="signup">Sign Up</MudMenuItem>
+            </MudMenu>
+        </MudHidden>
     </MudAppBar>
 
-    <main class="mt-4">
+    <main>
         <article class="content px-4">
             @Body
         </article>
     </main>
 </div>
+
+@code {
+    private MudTheme MyTheme = new MudTheme()
+    {
+        PaletteLight = new PaletteLight()
+        {
+            Primary = "#ffb900",           // Yellow for highlights & Sign Up button
+            Secondary = "#ffffff",         // White text / links
+            AppbarBackground = "#1c1c1c", // Dark navbar
+            Background = "#181818",        // Page background
+            TextPrimary = "#ffffff",       // Primary text
+            TextSecondary = "#cccccc",     // Secondary text
+            DrawerBackground = "#1c1c1c", // Optional for side menus
+            DrawerText = "#ffffff"
+        }
+    };
+}
