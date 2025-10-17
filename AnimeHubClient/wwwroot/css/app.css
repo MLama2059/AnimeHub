@@ -1,3 +1,7 @@
+/* ========================================================= */
+/* 1. Imports */
+/* ========================================================= */
+
 /* Font Awesome import */
 @import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css');
 
@@ -5,7 +9,114 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap');
 
 
-/* --- Styles moved from Home.razor --- */
+/* ========================================================= */
+/* 2. Global Bootstrap Color Overrides (Yellow/Black Accent) */
+/* ========================================================= */
+
+:root,
+[data-bs-theme=light] {
+    /* Define the new Primary Color (Yellow/Orange Accent) */
+    --bs-primary: #FF9900;
+    --bs-primary-rgb: 255, 153, 0;
+    /* Define the new Secondary Color (Pure Black for text/accents) */
+    --bs-secondary: #000000;
+    --bs-secondary-rgb: 0, 0, 0;
+    /* Define a new Dark Color (Near-black) */
+    --bs-dark: #111111;
+    --bs-dark-rgb: 17, 17, 17;
+    /* Define the new Body Background Color (Very Light Grey) */
+    --bs-body-bg: #F5F5F5;
+    /* Text on Primary buttons should be dark for contrast */
+    --bs-btn-color: #000000;
+    --bs-btn-hover-color: #000000;
+}
+
+
+/* ========================================================= */
+/* 3. Global Layout & Theme Application */
+/* ========================================================= */
+
+/* CRITICAL FIX: Apply the custom light gray color to the entire page body */
+body {
+    background-color: var(--bs-body-bg) !important;
+    font-family: 'Poppins', sans-serif;
+    color: var(--bs-secondary); /* Ensure default text is black/dark */
+}
+
+/* Ensure main content is reset for correct scrolling behavior */
+main {
+    margin-top: 1rem;
+    padding: 0 1rem;
+    padding-top: 0 !important; /* CRITICAL: Remove any previous fixed header padding */
+    flex-grow: 1;
+}
+
+.page {
+    display: block !important;
+    width: 100%;
+}
+
+
+/* ========================================================= */
+/* 5. Custom Link & Navigation Styles */
+/* ========================================================= */
+
+/* Navbar brand logo and text */
+.navbar-brand {
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+
+/* Navbar background and shadow */
+.navbar.bg-dark {
+    background-color: #0b0b0b !important; /* Rich black tone */
+    box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+}
+
+/* Nav link styles */
+.navbar-nav .nav-link {
+    color: #f1f1f1 !important;
+    font-weight: 500;
+    transition: color 0.2s ease, transform 0.2s ease;
+}
+
+    .navbar-nav .nav-link:hover {
+        color: var(--bs-primary) !important;
+        transform: translateY(-1px);
+    }
+
+    .navbar-nav .nav-link.active {
+        color: var(--bs-primary) !important;
+        font-weight: 600;
+        border-bottom: 2px solid var(--bs-primary);
+    }
+
+/* Button adjustments */
+.btn-outline-warning {
+    border-color: var(--bs-primary);
+    color: var(--bs-primary);
+}
+
+    .btn-outline-warning:hover {
+        background-color: var(--bs-primary);
+        color: black;
+        border-color: var(--bs-primary);
+    }
+
+.btn-warning {
+    background-color: var(--bs-primary);
+    border-color: var(--bs-primary);
+}
+
+    .btn-warning:hover {
+        background-color: #e68a00;
+        border-color: #e68a00;
+        color: black;
+    }
+
+/* ========================================================= */
+/* 6. Component-Specific Styles (Hero, Cards, Skeleton) */
+/* ========================================================= */
 
 /* Hero Section Styles */
 .hero-section {
@@ -33,13 +144,13 @@
 
 /* Anime Card Styles */
 .anime-card {
-    width: 14rem; /* Fixed width for card consistency */
+    width: 14rem;
     border-radius: 15px;
-    background-color: #181818;
 }
 
+    /* Card title hover uses Primary color variable */
     .anime-card:hover .card-body a h6 {
-        color: #ffb900 !important;
+        color: var(--bs-primary) !important;
     }
 
     .anime-card .card-body a h6 {
@@ -51,9 +162,6 @@
     aspect-ratio: 400 / 600;
     object-fit: cover;
     border-radius: 15px;
-}
-
-.anime-img-top {
     transition: transform 0.5s ease;
 }
 
@@ -62,20 +170,15 @@
     }
 
 .anime-title {
-    /* 1. Limit the height to two lines */
     overflow: hidden;
-    /* 2. Set the display mode and orientation */
     display: -webkit-box;
     -webkit-box-orient: vertical;
-    /* 3. The critical property: set the maximum number of lines */
     -webkit-line-clamp: 2;
-    /* 4. Optional: Ensure proper word wrapping */
     word-break: break-word;
 }
 
 /* --- SKELETON LOADING STYLES --- */
 
-/* 1. Animation Definition */
 @keyframes pulse-bg {
     0% {
         background-color: #e0e0e0;
@@ -90,46 +193,30 @@
     }
 }
 
-/* 2. Base Skeleton Class */
 .skeleton {
-    background-color: #e0e0e0; /* Default gray color */
-    animation: pulse-bg 1.5s infinite; /* Apply the subtle pulse animation */
-    border-radius: 15px; /* Optional: adds rounded edges */
+    background-color: #e0e0e0;
+    animation: pulse-bg 1.5s infinite;
+    border-radius: 15px;
 }
 
-/* 3. Skeleton Element Styles */
 .skeleton-image {
-    /* Inherit the size/shape of the real image */
     width: 100%;
     aspect-ratio: 400 / 600;
 }
 
 .skeleton-text-line {
     height: 1rem;
-    width: 90%; /* Main title length */
+    width: 90%;
     margin-bottom: 0.5rem;
 }
 
 
-/*Default css*/
+/* ========================================================= */
+/* 7. Blazor/Form Defaults (Cleaned up) */
+/* ========================================================= */
 
-h1:focus {
-    outline: none;
-}
-
-a, .btn-link {
-    color: #0071c1;
-}
-
-.btn-primary {
-    color: #fff;
-    background-color: #1b6ec2;
-    border-color: #1861ac;
-}
-
-.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
-  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
-}
+/* Remove old, conflicting hard-coded Bootstrap defaults */
+/* Removed: .btn-primary, .btn:focus, .btn-link, etc. */
 
 .content {
     padding-top: 1.1rem;
@@ -146,6 +233,8 @@ a, .btn-link {
 .validation-message {
     color: red;
 }
+
+/* Standard Blazor Error/Loading UI styles retained */
 
 #blazor-error-ui {
     color-scheme: light only;
@@ -223,57 +312,3 @@ code {
 .form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
     text-align: start;
 }
-
-/* Ensure normal appbar layout (no full height) */
-/*.mud-appbar.appbar-custom {
-    position: relative !important;
-    height: 64px !important;
-    width: 100% !important;
-    display: flex !important;
-    flex-direction: row !important;
-    align-items: center !important;
-    justify-content: space-between !important;
-    padding: 0 1rem;
-}*/
-
-/* Center link group in the middle section */
-.nav-link-group {
-    max-width: 500px;
-    margin: 0 auto;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-/* Make sure page and main flow naturally */
-.page {
-    display: block !important;
-    width: 100%;
-}
-
-main {
-    margin-top: 1rem;
-    padding: 0 1rem;
-}
-
-/* General link styles */
-.nav-item {
-/*    color: #000;  default text for light theme */
-    text-decoration: none;
-    margin: 0 1rem;
-    font-weight: 500;
-    transition: color 0.2s ease, transform 0.2s ease;
-}
-
-    /* Hover effect */
-    .nav-item:hover {
-        color: #ffb900 !important; /* yellow highlight */
-        transform: translateY(-2px);
-    }
-
-    /* Active link (Blazor NavLink auto adds .active) */
-    .nav-item.active {
-        color: #ffb900 !important;
-        font-weight: 700; /* bold */
-        border-bottom: 2px solid #ffb900; /* small underline */
-    }

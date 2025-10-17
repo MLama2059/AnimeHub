@@ -1,7 +1,7 @@
 ﻿@inherits LayoutComponentBase
 
 @* Required *@
-<MudThemeProvider Theme="MyTheme" />
+<MudThemeProvider />
 <MudPopoverProvider />
 
 @* Needed for dialogs *@
@@ -11,10 +11,10 @@
 <MudSnackbarProvider />
 
 <div class="page">
-    <MudAppBar Elevation="2" Fixed="false">
+    @* <MudAppBar Elevation="2" Fixed="false" Class="mudblazor-appbar-light">
 
-        <MudLink Href="/" Typo="Typo.h5" Underline="Underline.None" Color="Color.Primary" Class="fw-bold">
-            AnimeHub
+        <MudLink Href="/" Typo="Typo.h5" Underline="Underline.None" Color="Color.Primary"  Class="fw-bold">
+            <img src="/images/Anime-Hub.svg" alt="AnimeHub" style="height: 50px; width: auto;" />
         </MudLink>
 
         <MudSpacer />
@@ -32,7 +32,7 @@
 
             <MudButton Href="search" Variant="Variant.Text" Color="Color.Inherit" Class="mx-2">Search</MudButton>
             <MudButton Href="login" Variant="Variant.Text" Color="Color.Inherit" Class="mx-2">Login</MudButton>
-            <MudButton Href="signup" Variant="Variant.Filled" Color="Color.Primary" Class="ms-2">Sign Up</MudButton>
+            <MudButton Href="signup" Variant="Variant.Filled" Color="Color.Warning" Class="ms-2 bg-primary text-dark">Sign Up</MudButton>
         </MudHidden>
 
         <!-- Mobile Hamburger -->
@@ -47,8 +47,8 @@
                 <MudMenuItem Href="signup">Sign Up</MudMenuItem>
             </MudMenu>
         </MudHidden>
-    </MudAppBar>
-
+    </MudAppBar> *@
+    <NavBar></NavBar>
     <main>
         <article class="content px-4">
             @Body
@@ -56,7 +56,7 @@
     </main>
 </div>
 
-@code {
+@* @code {
     private MudTheme MyTheme = new MudTheme()
     {
         PaletteLight = new PaletteLight()
@@ -71,4 +71,4 @@
             DrawerText = "#ffffff"
         }
     };
-}
+} *@

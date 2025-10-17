@@ -1,0 +1,39 @@
+﻿<nav class="navbar navbar-expand-md navbar-dark bg-dark shadow-sm py-3">
+    <div class="container-fluid">
+        <!-- Brand -->
+        <a class="navbar-brand d-flex align-items-center" href="/">
+            <img src="/images/Anime-Hub.svg" alt="AnimeHub" height="45" class="me-2" />
+        </a>
+
+        <!-- Mobile Toggle -->
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse"
+                aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <!-- Links Section -->
+        <div class="collapse navbar-collapse" id="navbarCollapse">
+            <!-- Center Links -->
+            <ul class="navbar-nav mx-auto mb-2 mb-md-0 text-center">
+                <li class="nav-item">
+                    <NavLink class="nav-link" href="/" Match="NavLinkMatch.All">Home</NavLink>
+                </li>
+                <li class="nav-item">
+                    <NavLink class="nav-link" href="/anime-catalog">Catalog</NavLink>
+                </li>
+                <li class="nav-item">
+                    <NavLink class="nav-link" href="/anime">Anime</NavLink>
+                </li>
+                <li class="nav-item">
+                    <NavLink class="nav-link" href="/category">Category</NavLink>
+                </li>
+            </ul>
+
+            <!-- Right Buttons -->
+            <div class="d-flex align-items-center gap-2">
+                <NavLink href="/register" class="btn btn-outline-warning btn-sm px-3 fw-semibold">Register</NavLink>
+                <NavLink href="/login" class="btn btn-warning btn-sm text-dark px-3 fw-semibold">Login</NavLink>
+            </div>
+        </div>
+    </div>
+</nav>
