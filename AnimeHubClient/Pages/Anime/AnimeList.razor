@@ -43,7 +43,8 @@ else
                     </select>
                 </div>
                 <div class="col-md-4 text-end">
-                    <a href="anime/create" class="btn btn-secondary"><i class="bi bi-plus-square"></i> Add New Anime</a>
+                    @* <a href="anime/create" class="btn btn-secondary"><i class="bi bi-plus-square"></i> Add New Anime</a> *@
+                    <MudButton Href="anime/create" StartIcon="@Icons.Material.Filled.AddTask" Variant="Variant.Filled" Color="Color.Primary">Add New Anime</MudButton>
                 </div>
             </div>
         </div>
@@ -75,8 +76,8 @@ else
 
                                 <td class="text-center align-middle">
                                     <div class="d-flex justify-content-center gap-2">
-                                        <a href="@($"anime/update/{anime.Id}")" class="btn btn-primary btn-sm d-flex align-items-center"><i class="bi bi-pencil-square me-1"></i> Edit</a>
-                                        <button class="btn btn-danger btn-sm d-flex align-items-center" @onclick="() => DeleteAnime(anime.Id)"><i class="bi bi-trash me-1"></i> Delete</button>
+                                        <MudButton Href="@($"anime/update/{anime.Id}")" StartIcon="@Icons.Material.Filled.EditNote" Variant="Variant.Filled" Color="Color.Primary">Edit</MudButton>
+                                        <MudButton @onclick="() => DeleteAnime(anime.Id)" StartIcon="@Icons.Material.Filled.Delete" Variant="Variant.Filled" Color="Color.Error">Delete</MudButton>
                                     </div>
                                 </td>
                             </tr>

@@ -1,7 +1,7 @@
 ﻿@inherits LayoutComponentBase
 
 @* Required *@
-<MudThemeProvider />
+<MudThemeProvider Theme="@MyTheme" />
 <MudPopoverProvider />
 
 @* Needed for dialogs *@
@@ -56,19 +56,23 @@
     </main>
 </div>
 
-@* @code {
-    private MudTheme MyTheme = new MudTheme()
+@code {
+    MudTheme MyTheme = new()
     {
         PaletteLight = new PaletteLight()
         {
-            Primary = "#ffb900",           // Yellow for highlights & Sign Up button
-            Secondary = "#ffffff",         // White text / links
-            AppbarBackground = "#1c1c1c", // Dark navbar
-            Background = "#181818",        // Page background
-            TextPrimary = "#ffffff",       // Primary text
-            TextSecondary = "#cccccc",     // Secondary text
-            DrawerBackground = "#1c1c1c", // Optional for side menus
-            DrawerText = "#ffffff"
+            Primary = "#FF9000",
+            Secondary = "#000000",
+            Background = "#F5F5F5",
+            Surface = "#FFFFFF",
+            TextPrimary = "#000000"
+        },
+        Typography = new Typography()
+        {
+            Default = new DefaultTypography()
+            {
+                FontFamily = new[] { "Poppins", "Helvetica", "Arial", "sans-serif" }
+            }
         }
     };
-} *@
+}

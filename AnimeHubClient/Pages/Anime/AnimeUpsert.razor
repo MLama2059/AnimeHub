@@ -163,14 +163,10 @@ else
 
                     <div class="row mt-3">
                         <div class="col-6 col-md-3">
-                            <button type="submit" class="btn btn-primary form-control" disabled="@IsLoading">
-                                <i class="bi bi-bookmark-check"></i> @(Id > 0 ? "Update" : "Create")
-                            </button>
+                            <MudButton ButtonType="ButtonType.Submit" StartIcon="@Icons.Material.Filled.LibraryAddCheck" Variant="Variant.Filled" Color="Color.Primary" Disabled="@IsLoading">@(Id > 0 ? "Update" : "Create")</MudButton>
                         </div>
                         <div class="col-6 col-md-3">
-                            <a href="anime" class="btn btn-secondary form-control" disabled="@IsLoading">
-                                <i class="bi bi-box-arrow-in-left"></i> Back to List
-                            </a>
+                            <MudButton Href="anime" StartIcon="@Icons.Material.Filled.ArrowCircleLeft" Variant="Variant.Filled" Color="Color.Default" Disabled="@IsLoading">Back to List</MudButton>
                         </div>
                     </div>
                 </div>

@@ -38,7 +38,7 @@
 
 /* CRITICAL FIX: Apply the custom light gray color to the entire page body */
 body {
-    background-color: var(--bs-body-bg) !important;
+/*    background-color: var(--bs-body-bg) !important;*/
     font-family: 'Poppins', sans-serif;
     color: var(--bs-secondary); /* Ensure default text is black/dark */
 }
@@ -54,6 +54,13 @@ main {
 .page {
     display: block !important;
     width: 100%;
+}
+
+/* Optional: disable automatic uppercase on MudBlazor components */
+.mud-button,
+.mud-typography,
+.mud-appbar {
+    text-transform: none !important;
 }
 
 
