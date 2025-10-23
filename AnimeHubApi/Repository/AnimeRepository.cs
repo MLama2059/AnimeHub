@@ -1,10 +1,11 @@
-﻿using AnimeHubApi.Data;
-using AnimeHub.Shared.Models;
+﻿using AnimeHub.Shared.Models;
+using AnimeHub.Shared.Models.Dtos;
+using AnimeHub.Shared.Models.Dtos.Anime;
+using AnimeHubApi.Data;
 using AnimeHubApi.Repository.IRepository;
 using Microsoft.EntityFrameworkCore;
 using System.Threading.Tasks;
-using AnimeHub.Shared.Models.Dtos.Anime;
-using AnimeHub.Shared.Models.Dtos;
+using System.Xml.Linq;
 
 namespace AnimeHubApi.Repository
 {
@@ -88,23 +89,53 @@ namespace AnimeHubApi.Repository
                 apiParams.PageSize);
         }
 
-        public async Task<Anime?> GetByIdAsync(int id)
+        public async Task<AnimeReadDto> GetByIdAsync(int id)
         {
             return await _context.Animes
+                .AsNoTracking()
                 .Include(a => a.Category)
                 .Include(a => a.AnimeGenres).ThenInclude(ag => ag.Genre)
                 .Include(a => a.AnimeStudios).ThenInclude(ast => ast.Studio)
-                .AsNoTracking()
-                .FirstOrDefaultAsync(a => a.Id == id);
+                .Select(a => new AnimeReadDto
+                {
+                    Id = a.Id,
+                    Title = a.Title,
+                    Episodes = a.Episodes,
+                    Season = a.Season.ToString(), // (Enum to String)
+                    PremieredYear = a.PremieredYear,
+                    Description = a.Description,
+                    ImageUrl = a.ImageUrl,
+                    Rating = a.Rating,
+                    Status = a.Status.ToString(), // (Enum to String)
+                    CategoryId = a.CategoryId,
+                    CategoryName = a.Category.Name,
+                    Genres = a.AnimeGenres.Select(ag => ag.Genre.Name).ToList(),
+                    GenreIds = a.AnimeGenres.Select(ag => ag.GenreId).ToList(),
+                    Studios = a.AnimeStudios.Select(ast => ast.Studio.Name).ToList(),
+                    StudioIds = a.AnimeStudios.Select(ast => ast.StudioId).ToHashSet(),
+                }).FirstOrDefaultAsync(a => a.Id == id);
         }
 
         // Implementation to get top-rated anime
-        public async Task<IEnumerable<Anime>> GetTopRatedAnimesAsync(int count)
+        public async Task<IEnumerable<AnimeListReadDto>> GetTopRatedAnimesAsync(int count)
         {
             return await _context.Animes
-                .Include(a => a.Category)
+                .AsNoTracking()
                 .OrderByDescending(a => a.Rating)
                 .Take(count)
+                .Select(a => new AnimeListReadDto
+                {
+                    Id = a.Id,
+                    Title = a.Title,
+                    ImageUrl = a.ImageUrl,
+                    Rating = a.Rating,
+                    Episodes = a.Episodes,
+                    Season = a.Season.ToString(),
+                    PremieredYear = a.PremieredYear,
+                    Status = a.Status.ToString(),
+                    CategoryId = a.CategoryId,
+                    CategoryName = a.Category.Name
+                })
                 .ToListAsync();
         }
 

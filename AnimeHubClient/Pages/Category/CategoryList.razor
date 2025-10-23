@@ -40,9 +40,11 @@ else
                             <td>
                                 @category.Name
                             </td>
-                            <td>
-                                <MudButton Href="@($"category/update/{category.Id}")" StartIcon="@Icons.Material.Filled.EditNote" Variant="Variant.Filled" Color="Color.Primary">Edit</MudButton>
-                                <MudButton @onclick="() => DeleteCategory(category.Id)" StartIcon="@Icons.Material.Filled.Delete" Variant="Variant.Filled" Color="Color.Error">Delete</MudButton>
+                            <td class="text-center align-middle">
+                                <div class="d-flex justify-content-center gap-2">
+                                    <MudButton Href="@($"category/update/{category.Id}")" StartIcon="@Icons.Material.Filled.EditNote" Variant="Variant.Filled" Color="Color.Primary">Edit</MudButton>
+                                    <MudButton @onclick="() => DeleteCategory(category.Id)" StartIcon="@Icons.Material.Filled.Delete" Variant="Variant.Filled" Color="Color.Error">Delete</MudButton>
+                                </div>
                             </td>
                         </tr>
                     }

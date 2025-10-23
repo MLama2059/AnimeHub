@@ -7,13 +7,13 @@ namespace AnimeHubApi.Repository.IRepository
     public interface IAnimeRepository
     {
         Task<PagedList<AnimeListReadDto>> GetAllAsync(APIParams apiParams);
-        Task<Anime?> GetByIdAsync(int id);
+        Task<AnimeReadDto> GetByIdAsync(int id);
         Task<Anime> AddAsync(Anime anime, List<int> genreIds, HashSet<int> studioIds);
         Task<bool> UpdateAsync(Anime anime, List<int> genreIds, HashSet<int> studioIds);
         Task<bool> DeleteAsync(int id);
         bool Exists(int id);
 
         // Method to get top-rated anime
-        Task<IEnumerable<Anime>> GetTopRatedAnimesAsync(int count);
+        Task<IEnumerable<AnimeListReadDto>> GetTopRatedAnimesAsync(int count);
     }
 }

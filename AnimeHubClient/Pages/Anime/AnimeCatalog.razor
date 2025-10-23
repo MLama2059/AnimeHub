@@ -136,7 +136,7 @@
 
         try
         {
-            // await Task.Delay(1000);
+            await Task.Delay(1000);
             // Build the Query String
             var queryParams = new Dictionary<string, string?>
             {
@@ -180,7 +180,7 @@
                     Metadata = System.Text.Json.JsonSerializer.Deserialize<PagedListMetadata>(metadataJson) ?? new PagedListMetadata();
                     HasMorePages = Metadata.HasNext;
                 }
-            } 
+            }
         }
         catch (Exception ex)
         {

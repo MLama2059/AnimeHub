@@ -51,26 +51,7 @@ namespace AnimeHubApi.Controllers
             if (anime is null)
                 return NotFound();
 
-            var animeDto = new AnimeReadDto
-            {
-                Id = anime.Id,
-                Title = anime.Title,
-                Episodes = anime.Episodes,
-                Season = anime.Season.ToString(), // (Enum to String)
-                PremieredYear = anime.PremieredYear,
-                Description = anime.Description,
-                ImageUrl = anime.ImageUrl,
-                Rating = anime.Rating,
-                Status = anime.Status.ToString(), // (Enum to String)
-                CategoryId = anime.CategoryId,
-                CategoryName = anime.Category?.Name ?? string.Empty,
-                Genres = anime.AnimeGenres?.Select(ag => ag.Genre.Name).ToList() ?? new List<string>(),
-                GenreIds = anime.AnimeGenres?.Select(ag => ag.GenreId).ToList() ?? new List<int>(),
-                Studios = anime.AnimeStudios?.Select(ast => ast.Studio.Name).ToList() ?? new List<string>(),
-                StudioIds = anime.AnimeStudios?.Select(ast => ast.StudioId).ToHashSet() ?? new HashSet<int>(),
-            };
-
-            return Ok(animeDto);
+            return Ok(anime);
         }
 
         // GET endpoint for Top Rated Anime
@@ -80,21 +61,7 @@ namespace AnimeHubApi.Controllers
             const int count = 10; // Number of top-rated animes to return
             var animes = await _animeRepository.GetTopRatedAnimesAsync(count);
 
-            var animeDtos = animes.Select(a => new AnimeListReadDto
-            {
-                Id = a.Id,
-                Title = a.Title,
-                Episodes = a.Episodes,
-                Season = a.Season.ToString(), // (Enum to String)
-                PremieredYear = a.PremieredYear,
-                ImageUrl = a.ImageUrl,
-                Rating = a.Rating,
-                Status = a.Status.ToString(), // (Enum to String)
-                CategoryId = a.CategoryId,
-                CategoryName = a.Category?.Name ?? string.Empty,
-            }).ToList();
-
-            return Ok(animeDtos);
+            return Ok(animes);
         }
 
         [HttpPost]

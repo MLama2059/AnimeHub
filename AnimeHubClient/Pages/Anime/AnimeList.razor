@@ -85,10 +85,10 @@ else
                 </table>
 
                 @* --- Pagination Controls --- *@
-                <div class="d-flex justify-content-center mt-3">
+                @* <div class="d-flex justify-content-center mt-3">
                     <nav>
                         <ul class="pagination">
-                            @* Previous Button *@
+                            
                             <li class="page-item @(Metadata.HasPrevious ? null : "disabled")">
                                 <button class="page-link"
                                         @onclick="() => ChangePage(Metadata.CurrentPage - 1)"
@@ -97,14 +97,14 @@ else
                                 </button>
                             </li>
 
-                            @* Page Status Display *@
+                            
                             <li class="page-item disabled">
                                 <span class="page-link">
                                     Page @Metadata.CurrentPage of @Metadata.TotalPages (@Metadata.TotalCount items)
                                 </span>
                             </li>
 
-                            @* Next Button *@
+                            
                             <li class="page-item @(Metadata.HasNext ? null : "disabled")">
                                 <button class="page-link"
                                         @onclick="() => ChangePage(Metadata.CurrentPage + 1)"
@@ -114,6 +114,16 @@ else
                             </li>
                         </ul>
                     </nav>
+                </div> *@
+
+                <div class="d-flex flex-column align-center mb-3">
+                    <MudPagination
+                        ShowPreviousButton="false"
+                        ShowNextButton="false"
+                        Count="@Metadata.TotalPages"
+                        Selected="@CurrentPage"
+                        SelectedChanged="ChangePage"
+                        />
                 </div>
             </div>
         }
@@ -228,8 +238,8 @@ else
 
     private async Task ChangePage(int newPage)
     {
-        // 1. Basic boundary check (though Metadata.HasNext/HasPrevious handles most of it)
-        if (newPage < 1 || newPage > Metadata.TotalPages)
+        // 1. Basic page check
+        if (newPage == CurrentPage)
         {
             return;
         }

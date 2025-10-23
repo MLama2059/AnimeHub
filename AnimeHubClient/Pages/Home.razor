@@ -21,40 +21,49 @@
             <div class="hero-content">
                 <h1 class="display-3 fw-bold mb-3">Welcome to AnimeHub</h1>
                 <p class="lead">Your destination for all things anime. Discover, rate, and explore a world of stories.</p>
+
+                <div class="hero-cta">
+                    <a class="btn btn-warning" href="anime-catalog">Browse Anime</a>
+                    <a class="btn btn-outline-light" href="anime-catalog?sort=trending">
+                        <i class="fa-solid fa-fire"></i>&nbsp;Trending
+                    </a>
+                </div>
             </div>
         </div>
     </div>
     <div class="row pt-5">
-        <div class="col-12">
-            <h3 class="fw-bold mb-4">Top Rated Anime</h3>
-        </div>
+        <div class="col-12 section-card">
+            <h3 class="fw-bold mb-5 section-title">Top Rated Anime</h3>
 
-        <div class="col-12">
-            <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 row-cols-xl-5 g-4 justify-content-center">
-                @if (IsLoading)
-                {
-                    @for (int i = 0; i < 5; i++)
+            <div class="col-12">
+                <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 row-cols-xl-5 g-4 justify-content-center">
+                    @if (IsLoading)
                     {
-                        <div class="col d-flex justify-content-center">
-                            <AnimeCardSkeleton />
-                        </div>
+                        @for (int i = 0; i < 5; i++)
+                        {
+                            <div class="col d-flex justify-content-center">
+                                <AnimeCardSkeleton />
+                            </div>
+                        }
                     }
-                }
-                else if (TopRatedAnimes != null && TopRatedAnimes.Any())
-                {
-                    @foreach (var anime in TopRatedAnimes)
+                    else if (TopRatedAnimes != null && TopRatedAnimes.Any())
                     {
-                        <div class="col d-flex justify-content-center">
-                            <AnimeCard Anime="anime" />
-                        </div>
+                        @foreach (var anime in TopRatedAnimes)
+                        {
+                            <div class="col d-flex justify-content-center">
+                                <AnimeCard Anime="anime" />
+                            </div>
+                        }
                     }
-                }
-                else
-                {
-                    <p>No top-rated anime to display.</p>
-                }
+                    else
+                    {
+                        <p>No top-rated anime to display.</p>
+                    }
+                </div>
             </div>
         </div>
+
+        
 
         <div class="row mt-5">
             <div class="col-12 text-center">
@@ -114,9 +123,16 @@
     {
         try
         {
-            TopRatedAnimes = await Http.GetFromJsonAsync<List<AnimeListReadDto>>("api/anime/top");
-            Categories = await Http.GetFromJsonAsync<List<CategoryReadDto>>("api/category");
-            Genres = await Http.GetFromJsonAsync<List<GenreReadDto>>("api/genre");
+            var topRatedAnimes = Http.GetFromJsonAsync<List<AnimeListReadDto>>("api/anime/top");
+            var categories = Http.GetFromJsonAsync<List<CategoryReadDto>>("api/category");
+            var genres = Http.GetFromJsonAsync<List<GenreReadDto>>("api/genre");
+
+            await Task.WhenAll(topRatedAnimes, categories, genres);
+
+            TopRatedAnimes = topRatedAnimes.Result;
+            Categories = categories.Result;
+            Genres = genres.Result;
+
         }
         catch (Exception ex)
         {
