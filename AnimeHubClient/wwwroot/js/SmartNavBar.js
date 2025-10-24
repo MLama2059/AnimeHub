@@ -1,16 +1,13 @@
-﻿window.SmartNavBarShrink = {
+﻿window.navbarScroll = {
     init: function () {
-        const navbar = document.querySelector(".mud-appbar");
+        const navbar = document.querySelector(".navbar");
         if (!navbar) return;
 
-        const fullHeight = "70px"; // original navbar height
-        const miniHeight = "45px"; // shrunk height
-
-        window.addEventListener("scroll", function () {
-            if (window.pageYOffset > 50) {
-                navbar.style.height = miniHeight;
+        window.addEventListener("scroll", () => {
+            if (window.scrollY > 33) {
+                navbar.classList.add("scrolled");
             } else {
-                navbar.style.height = fullHeight;
+                navbar.classList.remove("scrolled");
             }
         });
     }
