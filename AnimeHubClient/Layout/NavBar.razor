@@ -11,13 +11,13 @@
             <MudMenu Label="Categories">
                 @foreach (var category in Categories)
                 {
-                    <MudMenuItem Label="@category.Name" Href=$"/category/{category.Id}" />
+                    <MudMenuItem Label="@category.Name" />
                 }
             </MudMenu>
             <MudMenu Label="Genres">
                 @foreach (var genre in Genres)
                 {
-                    <MudMenuItem Label="@genre.Name" Href=$"/genre/{genre.Id}" />
+                    <MudMenuItem Label="@genre.Name" />
                 }
             </MudMenu>
         </MudMenu>
