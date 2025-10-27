@@ -16,177 +16,144 @@
 }
 else
 {
-    <div class="card shadow border-0 mt-4">
-        <div class="card-header bg-black bg-gradient m-lg-0 py-3">
-            <div class="row">
-                <div class="col-12 text-center">
-                    <h2 class="text-white py-2">@(Id > 0 ? "Update" : "Create") Anime</h2>
-                </div>
-            </div>
-        </div>
-        <div class="card-body p-4">
+    <MudCard eElevation="4" Class="mt-4">
+        <MudCardHeader>
+            <CardHeaderContent>
+                <MudText Align="Align.Center" Typo="Typo.h4" Class="fw-bold">@(Id > 0 ? "Update" : "Create") Anime</MudText>
+            </CardHeaderContent>
+        </MudCardHeader>
+        <MudCardContent>
             <EditForm Model="Anime" FormName="AnimeUpsertForm" OnValidSubmit="UpsertAnime">
-                <DataAnnotationsValidator></DataAnnotationsValidator>
+                <DataAnnotationsValidator />
 
-                <div class="border p-3 mt-4">
-                    <div class="form-floating py-3 col-12">
-                        <InputText @bind-Value="Anime.Title" class="form-control" id="Title"></InputText>
-                        <label for="Title">Title</label>
-                        <ValidationMessage For="@(() => Anime.Title)"></ValidationMessage>
-                    </div>
-                    <div class="form-floating py-3 col-12">
-                        <InputTextArea @bind-Value="Anime.Description" class="form-control" id="Description"></InputTextArea>
-                        <label for="Description">Description</label>
-                        <ValidationMessage For="@(() => Anime.Description)"></ValidationMessage>
-                    </div>
-                    <div class="form-floating mb-3 col-12">
-                        @* <label class="mud-input-label">Studios</label> *@
+                <MudTextField Variant="Variant.Outlined" Label="Anime Title" @bind-Value="Anime.Title" For="@(() => Anime.Title)" Class="my-3" />
+                <MudTextField Variant="Variant.Outlined" Label="Description" Lines="3" @bind-Value="Anime.Description" For="@(() => Anime.Description)" Class="my-3" />
 
-                        <MudSelect T="int"
-                                   Label="Studios"
-                                   Variant="Variant.Outlined"
-                                   SelectedValues="Anime.StudioIds"
-                                   SelectedValuesChanged="@(vals => Anime.StudioIds = new HashSet<int>(vals))"
-                                   MultiSelection="true"
-                                   Margin="Margin.Dense"
-                                   Clearable="true"
-                                   ToStringFunc="@(new Func<int, string>(ConvertStudioIdToName))">
+                <MudGrid>
+                    <MudItem xs="12" sm="6">
+                        <MudNumericField T="double?" Variant="Variant.Outlined" Label="Rating" @bind-Value="Anime.Rating" For="@(() => Anime.Rating)" Class="my-3" />
+                    </MudItem>
+                    <MudItem xs="12" sm="6">
+                        <MudNumericField T="int?" Variant="Variant.Outlined" Label="Episodes" @bind-Value="Anime.Episodes" For="@(() => Anime.Episodes)" Class="my-3" />
+                    </MudItem>
+                </MudGrid>
 
-                            @if (Studios != null)
-                            {
-                                @foreach (var studio in Studios)
-                                {
-                                    <MudSelectItem T="int" Value="@studio.Id">@studio.Name</MudSelectItem>
-                                }
-                            }
-                        </MudSelect>
-                        <ValidationMessage For="@(() => Anime.StudioIds)" />
-                    </div>
-                    <div class="form-floating py-3 col-12">
-                        <InputFile OnChange="OnFileSelected" id="AnimeImage" class="form-control pb-3" accept="image/x-png,image/jpeg" />
-                        <label for="AnimeImage">Upload Image</label>
-                    </div>
-
-                    <!-- Preview -->
-                    @if (!string.IsNullOrEmpty(PreviewImageUrl))
-                    {
-                        <div class="mt-3 text-center">
-                            <img src="@PreviewImageUrl" class="img-fluid rounded shadow-sm" style="max-height:200px;" />
-                        </div>
-                    }
-                    else if (!string.IsNullOrEmpty(UploadedImageUrl))
-                    {
-                        <div class="mt-3 text-center">
-                            <img src="@($"{ApiBaseUrl}{UploadedImageUrl}")" class="img-fluid rounded shadow-sm" style="max-height:200px;" />
-                        </div>
-                    }
-
-                    <div class="form-floating py-3 col-12">
-                        <InputNumber @bind-Value="Anime.Rating" class="form-control" id="Rating"></InputNumber>
-                        <label for="Rating">Rating</label>
-                        <ValidationMessage For="@(() => Anime.Rating)"></ValidationMessage>
-                    </div>
-                    <div class="form-floating py-3 col-12">
-                        <InputNumber @bind-Value="Anime.Episodes" class="form-control" id="Episodes"></InputNumber>
-                        <label for="Episodes">Episodes</label>
-                        <ValidationMessage For="@(() => Anime.Episodes)"></ValidationMessage>
-                    </div>
-                    <div class="form-floating py-3 col-12">
-                        <InputSelect @bind-Value="Anime.Season" class="form-select" id="Season">
-                            <option value="0" disabled>-- Select Season --</option>
+                <MudGrid>
+                    <MudItem xs="12" sm="6">
+                        <MudSelect T="int?" Label="Season" Variant="Variant.Outlined" @bind-Value="Anime.Season" For="@(() => Anime.Season)" Class="my-3">
                             @foreach (var seasonValue in Enum.GetValues(typeof(Season)))
                             {
-                                <option value="@((int)seasonValue)">@seasonValue.ToString()</option>
-                            }
-                        </InputSelect>
-                        <label for="Season">Season</label>
-                        <ValidationMessage For="@(() => Anime.Season)"></ValidationMessage>
-                    </div>
-                    <div class="form-floating py-3 col-12">
-                        <InputNumber @bind-Value="Anime.PremieredYear" class="form-control" id="PremieredYear"></InputNumber>
-                        <label for="PremieredYear">Premiered</label>
-                        <ValidationMessage For="@(() => Anime.PremieredYear)"></ValidationMessage>
-                    </div>
-                    <div class="form-floating py-3 col-12">
-                        <MudSelect T="Status"
-                                   Label="Status"
-                                   Variant="Variant.Outlined"
-                                   @bind-Value="@AnimeStatusEnum">
-
-                            @foreach (Status statusValue in Enum.GetValues(typeof(Status)))
-                            {
-                                <MudSelectItem Value="@statusValue">@GetEnumDisplayName(statusValue)</MudSelectItem>
+                                <MudSelectItem T="int?" Value="@((int)seasonValue)">@seasonValue.ToString()</MudSelectItem>
                             }
                         </MudSelect>
-                        @* <label for="Status">Status</label> *@
-                        <ValidationMessage For="@(() => Anime.Status)"></ValidationMessage>
-                    </div>
-                    <div class="form-floating py-3 col-12">
-                        <InputSelect @bind-Value="Anime.CategoryId" class="form-select" id="Category">
-                            <option value="0" disabled>-- Select Category --</option>
-                            @if (Categories != null)
-                            {
-                                @foreach (var category in Categories)
-                                {
-                                    <option value="@category.Id">@category.Name</option>
-                                }
-                            }
-                        </InputSelect>
-                        <label for="Category">Category</label>
-                        <ValidationMessage For="@(() => Anime.CategoryId)"></ValidationMessage>
-                    </div>
-                    <div class="mb-3 col-12">
-                        <label class="form-label">Genres</label>
+                    </MudItem>
+                    <MudItem xs="12" sm="6">
+                        <MudNumericField T="int?" Variant="Variant.Outlined" Label="Premiered Year" @bind-Value="Anime.PremieredYear" For="@(() => Anime.PremieredYear)" Class="my-3" />
+                    </MudItem>
+                </MudGrid>
+
+                <MudSelect T="int?" Label="Status" Variant="Variant.Outlined" @bind-Value="Anime.Status" For="@(() => Anime.Status)" Class="my-3">
+                    @foreach (var statusValue in Enum.GetValues(typeof(Status)))
+                    {
+                        <MudSelectItem T="int?" Value="@((int)statusValue)">@statusValue.ToString()</MudSelectItem>
+                    }
+                </MudSelect>
+
+                <MudSelect T="int?" Label="Category" Variant="Variant.Outlined" @bind-Value="Anime.CategoryId" For="@(() => Anime.CategoryId)" Class="my-3">
+                    @foreach (var category in Categories)
+                    {
+                        <MudSelectItem T="int?" Value="@category.Id">@category.Name</MudSelectItem>
+                    }
+                </MudSelect>
+
+                <MudSelect
+                    T="int"
+                    Label="Studios"
+                    Variant="Variant.Outlined"
+                    SelectedValues="Anime.StudioIds"
+                    SelectedValuesChanged="@(vals => Anime.StudioIds = new HashSet<int>(vals))"
+                    MultiSelection="true"
+                    Clearable="true"
+                    ToStringFunc="@(new Func<int, string>(ConvertStudioIdToName))"
+                    Class="my-3">
+
+                    @if (Studios != null)
+                    {
+                        @foreach (var studio in Studios)
+                        {
+                            <MudSelectItem T="int" Value="@studio.Id">@studio.Name</MudSelectItem>
+                        }
+                    }
+                </MudSelect>
+
+                <MudPaper Elevation="0" Class="p-3 mt-3">
+                    <MudText Typo="Typo.subtitle1" Class="mb-2">Genres</MudText>
+                    <MudGrid>
                         @if (Genres != null)
                         {
-                            <div class="row">
-                                @foreach (var genre in Genres)
-                                {
-                                    <div class="col-6 col-sm-4 col-md-3 col-lg-2">
-                                        <div class="form-check d-flex align-items-center">
-                                            <input class="form-check-input me-2"
-                                                   type="checkbox"
-                                                   id="genre-@genre.Id"
-                                                   value="@genre.Id"
-                                                   checked="@Anime.GenreIds.Contains(genre.Id)"
-                                                   @onchange="e => ToggleGenre(genre.Id, (bool)e.Value!)" />
-                                            <label class="form-check-label" for="genre-@genre.Id">
-                                                @genre.Name
-                                            </label>
-                                        </div>
-                                    </div>
-                                }
-                            </div>
+                            @foreach (var genre in Genres)
+                            {
+                                <MudItem xs="6" sm="4" md="3" lg="2">
+                                    <MudCheckBox onchange="e => ToggleGenre(genre.Id, e)"
+                                        T="bool"
+                                        @key="genre.Id"
+                                        Label="@genre.Name"
+                                        Checked="@Anime.GenreIds.Contains(genre.Id)"
+                                        
+                                        CheckedChanged="e => ToggleGenre(genre.Id, e)" />
+                                </MudItem>
+                            }
                         }
-                        <ValidationMessage For="@(() => Anime.GenreIds)" />
-                    </div>
+                    </MudGrid>
+                </MudPaper>
 
-                    <div class="row mt-3">
-                        <div class="col-12 d-flex justify-content-around gap-5">
+                <MudFileUpload T="IBrowserFile" OnFilesChanged="OnFileSelected" Class="mt-3">
+                    <ActivatorContent>
+                        <MudButton Variant="Variant.Filled"
+                                   Color="Color.Primary"
+                                   StartIcon="@Icons.Material.Filled.CloudUpload">
+                            Upload Image
+                        </MudButton>
+                    </ActivatorContent>
+                </MudFileUpload>
+
+                @if (!string.IsNullOrEmpty(PreviewImageUrl) || !string.IsNullOrEmpty(UploadedImageUrl))
+                {
+                    <div class="mt-3 text-center">
+                        <img src="@(string.IsNullOrEmpty(PreviewImageUrl) ? $"{ApiBaseUrl}{UploadedImageUrl}" : PreviewImageUrl)" 
+                                class="img-fluid rounded shadow-sm" 
+                                style="max-height:200px; max-width: 100%;" />
+                    </div>
+                }
+
+                   
+                <MudCardActions Class="py-4">
+                    <MudGrid Justify="Justify.Center" Class="px-2">
+                        <MudItem xs="12" sm="6">
                             <MudButton ButtonType="ButtonType.Submit"
-                                       StartIcon="@Icons.Material.Filled.LibraryAddCheck"
-                                       Variant="Variant.Filled"
-                                       Color="Color.Primary"
-                                       FullWidth="true"
-                                       Disabled="@IsLoading">
+                                        StartIcon="@Icons.Material.Filled.LibraryAddCheck"
+                                        Variant="Variant.Filled"
+                                        Color="Color.Primary"
+                                        FullWidth="true"
+                                        Disabled="@IsLoading">
                                 @(Id > 0 ? "Update" : "Create")
                             </MudButton>
-                            <MudSpacer/>
+                        </MudItem>
+                        <MudItem xs="12" sm="6">
                             <MudButton Href="anime"
-                                       StartIcon="@Icons.Material.Filled.ArrowCircleLeft"
-                                       Variant="Variant.Filled"
-                                       Color="Color.Default"
-                                       FullWidth="true"
-                                       Disabled="@IsLoading">
+                                        StartIcon="@Icons.Material.Filled.ArrowCircleLeft"
+                                        Variant="Variant.Filled"
+                                        Color="Color.Default"
+                                        FullWidth="true"
+                                        Disabled="@IsLoading">
                                 Back to List
                             </MudButton>
-                        </div>
-                    </div>
-
-                </div>
+                        </MudItem>
+                    </MudGrid>
+                </MudCardActions>
             </EditForm>
-        </div>
-    </div>
+        </MudCardContent>
+    </MudCard>
 }
 
 @code {
@@ -369,6 +336,7 @@ else
         {
             Anime.GenreIds.Remove(genreId);
         }
+        StateHasChanged();
     }
 
     private string ConvertStudioIdToName(int id)

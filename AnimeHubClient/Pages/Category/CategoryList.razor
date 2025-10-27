@@ -11,61 +11,47 @@
 }
 else
 {
-    <div class="card shadow border-0 mt-4">
-        <div class="card-header bg-black bg-gradient m-lg-0 py-3">
-            <div class="row">
-                <div class="col-12 text-center">
-                    <h2 class="text-white py-2">Category List</h2>
-                </div>
-            </div>
-        </div>
-        <div class="card-body p-4">
-            <div class="col-12 text-end">
+    <MudCard Elevation="4" Class="mt-4">
+        <MudCardHeader>
+            <CardHeaderContent>
+                <MudText Align="Align.Center" Typo="Typo.h4" Class="fw-bold">Category List</MudText>
+            </CardHeaderContent>
+        </MudCardHeader>
+
+        <MudCardContent>
+            <div class="mb-4 text-end">
                 <MudButton Href="category/create" StartIcon="@Icons.Material.Filled.AddTask" Variant="Variant.Filled" Color="Color.Primary">Add New Category</MudButton>
             </div>
-        </div>
-        @if (Categories != null && Categories.Any())
-        {
-            <table class="table table-bordered table-striped">
-                <thead>
-                    <tr>
-                        <th>Name</th>
-                        <th></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var category in Categories)
-                    {
-                        <tr>
-                            <td>
-                                @category.Name
-                            </td>
-                            <td class="text-center align-middle">
-                                <div class="d-flex justify-content-center gap-2">
-                                    <MudButton Href="@($"category/update/{category.Id}")" StartIcon="@Icons.Material.Filled.EditNote" Variant="Variant.Filled" Color="Color.Primary">Edit</MudButton>
-                                    <MudButton @onclick="() => DeleteCategory(category.Id)" StartIcon="@Icons.Material.Filled.Delete" Variant="Variant.Filled" Color="Color.Error">Delete</MudButton>
-                                </div>
-                            </td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
-        }
-    </div>
+
+            @if (Categories != null && Categories.Any())
+            {
+                <MudTable Items="Categories" Hover="true" Bordered="true" Striped="true" Breakpoint="Breakpoint.Sm">
+                    <HeaderContent>
+                        <MudTh>Name</MudTh>
+                        <MudTh Style="width:1%;">Actions</MudTh>
+                    </HeaderContent>
+                    <RowTemplate>
+                        <MudTd DataLabel="Name">@context.Name</MudTd>
+                        <MudTd DataLabel="Actions" Style="white-space:nowrap;">
+                            <MudButton Href="@($"category/update/{context.Id}")" StartIcon="@Icons.Material.Filled.EditNote" Variant="Variant.Filled" Color="Color.Primary" Class="me-2">Edit</MudButton>
+                            <MudButton @onclick="() => DeleteCategory(context.Id)" StartIcon="@Icons.Material.Filled.Delete" Variant="Variant.Filled" Color="Color.Error">Delete</MudButton>
+                        </MudTd>
+                    </RowTemplate>
+                </MudTable>
+            }
+        </MudCardContent>
+</MudCard>
 }
 
 @code {
     private bool IsLoading { get; set; } = true;
     private List<CategoryReadDto>? Categories;
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
+    protected override async Task OnInitializedAsync()
     {
-        if (firstRender)
-        {
-            await LoadCategories();
-            IsLoading = false;
-            StateHasChanged();
-        }
+        await LoadCategories();
+        IsLoading = false;
+        StateHasChanged();
     }
 
     private async Task LoadCategories()

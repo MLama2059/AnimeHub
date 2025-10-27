@@ -13,12 +13,12 @@ namespace AnimeHub.Shared.Models.Dtos.Anime
         public string? ImageUrl { get; set; }
         public double? Rating { get; set; }
         public int? Episodes { get; set; }
-        public int Season { get; set; } // Use int to represent Season enum
+        public int? Season { get; set; } // Use int to represent Season enum
         public int? PremieredYear { get; set; }
-        public int Status { get; set; }
+        public int? Status { get; set; }
 
         [Required]
-        public int CategoryId { get; set; } // Link to category
+        public int? CategoryId { get; set; } // Link to category
 
         public List<int> GenreIds { get; set; } = new(); // Link to genres (many-to-many)
         public HashSet<int> StudioIds { get; set; } = new(); // Link to studios (many-to-many)

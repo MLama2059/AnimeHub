@@ -11,10 +11,10 @@ namespace AnimeHub.Shared.Models.Dtos.Anime
         public string? ImageUrl { get; set; }
         public double? Rating { get; set; }
         public int? Episodes { get; set; }
-        public string Season { get; set; }
+        public string? Season { get; set; }
         public int? PremieredYear { get; set; }
-        public string Status { get; set; }
-        public int CategoryId { get; set; }
+        public string? Status { get; set; }
+        public int? CategoryId { get; set; }
         public string? CategoryName { get; set; }
     }
 }
