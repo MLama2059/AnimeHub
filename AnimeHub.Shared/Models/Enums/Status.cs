@@ -7,12 +7,8 @@ namespace AnimeHub.Shared.Models.Enums
 {
     public enum Status
     {
-        [Display(Name = "--Select Status--")]
-        Default = 0,
-
         [Display(Name = "Not Yet Aired")]
         NotYetAired = 1,
-
         Airing = 2,
         Completed = 3,
         Hiatus = 4,

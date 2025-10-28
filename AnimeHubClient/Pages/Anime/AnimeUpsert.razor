@@ -16,7 +16,7 @@
 }
 else
 {
-    <MudCard eElevation="4" Class="mt-4">
+    <MudCard Elevation="4" Class="mt-4">
         <MudCardHeader>
             <CardHeaderContent>
                 <MudText Align="Align.Center" Typo="Typo.h4" Class="fw-bold">@(Id > 0 ? "Update" : "Create") Anime</MudText>
@@ -66,16 +66,15 @@ else
                     }
                 </MudSelect>
 
-                <MudSelect
-                    T="int"
-                    Label="Studios"
-                    Variant="Variant.Outlined"
-                    SelectedValues="Anime.StudioIds"
-                    SelectedValuesChanged="@(vals => Anime.StudioIds = new HashSet<int>(vals))"
-                    MultiSelection="true"
-                    Clearable="true"
-                    ToStringFunc="@(new Func<int, string>(ConvertStudioIdToName))"
-                    Class="my-3">
+                <MudSelect T="int"
+                           Label="Studios"
+                           Variant="Variant.Outlined"
+                           SelectedValues="Anime.StudioIds"
+                           SelectedValuesChanged="@(vals => Anime.StudioIds = new HashSet<int>(vals))"
+                           MultiSelection="true"
+                           Clearable="true"
+                           ToStringFunc="@(new Func<int, string>(ConvertStudioIdToName))"
+                           Class="my-3">
 
                     @if (Studios != null)
                     {
@@ -95,12 +94,11 @@ else
                             {
                                 <MudItem xs="6" sm="4" md="3" lg="2">
                                     <MudCheckBox onchange="e => ToggleGenre(genre.Id, e)"
-                                        T="bool"
-                                        @key="genre.Id"
-                                        Label="@genre.Name"
-                                        Checked="@Anime.GenreIds.Contains(genre.Id)"
-                                        
-                                        CheckedChanged="e => ToggleGenre(genre.Id, e)" />
+                                                 T="bool"
+                                                 @key="genre.Id"
+                                                 Label="@genre.Name"
+                                                 Value="@Anime.GenreIds.Contains(genre.Id)"
+                                                 ValueChanged="e => ToggleGenre(genre.Id, e)" />
                                 </MudItem>
                             }
                         }
@@ -119,33 +117,33 @@ else
 
                 @if (!string.IsNullOrEmpty(PreviewImageUrl) || !string.IsNullOrEmpty(UploadedImageUrl))
                 {
-                    <div class="mt-3 text-center">
-                        <img src="@(string.IsNullOrEmpty(PreviewImageUrl) ? $"{ApiBaseUrl}{UploadedImageUrl}" : PreviewImageUrl)" 
-                                class="img-fluid rounded shadow-sm" 
-                                style="max-height:200px; max-width: 100%;" />
-                    </div>
+                    <MudImage Src="@(string.IsNullOrEmpty(PreviewImageUrl) ? $"{ApiBaseUrl}{UploadedImageUrl}" : PreviewImageUrl)"
+                                Alt="Anime Image"
+                                Elevation="25"
+                                ObjectPosition="ObjectPosition.Center"
+                                Class="rounded-lg ma-4"
+                                Style="max-height:200px; max-width: 100%;" />
                 }
 
-                   
                 <MudCardActions Class="py-4">
                     <MudGrid Justify="Justify.Center" Class="px-2">
                         <MudItem xs="12" sm="6">
                             <MudButton ButtonType="ButtonType.Submit"
-                                        StartIcon="@Icons.Material.Filled.LibraryAddCheck"
-                                        Variant="Variant.Filled"
-                                        Color="Color.Primary"
-                                        FullWidth="true"
-                                        Disabled="@IsLoading">
+                                       StartIcon="@Icons.Material.Filled.LibraryAddCheck"
+                                       Variant="Variant.Filled"
+                                       Color="Color.Primary"
+                                       FullWidth="true"
+                                       Disabled="@IsLoading">
                                 @(Id > 0 ? "Update" : "Create")
                             </MudButton>
                         </MudItem>
                         <MudItem xs="12" sm="6">
                             <MudButton Href="anime"
-                                        StartIcon="@Icons.Material.Filled.ArrowCircleLeft"
-                                        Variant="Variant.Filled"
-                                        Color="Color.Default"
-                                        FullWidth="true"
-                                        Disabled="@IsLoading">
+                                       StartIcon="@Icons.Material.Filled.ArrowCircleLeft"
+                                       Variant="Variant.Filled"
+                                       Color="Color.Default"
+                                       FullWidth="true"
+                                       Disabled="@IsLoading">
                                 Back to List
                             </MudButton>
                         </MudItem>
@@ -319,7 +317,7 @@ else
         }
         finally
         {
-            IsLoading = false; 
+            IsLoading = false;
         }
 
         Navigation.NavigateTo("anime");

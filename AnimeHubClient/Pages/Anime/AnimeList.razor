@@ -13,15 +13,14 @@
 }
 else
 {
-    <div class="card shadow border-0 mt-4">
-        <div class="card-header bg-black bg-gradient m-lg-0 py-3">
-            <div class="row">
-                <div class="col-12 text-center">
-                    <h2 class="text-white py-2">Anime List</h2>
-                </div>
-            </div>
-        </div>
-        <div class="card-body p-4">
+    <MudCard Elevation="4" Class="mt-4">
+        <MudCardHeader>
+            <CardHeaderContent>
+                <MudText Align="Align.Center" Typo="Typo.h4" Class="fw-bold">Anime List</MudText>
+            </CardHeaderContent>
+        </MudCardHeader>
+
+        <MudCardContent>
             <div class="row align-items-end">
                 <div class="col-md-4">
                     <label for="searchBox" class="form-label">Search Title:</label>
@@ -46,88 +45,47 @@ else
                     <MudButton Href="anime/create" StartIcon="@Icons.Material.Filled.AddTask" Variant="Variant.Filled" Color="Color.Primary">Add New Anime</MudButton>
                 </div>
             </div>
-        </div>
-        @if (AnimesList != null && AnimesList.Any())
-        {
-            <div class="table-responsive">
-                <table class="table table-bordered table-striped">
-                    <thead>
-                        <tr>
-                            <th>Title</th>
-                            <th>Episodes</th>
-                            <th>Priemered</th>
-                            <th>Status</th>
-                            <th>Category</th>
-                            <th>Rating</th>
-                            <th></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var anime in AnimesList)
-                        {
-                            <tr>
-                                <td>@anime.Title</td>
-                                <td>@anime.Episodes</td>
-                                <td>@anime.Season @anime.PremieredYear</td>
-                                <td>@anime.Status</td>
-                                <td>@anime.CategoryName</td>
-                                <td>@anime.Rating</td>
 
-                                <td class="text-center align-middle">
-                                    <div class="d-flex justify-content-center gap-2">
-                                        <MudButton Href="@($"anime/update/{anime.Id}")" StartIcon="@Icons.Material.Filled.EditNote" Variant="Variant.Filled" Color="Color.Primary">Edit</MudButton>
-                                        <MudButton @onclick="() => DeleteAnime(anime.Id)" StartIcon="@Icons.Material.Filled.Delete" Variant="Variant.Filled" Color="Color.Error">Delete</MudButton>
-                                    </div>
-                                </td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
+            @if (AnimesList != null && AnimesList.Any())
+            {
+                <MudTable Items="AnimesList" Hover="true" Bordered="true" Striped="true" Breakpoint="Breakpoint.Sm">
+                    <HeaderContent>
+                        <MudTh>Title</MudTh>
+                        <MudTh>Episodes</MudTh>
+                        <MudTh>Priemered</MudTh>
+                        <MudTh>Status</MudTh>
+                        <MudTh>Category</MudTh>
+                        <MudTh>Rating</MudTh>
+                        <MudTh Style="width:1%;">Actions</MudTh>
+                    </HeaderContent>
+                    <RowTemplate>
+                        <MudTd DataLabel="Title">@context.Title</MudTd>
+                        <MudTd DataLabel="Episodes">@context.Episodes</MudTd>
+                        <MudTd DataLabel="Premiered">@context.Season @context.PremieredYear</MudTd>
+                        <MudTd DataLabel="Status">@context.Status</MudTd>
+                        <MudTd DataLabel="Category">@context.CategoryName</MudTd>
+                        <MudTd DataLabel="Rating">@context.Rating</MudTd>
+                        <MudTd DataLabel="Actions" Style="white-space:nowrap;">
+                            <MudButton Href="@($"anime/update/{context.Id}")" StartIcon="@Icons.Material.Filled.EditNote" Variant="Variant.Filled" Color="Color.Primary">Edit</MudButton>
+                            <MudButton @onclick="() => DeleteAnime(context.Id)" StartIcon="@Icons.Material.Filled.Delete" Variant="Variant.Filled" Color="Color.Error">Delete</MudButton>
+                        </MudTd>
+                    </RowTemplate>
 
-                @* --- Pagination Controls --- *@
-                @* <div class="d-flex justify-content-center mt-3">
-                    <nav>
-                        <ul class="pagination">
-                            
-                            <li class="page-item @(Metadata.HasPrevious ? null : "disabled")">
-                                <button class="page-link"
-                                        @onclick="() => ChangePage(Metadata.CurrentPage - 1)"
-                                        disabled="@(!Metadata.HasPrevious)">
-                                    Previous
-                                </button>
-                            </li>
+                    <PagerContent>
+                        <MudPagination
+                            ShowPreviousButton="false"
+                            ShowNextButton="false"
+                            Count="@Metadata.TotalPages"
+                            Selected="@CurrentPage"
+                            SelectedChanged="ChangePage"
+                            />
+                    </PagerContent>
+                </MudTable>
 
-                            
-                            <li class="page-item disabled">
-                                <span class="page-link">
-                                    Page @Metadata.CurrentPage of @Metadata.TotalPages (@Metadata.TotalCount items)
-                                </span>
-                            </li>
-
-                            
-                            <li class="page-item @(Metadata.HasNext ? null : "disabled")">
-                                <button class="page-link"
-                                        @onclick="() => ChangePage(Metadata.CurrentPage + 1)"
-                                        disabled="@(!Metadata.HasNext)">
-                                    Next
-                                </button>
-                            </li>
-                        </ul>
-                    </nav>
-                </div> *@
-
-                <div class="d-flex flex-column align-center mb-3">
-                    <MudPagination
-                        ShowPreviousButton="false"
-                        ShowNextButton="false"
-                        Count="@Metadata.TotalPages"
-                        Selected="@CurrentPage"
-                        SelectedChanged="ChangePage"
-                        />
-                </div>
-            </div>
-        }
-    </div>
+                
+            }
+        </MudCardContent>
+    </MudCard>
 }
 
 @code {
