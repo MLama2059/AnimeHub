@@ -57,18 +57,46 @@ namespace AnimeHubApi.Repository
             // Apply filtering
             if (!string.IsNullOrWhiteSpace(apiParams.OrderBy))
             {
-                switch (apiParams.OrderBy.ToLowerInvariant())
+                var orderByParts = apiParams.OrderBy.ToLowerInvariant().Split('_');
+                var sortField = orderByParts[0]; // e.g., "title", "rating"
+                var sortDirection = orderByParts.Length > 1 && orderByParts[1] == "desc" ? "desc" : "asc";
+
+                switch (sortField)
                 {
                     case "title":
-                        projectedQuery = projectedQuery.OrderBy(a => a.Title);
+                        projectedQuery = sortDirection == "desc"
+                            ? projectedQuery.OrderByDescending(a => a.Title)
+                            : projectedQuery.OrderBy(a => a.Title);
                         break;
 
-                    case "rating":
-                        projectedQuery = projectedQuery.OrderByDescending(a => a.Rating);
+                    case "episodes":
+                        projectedQuery = sortDirection == "desc"
+                            ? projectedQuery.OrderByDescending(a => a.Episodes)
+                            : projectedQuery.OrderBy(a => a.Episodes);
                         break;
 
                     case "premiered":
-                        projectedQuery = projectedQuery.OrderByDescending(a => a.PremieredYear).ThenByDescending(a => a.Season);
+                        projectedQuery = sortDirection == "desc"
+                            ? projectedQuery.OrderByDescending(a => a.PremieredYear).ThenByDescending(a => a.Season)
+                            : projectedQuery.OrderBy(a => a.PremieredYear).ThenBy(a => a.Season);
+                        break;
+
+                    case "status":
+                        projectedQuery = sortDirection == "desc"
+                            ? projectedQuery.OrderByDescending(a => a.Status)
+                            : projectedQuery.OrderBy(a => a.Status);
+                        break;
+
+                    case "categoryname":
+                        projectedQuery = sortDirection == "desc"
+                            ? projectedQuery.OrderByDescending(a => a.CategoryName)
+                            : projectedQuery.OrderBy(a => a.CategoryName);
+                        break;
+
+                    case "rating":
+                        projectedQuery = sortDirection == "desc"
+                            ? projectedQuery.OrderByDescending(a => a.Rating)
+                            : projectedQuery.OrderBy(a => a.Rating);
                         break;
 
                     default:
@@ -78,7 +106,6 @@ namespace AnimeHubApi.Repository
             }
             else
             {
-                // Default ordering
                 projectedQuery = projectedQuery.OrderBy(a => a.Title);
             }
 

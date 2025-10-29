@@ -13,7 +13,7 @@ namespace AnimeHub.Shared.Models.Dtos.Anime
         public int? Episodes { get; set; }
         public string? Season { get; set; }
         public int? PremieredYear { get; set; }
-        public string? Status { get; set; }
+        public string Status { get; set; } = string.Empty;
         public int? CategoryId { get; set; }
         public string? CategoryName { get; set; }
     }

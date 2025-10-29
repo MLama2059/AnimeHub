@@ -7,157 +7,166 @@
 @inject IDialogService Dialog
 @inject ISnackbar Snackbar
 
-@if (IsLoading)
-{
-    <div class="py-4 text-center"><MudProgressCircular Indeterminate="true" /></div>
-}
-else
-{
-    <MudCard Elevation="4" Class="mt-4">
-        <MudCardHeader>
-            <CardHeaderContent>
-                <MudText Align="Align.Center" Typo="Typo.h4" Class="fw-bold">Anime List</MudText>
-            </CardHeaderContent>
-        </MudCardHeader>
+<MudCard Elevation="4" Class="mt-4">
+    <MudCardHeader>
+        <CardHeaderContent>
+            <MudText Align="Align.Center" Typo="Typo.h4" Class="fw-bold">Anime List</MudText>
+        </CardHeaderContent>
+    </MudCardHeader>
 
-        <MudCardContent>
-            <div class="row align-items-end">
-                <div class="col-md-4">
-                    <label for="searchBox" class="form-label">Search Title:</label>
-                    <div class="input-group">
-                        <input type="text"
-                               class="form-control"
-                               @bind="SearchInput"
-                               @bind:event="oninput"
-                               @onkeypress="HandleEnterKeySearch"
-                               placeholder="Search anime">
-                    </div>
+    <MudCardContent>
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <MudTextField T="string"
+                            Placeholder="Search anime"
+                            Adornment="Adornment.Start"
+                            AdornmentIcon="@Icons.Material.Filled.Search"
+                            Immediate="true"
+                            Clearable="true"
+                            Style="max-width:300px;"
+                            Value="SearchTerm"
+                            ValueChanged="@(async (v) => await OnSearch(v))" />
+
+            <MudButton Href="anime/create"
+                        StartIcon="@Icons.Material.Filled.AddTask"
+                        Variant="Variant.Filled"
+                        Color="Color.Primary">
+                Add New Anime
+            </MudButton>
+        </div>
+
+        <MudTable ServerData="ServerReload"
+                  FixedHeader="true"
+                  Height="450px"
+                  Hover="true"
+                  Bordered="true"
+                  Striped="true"
+                  Breakpoint="Breakpoint.Sm"
+                  LoadingProgressColor="Color.Primary"
+                  @ref="MudTable">
+
+            <HeaderContent>
+                <MudTh><MudTableSortLabel SortLabel="Title" T="AnimeListReadDto">Title</MudTableSortLabel></MudTh>
+                <MudTh><MudTableSortLabel SortLabel="Episodes" T="AnimeListReadDto">Episodes</MudTableSortLabel></MudTh>
+                <MudTh><MudTableSortLabel SortLabel="PremieredYear" T="AnimeListReadDto">Priemered</MudTableSortLabel></MudTh>
+                <MudTh><MudTableSortLabel SortLabel="Status" T="AnimeListReadDto">Status</MudTableSortLabel></MudTh>
+                <MudTh><MudTableSortLabel SortLabel="CategoryName" T="AnimeListReadDto">Category</MudTableSortLabel></MudTh>
+                <MudTh><MudTableSortLabel SortLabel="Rating" T="AnimeListReadDto">Rating</MudTableSortLabel></MudTh>
+                <MudTh Style="width:1%;">Actions</MudTh>
+            </HeaderContent>
+
+            <RowTemplate>
+                <MudTd DataLabel="Title">@context.Title</MudTd>
+                <MudTd DataLabel="Episodes">@context.Episodes</MudTd>
+                <MudTd DataLabel="Premiered">@context.Season @context.PremieredYear</MudTd>
+                <MudTd DataLabel="Status">@context.Status</MudTd>
+                <MudTd DataLabel="Category">@context.CategoryName</MudTd>
+                <MudTd DataLabel="Rating">@context.Rating</MudTd>
+                <MudTd DataLabel="Actions" Style="white-space:nowrap;">
+                    <MudButton Href="@($"anime/update/{context.Id}")" StartIcon="@Icons.Material.Filled.EditNote" Variant="Variant.Filled" Color="Color.Primary">Edit</MudButton>
+                    <MudButton @onclick="() => DeleteAnime(context.Id)" StartIcon="@Icons.Material.Filled.Delete" Variant="Variant.Filled" Color="Color.Error">Delete</MudButton>
+                </MudTd>
+            </RowTemplate>
+
+            <LoadingContent>
+                <div class="py-4 text-center">
+                    <MudProgressCircular Indeterminate="true" Color="Color.Primary" />
                 </div>
-                <div class="col-md-4">
-                    <label for="sortDropdown" class="form-label">Sort By:</label>
-                    <select id="sortDropdown" class="form-select" @bind:after="HandleSortChange" @bind="OrderBy">
-                        <option value="title">Title (A-Z)</option>
-                        <option value="rating">Rating (Highest)</option>
-                        <option value="premiered">Premiered (Latest)</option>
-                    </select>
-                </div>
-                <div class="col-md-4 text-end">
-                    <MudButton Href="anime/create" StartIcon="@Icons.Material.Filled.AddTask" Variant="Variant.Filled" Color="Color.Primary">Add New Anime</MudButton>
-                </div>
-            </div>
+            </LoadingContent>
 
-            @if (AnimesList != null && AnimesList.Any())
-            {
-                <MudTable Items="AnimesList" Hover="true" Bordered="true" Striped="true" Breakpoint="Breakpoint.Sm">
-                    <HeaderContent>
-                        <MudTh>Title</MudTh>
-                        <MudTh>Episodes</MudTh>
-                        <MudTh>Priemered</MudTh>
-                        <MudTh>Status</MudTh>
-                        <MudTh>Category</MudTh>
-                        <MudTh>Rating</MudTh>
-                        <MudTh Style="width:1%;">Actions</MudTh>
-                    </HeaderContent>
-                    <RowTemplate>
-                        <MudTd DataLabel="Title">@context.Title</MudTd>
-                        <MudTd DataLabel="Episodes">@context.Episodes</MudTd>
-                        <MudTd DataLabel="Premiered">@context.Season @context.PremieredYear</MudTd>
-                        <MudTd DataLabel="Status">@context.Status</MudTd>
-                        <MudTd DataLabel="Category">@context.CategoryName</MudTd>
-                        <MudTd DataLabel="Rating">@context.Rating</MudTd>
-                        <MudTd DataLabel="Actions" Style="white-space:nowrap;">
-                            <MudButton Href="@($"anime/update/{context.Id}")" StartIcon="@Icons.Material.Filled.EditNote" Variant="Variant.Filled" Color="Color.Primary">Edit</MudButton>
-                            <MudButton @onclick="() => DeleteAnime(context.Id)" StartIcon="@Icons.Material.Filled.Delete" Variant="Variant.Filled" Color="Color.Error">Delete</MudButton>
-                        </MudTd>
-                    </RowTemplate>
-
-                    <PagerContent>
-                        <MudPagination
-                            ShowPreviousButton="false"
-                            ShowNextButton="false"
-                            Count="@Metadata.TotalPages"
-                            Selected="@CurrentPage"
-                            SelectedChanged="ChangePage"
-                            />
-                    </PagerContent>
-                </MudTable>
-
-                
-            }
-        </MudCardContent>
-    </MudCard>
-}
+            <PagerContent>
+                <MudTablePager />
+            </PagerContent>
+        </MudTable>
+    </MudCardContent>
+</MudCard>
 
 @code {
-    private bool IsLoading { get; set; } = true;
-    // private List<AnimeReadDto>? Animes;
     private List<AnimeListReadDto> AnimesList = new();
     private PagedListMetadata Metadata = new();
-    private int CurrentPage = 1;
-    private int PageSize = 10;
-    private string OrderBy { get; set; } = "Title";
-    private const string FilterOn = "Title";
-    // Properties for Search
-    private string FilterQuery { get; set; } = string.Empty; // Actual filter sent to API
-    private string SearchInput { get; set; } = string.Empty; // Value from the input box
 
-    protected override async Task OnInitializedAsync()
-    {
-        // Set initial SearchInput value to match FilterQuery (for consistency)
-        SearchInput = FilterQuery;
-        await LoadAnimes();
-    }
+    private MudTable<AnimeListReadDto>? MudTable;
+    private string SearchTerm { get; set; } = string.Empty;
 
-    private async Task LoadAnimes()
+    private Dictionary<string, string> SortMapping = new()
     {
-        IsLoading = true;
-        StateHasChanged();
+        {"Title", "title"},
+        {"Episodes", "episodes"},
+        {"PremieredYear", "premiered"},
+        {"Status", "status"},
+        {"CategoryName", "categoryname"},
+        {"Rating", "rating"}
+    };
+
+    // NOTE: MudTable.ServerData expects a Func<TableState, CancellationToken, Task<TableData<T>>>
+    private async Task<TableData<AnimeListReadDto>> ServerReload(TableState state, CancellationToken cancellationToken)
+    {
+        int pageNumber = state.Page + 1;
+        int pageSize = state.PageSize;
+
+        string orderBy = "title";
+        if (!string.IsNullOrEmpty(state.SortLabel) && SortMapping.ContainsKey(state.SortLabel))
+        {
+            orderBy = SortMapping[state.SortLabel];
+
+            if (state.SortDirection == SortDirection.Descending)
+            {
+                orderBy += "_desc";
+            }
+        }
+
+        var queryParams = new Dictionary<string, string?>
+        {
+            {"pageNumber", pageNumber.ToString()},
+            {"pageSize", pageSize.ToString()},
+            {"orderBy", orderBy}
+        };
+
+        if (!string.IsNullOrWhiteSpace(SearchTerm))
+        {
+            queryParams.Add("filterOn", "Title");
+            queryParams.Add("filterQuery", SearchTerm);
+        }
+
+        var queryString = await new FormUrlEncodedContent(queryParams).ReadAsStringAsync();
+
         try
         {
-            // Build the Query String
-            var queryParams = new Dictionary<string, string?>
-            {
-                {"pageNumber", CurrentPage.ToString()},
-                {"pageSize", PageSize.ToString()},
-                {"orderBy", OrderBy}
-            };
-
-            // Add Filter Params if a search query is present
-            if (!string.IsNullOrWhiteSpace(FilterQuery))
-            {
-                queryParams.Add("filterOn", FilterOn);
-                queryParams.Add("filterQuery", FilterQuery);
-            }
-
-            // Construct the full URL: api/anime?pageNumber=1&pageSize=10...
-            var queryString = new FormUrlEncodedContent(queryParams).ReadAsStringAsync().Result;
-
-            var response = await Http.GetAsync($"api/anime?{queryString}");
+            // pass cancellationToken to Http call
+            var response = await Http.GetAsync($"api/anime?{queryString}", cancellationToken);
             response.EnsureSuccessStatusCode();
 
-            // Read Pagination Metadata from the Header
+            int totalItems = 0;
             if (response.Headers.TryGetValues("X-Pagination", out var headerValues))
             {
                 var metadataJson = headerValues.FirstOrDefault();
                 if (!string.IsNullOrWhiteSpace(metadataJson))
                 {
-                    Metadata = System.Text.Json.JsonSerializer.Deserialize<PagedListMetadata>(metadataJson) ?? new PagedListMetadata();
+                    var metadata = System.Text.Json.JsonSerializer.Deserialize<PagedListMetadata>(metadataJson);
+                    totalItems = metadata?.TotalCount ?? 0;
                 }
             }
 
-            // Read the Anime List from the Body
-            AnimesList = await response.Content.ReadFromJsonAsync<List<AnimeListReadDto>>()
-                        ?? new List<AnimeListReadDto>();
+            var items = await response.Content.ReadFromJsonAsync<List<AnimeListReadDto>>(cancellationToken: cancellationToken)
+                                ?? new List<AnimeListReadDto>();
+
+            return new TableData<AnimeListReadDto>() { TotalItems = totalItems, Items = items };
+        }
+        catch (OperationCanceledException)
+        {
+            // request was cancelled; return empty result
+            return new TableData<AnimeListReadDto>() { TotalItems = 0, Items = new List<AnimeListReadDto>() };
         }
         catch (Exception ex)
         {
-            Console.Error.WriteLine($"Error fetching category data: {ex.Message}");
+            Snackbar.Add($"Error loading data: {ex.Message}", Severity.Error);
+            return new TableData<AnimeListReadDto>() { TotalItems = 0, Items = new List<AnimeListReadDto>() };
         }
-        finally
-        {
-            IsLoading = false;
-            StateHasChanged();
-        }
+    }
+
+    private async Task OnSearch(string text)
+    {
+        SearchTerm = text;
+        await MudTable!.ReloadServerData();
     }
 
     private async Task DeleteAnime(int id)
@@ -180,59 +189,16 @@ else
 
         if (result != null && !result.Canceled)
         {
-            // Call API to delete
             var response = await Http.DeleteAsync($"api/anime/{id}");
             if (response.IsSuccessStatusCode)
             {
                 Snackbar.Add("Anime deleted successfully!", Severity.Success);
-                await LoadAnimes(); // Reload list
+                await MudTable!.ReloadServerData();
             }
             else
             {
                 Snackbar.Add("Failed to delete anime.", Severity.Error);
             }
         }
-    }
-
-    private async Task ChangePage(int newPage)
-    {
-        // 1. Basic page check
-        if (newPage == CurrentPage)
-        {
-            return;
-        }
-
-        // 2. Update the state variable
-        CurrentPage = newPage;
-
-        // 3. Reload the data from the API
-        await LoadAnimes();
-    }
-
-    private async Task HandleSortChange()
-    {
-        // When the sort order changes, we must reset to the first page (page 1)
-        CurrentPage = 1;
-
-        // LoadAnimes handles setting IsLoading and calling StateHasChanged
-        await LoadAnimes();
-    }
-
-    private async Task HandleEnterKeySearch(KeyboardEventArgs e)
-    {
-        if (e.Key == "Enter")
-        {
-            // Immediately update the official filter property
-            FilterQuery = SearchInput;
-
-            // Call the core search method
-            await HandleSearch();
-        }
-    }
-
-    private async Task HandleSearch()
-    {
-        CurrentPage = 1; // Always reset to page 1 on search
-        await LoadAnimes(); // Replace the list
     }
 }

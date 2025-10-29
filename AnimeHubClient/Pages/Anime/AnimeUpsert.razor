@@ -31,7 +31,7 @@ else
 
                 <MudGrid>
                     <MudItem xs="12" sm="6">
-                        <MudNumericField T="double?" Variant="Variant.Outlined" Label="Rating" @bind-Value="Anime.Rating" For="@(() => Anime.Rating)" Class="my-3" />
+                        <MudNumericField T="double?" Variant="Variant.Outlined" Label="Rating" @bind-Value="Anime.Rating" Min="0.0" Max="10.0" For="@(() => Anime.Rating)" Class="my-3" />
                     </MudItem>
                     <MudItem xs="12" sm="6">
                         <MudNumericField T="int?" Variant="Variant.Outlined" Label="Episodes" @bind-Value="Anime.Episodes" For="@(() => Anime.Episodes)" Class="my-3" />
@@ -48,14 +48,14 @@ else
                         </MudSelect>
                     </MudItem>
                     <MudItem xs="12" sm="6">
-                        <MudNumericField T="int?" Variant="Variant.Outlined" Label="Premiered Year" @bind-Value="Anime.PremieredYear" For="@(() => Anime.PremieredYear)" Class="my-3" />
+                        <MudNumericField T="int?" Variant="Variant.Outlined" Label="Premiered Year" Min="1900" Max="2100" @bind-Value="Anime.PremieredYear" For="@(() => Anime.PremieredYear)" Class="my-3" />
                     </MudItem>
                 </MudGrid>
 
-                <MudSelect T="int?" Label="Status" Variant="Variant.Outlined" @bind-Value="Anime.Status" For="@(() => Anime.Status)" Class="my-3">
-                    @foreach (var statusValue in Enum.GetValues(typeof(Status)))
+                <MudSelect T="Status?" Label="Status" Variant="Variant.Outlined" @bind-Value="@AnimeStatusEnum" Class="my-3">
+                    @foreach (Status statusValue in Enum.GetValues(typeof(Status)))
                     {
-                        <MudSelectItem T="int?" Value="@((int)statusValue)">@statusValue.ToString()</MudSelectItem>
+                        <MudSelectItem T="Status?" Value="@statusValue">@GetEnumDisplayName(statusValue)</MudSelectItem>
                     }
                 </MudSelect>
 
@@ -85,7 +85,7 @@ else
                     }
                 </MudSelect>
 
-                <MudPaper Elevation="0" Class="p-3 mt-3">
+                <MudPaper Elevation="2" Class="p-3 mt-3">
                     <MudText Typo="Typo.subtitle1" Class="mb-2">Genres</MudText>
                     <MudGrid>
                         @if (Genres != null)
@@ -120,8 +120,7 @@ else
                     <MudImage Src="@(string.IsNullOrEmpty(PreviewImageUrl) ? $"{ApiBaseUrl}{UploadedImageUrl}" : PreviewImageUrl)"
                                 Alt="Anime Image"
                                 Elevation="25"
-                                ObjectPosition="ObjectPosition.Center"
-                                Class="rounded-lg ma-4"
+                                Class="rounded-lg ma-4 d-block mx-auto"
                                 Style="max-height:200px; max-width: 100%;" />
                 }
 
@@ -213,7 +212,9 @@ else
             Anime = new AnimeUpdateDto
             {
                 GenreIds = new List<int>(),
-                StudioIds = new HashSet<int>()
+                StudioIds = new HashSet<int>(),
+                // FIX: Set status to null, so the MudSelect appears unselected.
+                Status = null
             };
             PreviewImageUrl = null;
             UploadedImageUrl = null;
@@ -344,10 +345,13 @@ else
         return Studios?.FirstOrDefault(s => s.Id == id)?.Name ?? $"ID {id}";
     }
 
-    private Status AnimeStatusEnum
+    private Status? AnimeStatusEnum
     {
-        get => (Status)Anime.Status;
-        set => Anime.Status = (int)value;
+        get => Anime.Status.HasValue ? (Status)Anime.Status.Value : null;
+
+        // When the user selects a value (Status), set the DTO's Status (int?)
+        // If null is passed (unselected), set the DTO's Status to null.
+        set => Anime.Status = value.HasValue ? (int)value.Value : null;
     }
 
     // Inside the @code block of AnimeUpsert.razor

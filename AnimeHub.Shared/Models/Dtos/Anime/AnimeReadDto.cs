@@ -25,6 +25,6 @@ namespace AnimeHub.Shared.Models.Dtos.Anime
         public string? Description { get; set; }
         public string? ImageUrl { get; set; }
         public double? Rating { get; set; }
-        public string? Status { get; set; } = string.Empty;
+        public string Status { get; set; } = string.Empty;
     }
 }
