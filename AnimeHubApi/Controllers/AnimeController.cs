@@ -23,7 +23,7 @@ namespace AnimeHubApi.Controllers
         {
             PagedList<AnimeListReadDto> pagedList = (PagedList<AnimeListReadDto>)await _animeRepository.GetAllAsync(apiParams);
 
-            if (pagedList is null || !pagedList.Any())
+            if (!pagedList.Any())
                 return NotFound();
 
             // CRITICAL: Add Pagination Metadata to the Response Headers

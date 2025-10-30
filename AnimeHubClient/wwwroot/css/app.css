@@ -16,7 +16,7 @@
 :root,
 [data-bs-theme=light] {
     /* Define the new Primary Color (Yellow/Orange Accent) */
-    --bs-primary: #FF9900;
+    --bs-primary: #FF9000;
     --bs-primary-rgb: 255, 153, 0;
     /* Define the new Secondary Color (Pure Black for text/accents) */
     --bs-secondary: #000000;
@@ -284,6 +284,7 @@ main {
 .anime-card {
     width: 14rem;
     border-radius: 15px;
+    background: #fdfdfd;
 }
 
     /* Card title hover uses Primary color variable */
@@ -317,7 +318,7 @@ main {
 }
 
 .section-card {
-    background: var(--bs-body-bg);
+    background: #fdfdfd;
     border-radius: 12px;
     padding: 1.1rem 1.2rem;
     margin-bottom: 1.6rem;

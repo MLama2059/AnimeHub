@@ -118,10 +118,10 @@ else
                 @if (!string.IsNullOrEmpty(PreviewImageUrl) || !string.IsNullOrEmpty(UploadedImageUrl))
                 {
                     <MudImage Src="@(string.IsNullOrEmpty(PreviewImageUrl) ? $"{ApiBaseUrl}{UploadedImageUrl}" : PreviewImageUrl)"
-                                Alt="Anime Image"
-                                Elevation="25"
-                                Class="rounded-lg ma-4 d-block mx-auto"
-                                Style="max-height:200px; max-width: 100%;" />
+                              Alt="Anime Image"
+                              Elevation="25"
+                              Class="rounded-lg ma-4 d-block mx-auto"
+                              Style="max-height:200px; max-width: 100%;" />
                 }
 
                 <MudCardActions Class="py-4">
@@ -160,7 +160,7 @@ else
     // Single form model, can be either Create or Update DTO
     private AnimeUpdateDto Anime { get; set; } = new();
 
-    private List<CategoryReadDto>? Categories;
+    private List<CategoryReadDto>? Categories { get; set; } = new();
     private List<GenreReadDto>? Genres { get; set; } = new();
     private List<StudioReadDto>? Studios { get; set; } = new();
 
@@ -220,19 +220,16 @@ else
             UploadedImageUrl = null;
         }
 
-        Categories = await Http.GetFromJsonAsync<List<CategoryReadDto>>("api/category");
-        var genres = await Http.GetFromJsonAsync<List<GenreReadDto>>("api/genre");
-        var studios = await Http.GetFromJsonAsync<List<StudioReadDto>>("api/studio");
+        var categories = Http.GetFromJsonAsync<List<CategoryReadDto>>("api/category");
+        var genres = Http.GetFromJsonAsync<List<GenreReadDto>>("api/genre");
+        var studios = Http.GetFromJsonAsync<List<StudioReadDto>>("api/studio");
 
-        if (Genres != null)
-        {
-            Genres = genres.OrderBy(g => g.Name).ToList();
-        }
+        await Task.WhenAll(categories, genres, studios);
 
-        if (Studios != null)
-        {
-            Studios = studios.OrderBy(s => s.Name).ToList();
-        }
+        // Assign results (ensure they are not null)
+        Categories = categories.Result?.OrderBy(c => c.Name).ToList() ?? new();
+        Genres = genres.Result?.OrderBy(g => g.Name).ToList() ?? new();
+        Studios = studios.Result?.OrderBy(s => s.Name).ToList() ?? new();
     }
 
     private async Task UpsertAnime()
