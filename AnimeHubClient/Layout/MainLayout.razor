@@ -11,43 +11,6 @@
 <MudSnackbarProvider />
 
 <div class="page">
-    @* <MudAppBar Elevation="2" Fixed="false" Class="mudblazor-appbar-light">
-
-        <MudLink Href="/" Typo="Typo.h5" Underline="Underline.None" Color="Color.Primary"  Class="fw-bold">
-            <img src="/images/Anime-Hub.svg" alt="AnimeHub" style="height: 50px; width: auto;" />
-        </MudLink>
-
-        <MudSpacer />
-
-        <!-- Desktop Links -->
-        <MudHidden Breakpoint="Breakpoint.SmAndDown">
-            <div class="d-none d-md-flex align-center nav-link-group">
-                <MudButton Href="/" Variant="Variant.Text" Color="Color.Inherit" Class="mx-2 nav-item">Home</MudButton>
-                <MudButton Href="anime-catalog" Variant="Variant.Text" Color="Color.Inherit" Class="mx-2 nav-item">Catalog</MudButton>
-                <MudButton Href="anime" Variant="Variant.Text" Color="Color.Inherit" Class="mx-2 nav-item">Animes</MudButton>
-                <MudButton Href="category" Variant="Variant.Text" Color="Color.Inherit" Class="mx-2 nav-item">Categories</MudButton>
-            </div>
-
-            <MudSpacer />
-
-            <MudButton Href="search" Variant="Variant.Text" Color="Color.Inherit" Class="mx-2">Search</MudButton>
-            <MudButton Href="login" Variant="Variant.Text" Color="Color.Inherit" Class="mx-2">Login</MudButton>
-            <MudButton Href="signup" Variant="Variant.Filled" Color="Color.Warning" Class="ms-2 bg-primary text-dark">Sign Up</MudButton>
-        </MudHidden>
-
-        <!-- Mobile Hamburger -->
-        <MudHidden Breakpoint="Breakpoint.MdAndUp">
-            <MudMenu Icon="fas fa-bars" Color="Color.Inherit" AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight">
-                <MudMenuItem Href="/">Home</MudMenuItem>
-                <MudMenuItem Href="anime-catalog">Catalog</MudMenuItem>
-                <MudMenuItem Href="anime">Animes</MudMenuItem>
-                <MudMenuItem Href="category">Categories</MudMenuItem>
-                <MudMenuItem Href="search">Search</MudMenuItem>
-                <MudMenuItem Href="login">Login</MudMenuItem>
-                <MudMenuItem Href="signup">Sign Up</MudMenuItem>
-            </MudMenu>
-        </MudHidden>
-    </MudAppBar> *@
     <NavBar></NavBar>
     <main class="main-content">
         <article class="content px-4">
@@ -65,7 +28,8 @@
             Secondary = "#000000",
             Background = "#FDFDFD",
             Surface = "#FFFFFF",
-            TextPrimary = "#000000"
+            TextPrimary = "#000000",
+            Success = "#FF9000"
         },
         Typography = new Typography()
         {
