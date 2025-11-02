@@ -1,20 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 using System.Text;
 
-namespace AnimeHub.Shared.Models
+namespace AnimeHub.Shared.Models.Dtos.User
 {
-    public class User
+    // Output to clients
+    public class UserResponseDto
     {
-        [Key]
         public int Id { get; set; }
-        [Required, MaxLength(50)]
         public string Username { get; set; } = string.Empty;
-        [Required, EmailAddress]
         public string Email { get; set; } = string.Empty;
-        [Required]
-        public string PasswordHash { get; set; } = string.Empty;
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public string Role { get; set; } = string.Empty;
     }

@@ -27,7 +27,9 @@
     <Compile Include="$(MSBuildThisFileDirectory)Models\Dtos\PagedListMetadata.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\Dtos\Studio\StudioReadDto.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\Dtos\Studio\StudioUpsertDto.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Models\Dtos\User\LoginDto.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\Dtos\User\UserDto.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Models\Dtos\User\UserResponseDto.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\Enums\Season.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\Enums\Status.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\Genre.cs" />
