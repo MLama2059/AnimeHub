@@ -19,9 +19,9 @@ namespace AnimeHubApi.Controllers
         public AnimeController(IAnimeRepository animeRepository) => _animeRepository = animeRepository;
 
         [HttpGet]
-        public async Task<ActionResult<List<AnimeListReadDto>>> GetAnimes([FromQuery] APIParams apiParams)
+        public async Task<IActionResult> GetAnimes([FromQuery] APIParams apiParams)
         {
-            PagedList<AnimeListReadDto> pagedList = (PagedList<AnimeListReadDto>)await _animeRepository.GetAllAsync(apiParams);
+            var pagedList = await _animeRepository.GetAllAsync(apiParams);
 
             if (!pagedList.Any())
                 return NotFound();
@@ -45,10 +45,10 @@ namespace AnimeHubApi.Controllers
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<Anime>> GetAnimeById(int id)
+        public async Task<IActionResult> GetAnimeById(int id)
         {
             var anime = await _animeRepository.GetByIdAsync(id);
-            if (anime is null)
+            if (anime == null)
                 return NotFound();
 
             return Ok(anime);
@@ -56,59 +56,22 @@ namespace AnimeHubApi.Controllers
 
         // GET endpoint for Top Rated Anime
         [HttpGet("top")]
-        public async Task<ActionResult<IEnumerable<AnimeListReadDto>>> GetTopRatedAnimes()
+        public async Task<IActionResult> GetTopRatedAnimes()
         {
-            const int count = 10; // Number of top-rated animes to return
-            var animes = await _animeRepository.GetTopRatedAnimesAsync(count);
+            var animes = await _animeRepository.GetTopRatedAnimesAsync(10);
 
             return Ok(animes);
         }
 
         [HttpPost]
-        public async Task<ActionResult<AnimeReadDto>> AddAnime([FromBody] AnimeCreateDto animeDto)
+        public async Task<IActionResult> AddAnime([FromBody] AnimeCreateDto animeDto)
         {
-            if (animeDto is null)
-                return BadRequest();
-
-            var anime = new Anime
-            {
-                Title = animeDto.Title,
-                Episodes = animeDto.Episodes,
-                Season = (Season)animeDto.Season,
-                PremieredYear = animeDto.PremieredYear,
-                Description = animeDto.Description,
-                ImageUrl = animeDto.ImageUrl,
-                Rating = animeDto.Rating,
-                Status = (Status)animeDto.Status,
-                CategoryId = animeDto.CategoryId,
-                // Initialize collections
-                AnimeGenres = new List<AnimeGenre>(),
-                AnimeStudios = new HashSet<AnimeStudio>()
-            };
-
-            var createdAnime = await _animeRepository.AddAsync(anime, animeDto.GenreIds, animeDto.StudioIds);
+            var createdAnime = await _animeRepository.AddAsync(animeDto);
 
             if (createdAnime == null)
-                return BadRequest("Anime creation failed");
+                return BadRequest("Failed to create anime.");
 
-            // Map back to read DTO
-            var readDto = new AnimeReadDto
-            {
-                Id = createdAnime.Id,
-                Title = createdAnime.Title,
-                Episodes = createdAnime.Episodes,
-                Season = createdAnime.Season.ToString(),
-                PremieredYear = createdAnime.PremieredYear,
-                Description = createdAnime.Description,
-                ImageUrl = createdAnime.ImageUrl,
-                Rating = createdAnime.Rating,
-                Status = createdAnime.Status.ToString(),
-                CategoryName = createdAnime.Category?.Name ?? string.Empty,
-                Genres = createdAnime.AnimeGenres?.Select(ag => ag.Genre.Name).ToList() ?? new List<string>(),
-                Studios = createdAnime.AnimeStudios?.Select(ast => ast.Studio.Name).ToList() ?? new List<string>(),
-            };
-
-            return CreatedAtAction(nameof(GetAnimeById), new { id = readDto.Id }, readDto);
+            return CreatedAtAction(nameof(GetAnimeById), new { id = createdAnime.Id }, createdAnime);
         }
 
         [HttpPost("upload-image")]
@@ -160,24 +123,7 @@ namespace AnimeHubApi.Controllers
             if (!_animeRepository.Exists(id))
                 return NotFound();
 
-            var anime = new Anime
-            {
-                Id = id,
-                Title = animeDto.Title,
-                Episodes = animeDto.Episodes,
-                Season = (Season)animeDto.Season,
-                PremieredYear = animeDto.PremieredYear,
-                Description = animeDto.Description,
-                ImageUrl = animeDto.ImageUrl,
-                Rating = animeDto.Rating,
-                Status = (Status)animeDto.Status,
-                CategoryId = animeDto.CategoryId,
-                // Initialize collections
-                AnimeGenres = new List<AnimeGenre>(),
-                AnimeStudios = new List<AnimeStudio>()
-            };
-
-            var success = await _animeRepository.UpdateAsync(anime, animeDto.GenreIds, animeDto.StudioIds);
+            var success = await _animeRepository.UpdateAsync(id, animeDto);
 
             if (!success)
                 return BadRequest("Update failed");

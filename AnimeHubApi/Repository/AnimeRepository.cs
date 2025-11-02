@@ -1,6 +1,7 @@
 ﻿using AnimeHub.Shared.Models;
 using AnimeHub.Shared.Models.Dtos;
 using AnimeHub.Shared.Models.Dtos.Anime;
+using AnimeHub.Shared.Models.Enums;
 using AnimeHubApi.Data;
 using AnimeHubApi.Repository.IRepository;
 using Microsoft.EntityFrameworkCore;
@@ -39,20 +40,19 @@ namespace AnimeHubApi.Repository
             }
 
             // Apply Projection
-            var projectedQuery = query
-                .Select(a => new AnimeListReadDto
-                {
-                    Id = a.Id,
-                    Title = a.Title,
-                    ImageUrl = a.ImageUrl,
-                    Rating = a.Rating,
-                    Episodes = a.Episodes,
-                    Season = a.Season.ToString(),
-                    PremieredYear = a.PremieredYear,
-                    Status = a.Status.ToString(),
-                    CategoryId = a.CategoryId,
-                    CategoryName = a.Category.Name
-                });
+            var projectedQuery = query.Select(a => new AnimeListReadDto
+            {
+                Id = a.Id,
+                Title = a.Title,
+                ImageUrl = a.ImageUrl,
+                Rating = a.Rating,
+                Episodes = a.Episodes,
+                Season = a.Season.ToString(),
+                PremieredYear = a.PremieredYear,
+                Status = a.Status.ToString(),
+                CategoryId = a.CategoryId,
+                CategoryName = a.Category.Name
+            });
 
             // Apply filtering
             if (!string.IsNullOrWhiteSpace(apiParams.OrderBy))
@@ -116,10 +116,9 @@ namespace AnimeHubApi.Repository
                 apiParams.PageSize);
         }
 
-        public async Task<AnimeReadDto> GetByIdAsync(int id)
+        public async Task<AnimeReadDto?> GetByIdAsync(int id)
         {
             return await _context.Animes
-                .AsNoTracking()
                 .Include(a => a.Category)
                 .Include(a => a.AnimeGenres).ThenInclude(ag => ag.Genre)
                 .Include(a => a.AnimeStudios).ThenInclude(ast => ast.Studio)
@@ -140,14 +139,15 @@ namespace AnimeHubApi.Repository
                     GenreIds = a.AnimeGenres.Select(ag => ag.GenreId).ToList(),
                     Studios = a.AnimeStudios.Select(ast => ast.Studio.Name).ToList(),
                     StudioIds = a.AnimeStudios.Select(ast => ast.StudioId).ToHashSet(),
-                }).FirstOrDefaultAsync(a => a.Id == id);
+                })
+                .AsNoTracking()
+                .FirstOrDefaultAsync(a => a.Id == id);
         }
 
         // Implementation to get top-rated anime
         public async Task<IEnumerable<AnimeListReadDto>> GetTopRatedAnimesAsync(int count)
         {
             return await _context.Animes
-                .AsNoTracking()
                 .OrderByDescending(a => a.Rating)
                 .Take(count)
                 .Select(a => new AnimeListReadDto
@@ -163,74 +163,61 @@ namespace AnimeHubApi.Repository
                     CategoryId = a.CategoryId,
                     CategoryName = a.Category.Name
                 })
+                .AsNoTracking()
                 .ToListAsync();
         }
 
-        public async Task<Anime> AddAsync(Anime anime, List<int> genreIds, HashSet<int> studioIds)
+        public async Task<AnimeReadDto> AddAsync(AnimeCreateDto animeDto)
         {
-            // Attach genres to the anime
-            if (genreIds != null)
+            var anime = new Anime
             {
-                foreach (var genreId in genreIds)
-                {
-                    anime.AnimeGenres.Add(new AnimeGenre { GenreId = genreId });
-                }
-            }
-
-            // Attach studios to the anime
-            if (studioIds != null)
-            {
-                foreach (var studioId in studioIds)
-                {
-                    anime.AnimeStudios.Add(new AnimeStudio { StudioId = studioId });
-                }
-            }
+                Title = animeDto.Title,
+                Episodes = animeDto.Episodes,
+                Season = (Season)animeDto.Season,
+                PremieredYear = animeDto.PremieredYear,
+                Description = animeDto.Description,
+                ImageUrl = animeDto.ImageUrl,
+                Rating = animeDto.Rating,
+                Status = (Status)animeDto.Status,
+                CategoryId = animeDto.CategoryId,
+                AnimeGenres = animeDto.GenreIds?.Select(id => new AnimeGenre { GenreId = id }).ToList() ?? new(),
+                AnimeStudios = animeDto.StudioIds?.Select(id => new AnimeStudio { StudioId = id }).ToList() ?? new()
+            };
 
             _context.Animes.Add(anime);
             await _context.SaveChangesAsync();
 
-            // Re-fetch anime including Category, Genres and Studios
-            return await _context.Animes
-                .Include(a => a.Category)
-                .Include(a => a.AnimeGenres).ThenInclude(ag => ag.Genre)
-                .Include(a => a.AnimeStudios).ThenInclude(ast => ast.Studio)
-                .FirstOrDefaultAsync(a => a.Id == anime.Id)
-                !;
+            return await GetByIdAsync(anime.Id);
         }
 
-        public async Task<bool> UpdateAsync(Anime anime, List<int> genreIds, HashSet<int> studioIds)
+        public async Task<bool> UpdateAsync(int id, AnimeUpdateDto animeDto)
         {
-            var existingAnime = await _context.Animes
+            var anime = await _context.Animes
                 .Include(a => a.AnimeGenres)
                 .Include(a => a.AnimeStudios)
-                .FirstOrDefaultAsync(a => a.Id == anime.Id);
+                .FirstOrDefaultAsync(a => a.Id == id);
 
-            if (existingAnime == null)
+            if (anime == null)
                 return false;
 
-            existingAnime.Title = anime.Title;
-            existingAnime.Episodes = anime.Episodes;
-            existingAnime.Season = anime.Season;
-            existingAnime.PremieredYear = anime.PremieredYear;
-            existingAnime.Description = anime.Description;
-            existingAnime.ImageUrl = anime.ImageUrl;
-            existingAnime.Rating = anime.Rating;
-            existingAnime.Status = anime.Status;
-            existingAnime.CategoryId = anime.CategoryId;
+            anime.Title = animeDto.Title;
+            anime.Episodes = animeDto.Episodes;
+            anime.Season = (Season)animeDto.Season;
+            anime.PremieredYear = animeDto.PremieredYear;
+            anime.Description = animeDto.Description;
+            anime.ImageUrl = animeDto.ImageUrl;
+            anime.Rating = animeDto.Rating;
+            anime.Status = (Status)animeDto.Status;
+            anime.CategoryId = animeDto.CategoryId;
 
-            // Update genres
-            existingAnime.AnimeGenres.Clear();
-            foreach (var genreId in genreIds)
-            {
-                existingAnime.AnimeGenres.Add(new AnimeGenre { AnimeId = anime.Id, GenreId = genreId });
-            }
+            anime.AnimeGenres.Clear();
+            anime.AnimeStudios.Clear();
 
-            // Update studios
-            existingAnime.AnimeStudios.Clear();
-            foreach (var studioId in studioIds)
-            {
-                existingAnime.AnimeStudios.Add(new AnimeStudio { AnimeId = anime.Id, StudioId = studioId });
-            }
+            if (animeDto.GenreIds != null)
+                anime.AnimeGenres = animeDto.GenreIds.Select(id => new AnimeGenre { AnimeId = id, GenreId = id }).ToList();
+
+            if (animeDto.StudioIds != null)
+                anime.AnimeStudios = animeDto.StudioIds.Select(id => new AnimeStudio { AnimeId = id, StudioId = id }).ToList();
 
             await _context.SaveChangesAsync();
             return true;
@@ -238,21 +225,8 @@ namespace AnimeHubApi.Repository
 
         public async Task<bool> DeleteAsync(int id)
         {
-            var anime = await _context.Animes
-                .Include(a => a.AnimeGenres)
-                .FirstOrDefaultAsync(a => a.Id == id);
-
-            if (anime is null)
-                return false;
-
-            if (!string.IsNullOrEmpty(anime.ImageUrl))
-            {
-                var filePath = Path.Combine(Directory.GetCurrentDirectory(), anime.ImageUrl.Replace("/", Path.DirectorySeparatorChar.ToString()));
-
-                // Delete the file if it exists
-                if (File.Exists(filePath))
-                    File.Delete(filePath);
-            }
+            var anime = await _context.Animes.FindAsync(id);
+            if (anime == null) return false;
 
             _context.Animes.Remove(anime);
             await _context.SaveChangesAsync();

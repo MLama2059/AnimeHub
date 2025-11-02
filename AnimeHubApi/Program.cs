@@ -21,6 +21,7 @@ builder.Services.AddScoped<IAnimeRepository, AnimeRepository>();
 builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 builder.Services.AddScoped<IGenreRepository, GenreRepository>();
 builder.Services.AddScoped<IStudioRepository, StudioRepository>();
+builder.Services.AddScoped<IUserRepository, UserRepository>();
 
 // Add the CORS service registration
 builder.Services.AddCors(options =>

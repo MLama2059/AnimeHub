@@ -1,6 +1,7 @@
 ﻿using AnimeHub.Shared.Models;
 using AnimeHub.Shared.Models.Dtos.User;
 using AnimeHubApi.Data;
+using AnimeHubApi.Repository.IRepository;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -16,43 +17,47 @@ namespace AnimeHubApi.Controllers
     [ApiController]
     public class UserController : ControllerBase
     {
-        private readonly ApplicationDbContext _context;
-        private readonly IConfiguration _configuration;
+        private readonly IUserRepository _userRepository;
 
-        public UserController(ApplicationDbContext context, IConfiguration configuration)
+        public UserController(IUserRepository userRepository)
         {
-            _context = context;
-            _configuration = configuration;
+            _userRepository = userRepository;
         }
 
         // POST: api/Users/Registration
         [HttpPost("Registration")]
         public async Task<IActionResult> Registration(UserDto userDto)
         {
-            if (await _context.Users.AnyAsync(u => u.Email == userDto.Email))
-                return BadRequest("Email already exists.");
+            if (userDto is null)
+                return BadRequest("Invalid user data.");
 
-            var user = new User
+            var registeredUser = await _userRepository.RegistrationAsync(userDto);
+
+            return Ok(new
             {
-                Username = userDto.Username,
-                Email = userDto.Email,
-                PasswordHash = BCrypt.Net.BCrypt.HashPassword(userDto.Password),
-            };
-
-            _context.Users.Add(user);
-            await _context.SaveChangesAsync();
-            return Ok("User registered successfully.");
+                Message ="User registered successfully.",
+                User = new
+                {
+                    registeredUser.Id,
+                    registeredUser.Username,
+                    registeredUser.Email,
+                    registeredUser.CreatedAt,
+                    registeredUser.Role
+                }
+            });
         }
 
         // POST: api/Users/Login
         [HttpPost("Login")]
         public async Task<IActionResult> Login(LoginDto loginDto)
         {
-            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == loginDto.Email);
-            if (user == null || !BCrypt.Net.BCrypt.Verify(loginDto.Password, user.PasswordHash))
-                return Unauthorized("Invalid credentials.");
+            var token = await _userRepository.LoginAsync(loginDto);
 
-            var token = GenerateJwtToken(user);
+            if (token is null)
+            {
+                return Unauthorized("Invalid credentials.");
+            }
+
             return Ok(new { Token = token });
         }
 
@@ -61,7 +66,7 @@ namespace AnimeHubApi.Controllers
         [HttpGet("GetUsers")]
         public async Task<IActionResult> GetUsers()
         {
-            var users = await _context.Users.ToListAsync();
+            var users = await _userRepository.GetAllAsync();
             var response = users.Select(u => new UserResponseDto
             {
                 Id = u.Id,
@@ -69,7 +74,7 @@ namespace AnimeHubApi.Controllers
                 Email = u.Email,
                 CreatedAt = u.CreatedAt,
                 Role = u.Role
-            });
+            }).ToList();
 
             return Ok(response);
         }
@@ -78,8 +83,8 @@ namespace AnimeHubApi.Controllers
         [HttpGet("GetUser/{id}")]
         public async Task<IActionResult> GetUser(int id)
         {
-            var user = await _context.Users.FindAsync(id);
-            if (user == null) return NotFound();
+            var user = await _userRepository.GetByIdAsync(id);
+            if (user is null) return NotFound();
 
             var response = new UserResponseDto
             {
@@ -91,52 +96,6 @@ namespace AnimeHubApi.Controllers
             };
 
             return Ok(response);
-        }
-
-        private string GenerateJwtToken(User user)
-        {
-            var claims = new[]
-            {
-                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-                new Claim(ClaimTypes.Name, user.Username),
-                new Claim(ClaimTypes.Email, user.Email),
-                new Claim(ClaimTypes.Role, user.Role),
-                new Claim(JwtRegisteredClaimNames.Sub, _configuration["Jwt:Subject"]!),
-                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
-            };
-
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]!));
-            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-
-            var token = new JwtSecurityToken(
-                issuer: _configuration["Jwt:Issuer"],
-                audience: _configuration["Jwt:Audience"],
-                claims: claims,
-                expires: DateTime.Now.AddHours(2),
-                signingCredentials: creds
-                );
-
-            return new JwtSecurityTokenHandler().WriteToken(token);
-
-            //var claims = new[]
-            //{
-            //    new Claim(ClaimTypes.Name, user.Username),
-            //    new Claim(ClaimTypes.Email, user.Email),
-            //    new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
-            //};
-
-            //var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));
-            //var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-
-            //var token = new JwtSecurityToken(
-            //    issuer: _configuration["Jwt:Issuer"],
-            //    audience: _configuration["Jwt:Audience"],
-            //    claims: claims,
-            //    expires: DateTime.Now.AddHours(2),
-            //    signingCredentials: creds
-            //);
-
-            //return new JwtSecurityTokenHandler().WriteToken(token);
         }
     }
 }

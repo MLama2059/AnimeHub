@@ -16,11 +16,36 @@ namespace AnimeHubApi.Repository
             _context = context;
         }
 
+        public async Task<List<Category>> GetAllAsync()
+        {
+            return await _context.Categories
+                .Include(c => c.Animes)
+                .ToListAsync();
+        }
+
+        public async Task<Category?> GetByIdAsync(int id)
+        {
+            return await _context.Categories
+                .Include(c => c.Animes)
+                .FirstOrDefaultAsync(c => c.Id == id);
+        }
+
         public async Task<Category> AddAsync(Category category)
         {
             _context.Categories.Add(category);
             await _context.SaveChangesAsync();
             return category;
+        }
+
+        public async Task<bool> UpdateAsync(Category category)
+        {
+            var existingCategory = await _context.Categories.FindAsync(category.Id);
+            if (existingCategory == null)
+                return false;
+
+            existingCategory.Name = category.Name;
+            await _context.SaveChangesAsync();
+            return true;
         }
 
         public async Task<bool> DeleteAsync(int id)
@@ -37,31 +62,6 @@ namespace AnimeHubApi.Repository
         public bool Exists(int id)
         {
             return _context.Categories.Any(u => u.Id == id);
-        }
-
-        public async Task<List<Category>> GetAllAsync()
-        {
-            return await _context.Categories
-                .Include(c => c.Animes)
-                .ToListAsync();
-        }
-
-        public async Task<Category?> GetByIdAsync(int id)
-        {
-            return await _context.Categories
-                .Include(c => c.Animes)
-                .FirstOrDefaultAsync(c => c.Id == id);
-        }
-
-        public async Task<bool> UpdateAsync(Category category)
-        {
-            var existingCategory = await _context.Categories.FindAsync(category.Id);
-            if (existingCategory == null)
-                return false;
-
-            existingCategory.Name = category.Name;
-            await _context.SaveChangesAsync();
-            return true;
         }
     }
 }
