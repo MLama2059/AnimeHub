@@ -22,13 +22,12 @@ namespace AnimeHubApi.Controllers
         {
             var studios = await _studioRepository.GetAllAsync();
 
-            var studioDtos = studios.Select(s => new StudioReadDto
+            if (studios is null)
             {
-                Id = s.Id,
-                Name = s.Name
-            }).ToList();
+                return NotFound();
+            }
 
-            return Ok(studioDtos);
+            return Ok(studios);
         }
 
         [HttpGet("{id}")]
@@ -38,34 +37,26 @@ namespace AnimeHubApi.Controllers
             if (studio is null)
                 return NotFound();
 
-            var dto = new StudioReadDto { Id = studio.Id, Name = studio.Name };
-
-            return Ok(dto);
+            return Ok(studio);
         }
 
         [HttpPost]
-        public async Task<ActionResult<StudioReadDto>> AddStudio(StudioUpsertDto studioDto)
+        public async Task<ActionResult<StudioReadDto>> AddStudio(StudioUpsertDto createDto)
         {
-            if (studioDto is null)
+            if (createDto is null)
                 return BadRequest();
 
-            var studio = new Studio { Name = studioDto.Name };
-            var createdStudio = await _studioRepository.AddAsync(studio);
+            var createdStudio = await _studioRepository.AddAsync(createDto);
 
-            var dto = new StudioReadDto { Id = createdStudio.Id, Name = createdStudio.Name };
-            return CreatedAtAction(nameof(GetStudioById), new { id = dto.Id }, dto);
+            return CreatedAtAction(nameof(GetStudioById), new { id = createdStudio.Id }, createdStudio);
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateStudio(int id, StudioUpsertDto studioDto)
+        public async Task<IActionResult> UpdateStudio(int id, StudioUpsertDto updateDto)
         {
-            if (studioDto is null)
-                return BadRequest();
+            var updatedStudio = await _studioRepository.UpdateAsync(id, updateDto);
 
-            var studio = new Studio { Id = id, Name = studioDto.Name };
-            var success = await _studioRepository.UpdateAsync(studio);
-
-            if (!success)
+            if (!updatedStudio)
             {
                 return BadRequest("Update failed");
             }
@@ -76,8 +67,8 @@ namespace AnimeHubApi.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteStudio(int id)
         {
-            var success = await _studioRepository.DeleteAsync(id);
-            if (!success)
+            var deletedStudio = await _studioRepository.DeleteAsync(id);
+            if (!deletedStudio)
                 return BadRequest("Delete failed");
 
             return NoContent();

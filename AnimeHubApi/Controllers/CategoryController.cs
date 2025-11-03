@@ -22,14 +22,12 @@ namespace AnimeHubApi.Controllers
         public async Task<ActionResult<List<CategoryReadDto>>> GetCategories()
         {
             var categories = await _categoryRepository.GetAllAsync();
-
-            var categoryDtos = categories.Select(c => new CategoryReadDto
+            if (categories is null)
             {
-                Id = c.Id,
-                Name = c.Name
-            }).ToList();
+                return NotFound();
+            }
 
-            return Ok(categoryDtos);
+            return Ok(categories);
         }
 
         [HttpGet("{id}")]
@@ -41,55 +39,27 @@ namespace AnimeHubApi.Controllers
                 return NotFound();
             }
 
-            var categoryDto = new CategoryReadDto
-            {
-                Id = category.Id,
-                Name = category.Name
-            };
-
-            return Ok(categoryDto);
+            return Ok(category);
         }
 
         [HttpPost]
-        public async Task<ActionResult<CategoryReadDto>> AddCategory(CategoryCreateDto categoryDto)
+        public async Task<ActionResult<CategoryReadDto>> AddCategory(CategoryCreateDto createDto)
         {
-            if (categoryDto is null)
+            if (createDto is null)
             {
                 return BadRequest();
             }
 
-            var category = new Category
-            {
-                Name = categoryDto.Name
-            };
+            var createdCategory = await _categoryRepository.AddAsync(createDto);
 
-            var createdCategory = await _categoryRepository.AddAsync(category);
-
-            var readDto = new CategoryReadDto
-            {
-                Id = createdCategory.Id,
-                Name = createdCategory.Name
-            };
-
-            return CreatedAtAction(nameof(GetCategoryById), new { id = readDto.Id }, readDto);
+            return CreatedAtAction(nameof(GetCategoryById), new { id = createdCategory.Id }, createdCategory);
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateCategory(int id, CategoryUpdateDto categoryDto)
+        public async Task<IActionResult> UpdateCategory(int id, CategoryUpdateDto updateDto)
         {
-            if (!_categoryRepository.Exists(id))
-            {
-                return NotFound();
-            }
-
-            var category = new Category
-            {
-                Id = id,
-                Name = categoryDto.Name
-            };
-
-            var success = await _categoryRepository.UpdateAsync(category);
-            if (!success)
+            var updatedCategory = await _categoryRepository.UpdateAsync(id, updateDto);
+            if (!updatedCategory)
             {
                 return BadRequest("Update failed");
             }
@@ -100,10 +70,10 @@ namespace AnimeHubApi.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteCategory(int id)
         {
-            var success = await _categoryRepository.DeleteAsync(id);
-            if (!success)
+            var deletedCategory = await _categoryRepository.DeleteAsync(id);
+            if (!deletedCategory)
             {
-                return NotFound();
+                return BadRequest("Delete failed");
             }
             return NoContent();
         }

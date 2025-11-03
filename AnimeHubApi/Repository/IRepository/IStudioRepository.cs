@@ -1,14 +1,15 @@
 ﻿using AnimeHub.Shared.Models;
+using AnimeHub.Shared.Models.Dtos.Studio;
 
 namespace AnimeHubApi.Repository.IRepository
 {
     public interface IStudioRepository
     {
-        Task<List<Studio>> GetAllAsync();
-        Task<Studio?> GetByIdAsync(int id);
-        Task<Studio> AddAsync(Studio studio);
-        Task<bool> UpdateAsync(Studio studio);
+        Task<List<StudioReadDto>> GetAllAsync();
+        Task<StudioReadDto?> GetByIdAsync(int id);
+        Task<StudioReadDto> AddAsync(StudioUpsertDto createDto);
+        Task<bool> UpdateAsync(int id, StudioUpsertDto updateDto);
         Task<bool> DeleteAsync(int id);
-        bool Exists(int id);
+        Task<bool> ExistsAsync(int id);
     }
 }

@@ -26,30 +26,30 @@ namespace AnimeHubApi.Controllers
 
         // POST: api/Users/Registration
         [HttpPost("Registration")]
-        public async Task<IActionResult> Registration(UserDto userDto)
+        public async Task<IActionResult> Registration(RegistrationRequestDto registrationDto)
         {
-            if (userDto is null)
+            if (registrationDto is null)
                 return BadRequest("Invalid user data.");
 
-            var registeredUser = await _userRepository.RegistrationAsync(userDto);
+            var registeredUser = await _userRepository.RegistrationAsync(registrationDto);
 
             return Ok(new
             {
                 Message ="User registered successfully.",
-                User = new
+                User = new UserResponseDto
                 {
-                    registeredUser.Id,
-                    registeredUser.Username,
-                    registeredUser.Email,
-                    registeredUser.CreatedAt,
-                    registeredUser.Role
+                    Id = registeredUser.Id,
+                    Username = registeredUser.Username,
+                    Email = registeredUser.Email,
+                    CreatedAt = registeredUser.CreatedAt,
+                    Role = registeredUser.Role
                 }
             });
         }
 
         // POST: api/Users/Login
         [HttpPost("Login")]
-        public async Task<IActionResult> Login(LoginDto loginDto)
+        public async Task<IActionResult> Login(LoginRequestDto loginDto)
         {
             var token = await _userRepository.LoginAsync(loginDto);
 

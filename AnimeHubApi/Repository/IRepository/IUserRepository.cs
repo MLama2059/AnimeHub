@@ -8,7 +8,7 @@ namespace AnimeHubApi.Repository.IRepository
     {
         Task<List<User>> GetAllAsync();
         Task<User?> GetByIdAsync(int id);
-        Task<User> RegistrationAsync(UserDto userDto);
-        Task<string?> LoginAsync(LoginDto loginDto);
+        Task<User> RegistrationAsync(RegistrationRequestDto registrationDto);
+        Task<string?> LoginAsync(LoginRequestDto loginDto);
     }
 }

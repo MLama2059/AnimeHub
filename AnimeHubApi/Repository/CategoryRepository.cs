@@ -1,4 +1,5 @@
 ﻿using AnimeHub.Shared.Models;
+using AnimeHub.Shared.Models.Dtos.Category;
 using AnimeHubApi.Data;
 using AnimeHubApi.Repository.IRepository;
 using Microsoft.EntityFrameworkCore;
@@ -16,34 +17,60 @@ namespace AnimeHubApi.Repository
             _context = context;
         }
 
-        public async Task<List<Category>> GetAllAsync()
+        public async Task<List<CategoryReadDto>> GetAllAsync()
         {
             return await _context.Categories
                 .Include(c => c.Animes)
+                .Select(c => new CategoryReadDto
+                {
+                    Id = c.Id,
+                    Name = c.Name
+                })
+                .AsNoTracking()
                 .ToListAsync();
         }
 
-        public async Task<Category?> GetByIdAsync(int id)
+        public async Task<CategoryReadDto?> GetByIdAsync(int id)
         {
-            return await _context.Categories
+            var category = await _context.Categories
+                .AsNoTracking()
                 .Include(c => c.Animes)
                 .FirstOrDefaultAsync(c => c.Id == id);
+
+            if (category == null)
+                return null;
+
+            return new CategoryReadDto
+            {
+                Id = category.Id,
+                Name = category.Name
+            };
         }
 
-        public async Task<Category> AddAsync(Category category)
+        public async Task<CategoryReadDto> AddAsync(CategoryCreateDto createDto)
         {
+            var category = new Category
+            {
+                Name = createDto.Name
+            };
+
             _context.Categories.Add(category);
             await _context.SaveChangesAsync();
-            return category;
+
+            return new CategoryReadDto
+            {
+                Id = category.Id,
+                Name = category.Name
+            };
         }
 
-        public async Task<bool> UpdateAsync(Category category)
+        public async Task<bool> UpdateAsync(int id, CategoryUpdateDto updateDto)
         {
-            var existingCategory = await _context.Categories.FindAsync(category.Id);
+            var existingCategory = await _context.Categories.FindAsync(id);
             if (existingCategory == null)
                 return false;
 
-            existingCategory.Name = category.Name;
+            existingCategory.Name = updateDto.Name;
             await _context.SaveChangesAsync();
             return true;
         }
@@ -51,7 +78,7 @@ namespace AnimeHubApi.Repository
         public async Task<bool> DeleteAsync(int id)
         {
             var category = await _context.Categories.FindAsync(id);
-            if (category is null)
+            if (category == null)
                 return false;
 
             _context.Categories.Remove(category);
@@ -59,9 +86,9 @@ namespace AnimeHubApi.Repository
             return true;
         }
 
-        public bool Exists(int id)
+        public async Task<bool> ExistsAsync(int id)
         {
-            return _context.Categories.Any(u => u.Id == id);
+            return await _context.Categories.AnyAsync(u => u.Id == id);
         }
     }
 }

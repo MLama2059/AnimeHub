@@ -1,14 +1,15 @@
 ﻿using AnimeHub.Shared.Models;
+using AnimeHub.Shared.Models.Dtos.Genre;
 
 namespace AnimeHubApi.Repository.IRepository
 {
     public interface IGenreRepository
     {
-        Task<List<Genre>> GetAllAsync();
-        Task<Genre?> GetByIdAsync(int id);
-        Task<Genre> AddAsync(Genre genre);
-        Task<bool> UpdateAsync(Genre genre);
+        Task<List<GenreReadDto>> GetAllAsync();
+        Task<GenreReadDto?> GetByIdAsync(int id);
+        Task<GenreReadDto> AddAsync(GenreUpsertDto createDto);
+        Task<bool> UpdateAsync(int id, GenreUpsertDto updateDto);
         Task<bool> DeleteAsync(int id);
-        bool Exists(int id);
+        Task<bool> ExistsAsync(int id);
     }
 }

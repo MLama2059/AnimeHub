@@ -14,12 +14,14 @@ namespace AnimeHubApi.Repository
     public class UserRepository : IUserRepository
     {
         private readonly IConfiguration _configuration;
+        private readonly IJwtService _jwtService;
         private readonly ApplicationDbContext _context;
 
-        public UserRepository(ApplicationDbContext context, IConfiguration configuration)
+        public UserRepository(ApplicationDbContext context, IConfiguration configuration, IJwtService jwtService)
         {
             _context = context;
             _configuration = configuration;
+            _jwtService = jwtService;
         }
 
         public async Task<List<User>> GetAllAsync()
@@ -32,15 +34,15 @@ namespace AnimeHubApi.Repository
             return await _context.Users.FirstOrDefaultAsync(u => u.Id == id);
         }
 
-        public async Task<User> RegistrationAsync(UserDto userDto)
+        public async Task<User> RegistrationAsync(RegistrationRequestDto registrationDto)
         {
             var user = new User
             {
-                Username = userDto.Username,
-                Email = userDto.Email,
-                PasswordHash = BCrypt.Net.BCrypt.HashPassword(userDto.Password),
+                Username = registrationDto.Username,
+                Email = registrationDto.Email,
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword(registrationDto.Password),
                 CreatedAt = DateTime.UtcNow,
-                Role = "User"
+                Role = RoleConstants.User
             };
 
             _context.Users.Add(user);
@@ -49,40 +51,14 @@ namespace AnimeHubApi.Repository
             return user;
         }
 
-        public async Task<string?> LoginAsync(LoginDto loginDto)
+        public async Task<string?> LoginAsync(LoginRequestDto loginDto)
         {
             var existingUser = await _context.Users.FirstOrDefaultAsync(u => u.Email == loginDto.Email);
 
             if (existingUser == null || !BCrypt.Net.BCrypt.Verify(loginDto.Password, existingUser.PasswordHash))
                 return null;
 
-            return GenerateJwtToken(existingUser);
-        }
-
-        private string GenerateJwtToken(User user)
-        {
-            var claims = new[]
-            {
-                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-                new Claim(ClaimTypes.Name, user.Username),
-                new Claim(ClaimTypes.Email, user.Email),
-                new Claim(ClaimTypes.Role, user.Role),
-                new Claim(JwtRegisteredClaimNames.Sub, _configuration["Jwt:Subject"]!),
-                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
-            };
-
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]!));
-            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-
-            var token = new JwtSecurityToken(
-                issuer: _configuration["Jwt:Issuer"],
-                audience: _configuration["Jwt:Audience"],
-                claims: claims,
-                expires: DateTime.Now.AddHours(2),
-                signingCredentials: creds
-                );
-
-            return new JwtSecurityTokenHandler().WriteToken(token);
+            return _jwtService.GenerateToken(existingUser);
         }
     }
 }

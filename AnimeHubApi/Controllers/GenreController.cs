@@ -23,13 +23,12 @@ namespace AnimeHubApi.Controllers
         {
             var genres = await _genreRepository.GetAllAsync();
 
-            var genreDtos = genres.Select(g => new GenreReadDto
+            if (genres is null)
             {
-                Id = g.Id,
-                Name = g.Name
-            }).ToList();
+                return NotFound();
+            }
 
-            return Ok(genreDtos);
+            return Ok(genres);
         }
 
         [HttpGet("{id}")]
@@ -41,37 +40,27 @@ namespace AnimeHubApi.Controllers
                 return NotFound();
             }
 
-            var dto = new GenreReadDto { Id = genre.Id, Name = genre.Name };
-
-            return Ok(dto);
+            return Ok(genre);
         }
 
         [HttpPost]
-        public async Task<ActionResult<GenreReadDto>> AddGenre(GenreUpsertDto genreDto)
+        public async Task<ActionResult<GenreReadDto>> AddGenre(GenreUpsertDto createDto)
         {
-            if (genreDto is null)
+            if (createDto is null)
             {
                 return BadRequest();
             }
 
-            var genre = new Genre { Name = genreDto.Name };
-            var createdGenre = await _genreRepository.AddAsync(genre);
+            var createdGenre = await _genreRepository.AddAsync(createDto);
 
-            var dto = new GenreReadDto { Id = createdGenre.Id, Name = createdGenre.Name };
-            return CreatedAtAction(nameof(GetGenreById), new { id = dto.Id }, dto);
+            return CreatedAtAction(nameof(GetGenreById), new { id = createdGenre.Id }, createdGenre);
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateGenre(int id, GenreUpsertDto genreDto)
+        public async Task<IActionResult> UpdateGenre(int id, GenreUpsertDto updateDto)
         {
-            if (!_genreRepository.Exists(id))
-            {
-                return NotFound();
-            }
-
-            var genre = new Genre { Id = id, Name = genreDto.Name };
-            var success = await _genreRepository.UpdateAsync(genre);
-            if (!success)
+            var updatedGenre = await _genreRepository.UpdateAsync(id, updateDto);
+            if (!updatedGenre)
             {
                 return BadRequest("Update failed");
             }
@@ -82,8 +71,8 @@ namespace AnimeHubApi.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteGenre(int id)
         {
-            var success = await _genreRepository.DeleteAsync(id);
-            if (!success)
+            var deletedGenre = await _genreRepository.DeleteAsync(id);
+            if (!deletedGenre)
             {
                 return BadRequest("Delete failed");
             }
