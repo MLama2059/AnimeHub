@@ -1,6 +1,7 @@
 ﻿using AnimeHub.Shared.Models.Dtos.User;
 using Blazored.LocalStorage;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Authorization;
 using System.Net.Http.Headers;
 using System.Text.Json;
 
@@ -12,14 +13,14 @@ namespace AnimeHubClient.Services
         private readonly ILocalStorageService _localStorage;
         private readonly CustomAuthStateProvider _authStateProvider;
 
-        public AuthService(HttpClient httpClient, ILocalStorageService localStorage, CustomAuthStateProvider authStateProvider)
+        public AuthService(HttpClient httpClient, ILocalStorageService localStorage, AuthenticationStateProvider authStateProvider)
         {
             _httpClient = httpClient;
             _localStorage = localStorage;
             _authStateProvider = (CustomAuthStateProvider)authStateProvider;
         }
 
-        public async Task<bool> Register(RegistrationRequestDto registerDto)
+        public async Task<bool> RegisterAsync(RegistrationRequestDto registerDto)
         {
             var content = JsonSerializer.Serialize(registerDto);
             var bodyContent = new StringContent(content, System.Text.Encoding.UTF8, "application/json");
@@ -28,7 +29,7 @@ namespace AnimeHubClient.Services
             return response.IsSuccessStatusCode;
         }
 
-        public async Task<AuthenticationResponseDto> Login(LoginRequestDto loginDto)
+        public async Task<AuthenticationResponseDto> LoginAsync(LoginRequestDto loginDto)
         {
             var content = JsonSerializer.Serialize(loginDto);
             var bodyContent = new StringContent(content, System.Text.Encoding.UTF8, "application/json");

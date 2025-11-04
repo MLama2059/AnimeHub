@@ -1,0 +1,91 @@
+﻿@page "/login"
+@using AnimeHub.Shared.Models.Dtos.User
+@using AnimeHubClient.Services
+@inject IAuthService AuthService
+@inject ISnackbar Snackbar
+@inject NavigationManager Navigation
+
+<MudGrid Justify="Justify.Center" Class="mt-12">
+    <MudItem xs="12" sm="8" md="6" lg="4">
+        <MudCard Elevation="20">
+            <MudCardHeader>
+                <CardHeaderContent>
+                    <MudText Align="Align.Center" Typo="Typo.h5" Class="fw-bold">Login to AnimeHub</MudText>
+                </CardHeaderContent>
+            </MudCardHeader>
+
+            <MudCardContent>
+                <EditForm Model="LoginRequest" FormName="RegistrationForm" OnValidSubmit="HandleLogin">
+                    <DataAnnotationsValidator />
+
+                    <MudTextField Variant="Variant.Outlined" Label="Email" Required="true" @bind-Value="LoginRequest.Email" For="@(() => LoginRequest.Email)" Class="my-3" />
+                    <MudTextField Variant="Variant.Outlined"
+                                  Label="Password"
+                                  Required="true" @bind-Value="LoginRequest.Password"
+                                  For="@(() => LoginRequest.Password)"
+                                  InputType="@(IsPasswordVisible? InputType.Text: InputType.Password)"
+                                  Adornment="Adornment.End"
+                                  AdornmentIcon="@(IsPasswordVisible? Icons.Material.Filled.VisibilityOff : Icons.Material.Filled.Visibility)"
+                                  OnAdornmentClick="TogglePasswordVisibility"
+                                  Class="my-3" />
+
+                    <MudCardActions>
+                        <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" FullWidth="true" Disabled="@IsLoading">Login</MudButton>
+                    </MudCardActions>
+                </EditForm>
+            </MudCardContent>
+
+            <MudDivider />
+            <MudCardActions Class="justify-content-center pt-3 pb-3">
+                <MudText Typo="Typo.body2" Color="Color.Inherit">
+                    Don't have an account?&nbsp;
+                </MudText>
+                <MudLink Href="/register" Typo="Typo.body2" Color="Color.Inherit">
+                    Register here.
+                </MudLink>
+            </MudCardActions>
+        </MudCard>
+    </MudItem>
+</MudGrid>
+
+@code {
+    private LoginRequestDto LoginRequest { get; set; } = new();
+    private bool IsLoading { get; set; } = true;
+    private bool IsPasswordVisible = false;
+
+    protected override void OnInitialized()
+    {
+        LoginRequest = new LoginRequestDto();
+        IsLoading = false;
+    }
+
+    private async Task HandleLogin()
+    {
+        IsLoading = true;
+        StateHasChanged();
+
+        // Call the client service
+        var result = await AuthService.LoginAsync(LoginRequest);
+
+        if (result.IsAuthSuccessful)
+        {
+            // Login successful: token is stored, AuthStateProvider is notified
+            Snackbar.Add("Login successful! Welcome.", Severity.Success);
+
+            // Navigate the user to the home page or a dashboard
+            Navigation.NavigateTo("/", forceLoad: true);
+        }
+        else
+        {
+            // Login failed: Token is null, show error message from DTO
+            Snackbar.Add(result.ErrorMessage, Severity.Error);
+        }
+
+        IsLoading = false;
+    }
+
+    private void TogglePasswordVisibility()
+    {
+        IsPasswordVisible = !IsPasswordVisible;
+    }
+}

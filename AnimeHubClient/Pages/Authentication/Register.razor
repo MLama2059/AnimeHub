@@ -1,0 +1,78 @@
+﻿@page "/register"
+@using AnimeHub.Shared.Models.Dtos.User
+@using AnimeHubClient.Services
+@inject IAuthService AuthService
+@inject ISnackbar Snackbar
+@inject NavigationManager Navigation
+
+<MudGrid Justify="Justify.Center" Class="mt-12">
+    <MudItem xs="12" sm="8" md="6" lg="4">
+        <MudCard Elevation="20">
+            <MudCardHeader>
+                <CardHeaderContent>
+                    <MudText Align="Align.Center" Typo="Typo.h5" Class="fw-bold">Register New Account</MudText>
+                </CardHeaderContent>
+            </MudCardHeader>
+
+            <MudCardContent>
+                <EditForm Model="RegisterRequest" FormName="RegistrationForm" OnValidSubmit="HandleRegistration">
+                    <DataAnnotationsValidator />
+
+                    <MudTextField Variant="Variant.Outlined" Label="Username" Required="true" @bind-Value="RegisterRequest.Username" For="@(() => RegisterRequest.Username)" Class="my-3" />
+                    <MudTextField Variant="Variant.Outlined" Label="Email" Required="true" @bind-Value="RegisterRequest.Email" For="@(() => RegisterRequest.Email)" Class="my-3" />
+                    <MudTextField Variant="Variant.Outlined"
+                                  Label="Password"
+                                  Required="true" @bind-Value="RegisterRequest.Password"
+                                  For="@(() => RegisterRequest.Password)"
+                                  InputType="@(IsPasswordVisible? InputType.Text: InputType.Password)"
+                                  Adornment="Adornment.End"
+                                  AdornmentIcon="@(IsPasswordVisible ? Icons.Material.Filled.VisibilityOff : Icons.Material.Filled.Visibility)"
+                                  OnAdornmentClick="TogglePasswordVisibility"
+                                  Class="my-3" />
+
+                    <MudCardActions>
+                        <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" FullWidth="true" Disabled="@IsLoading">Register</MudButton>
+                    </MudCardActions>
+                </EditForm>
+            </MudCardContent>
+        </MudCard>
+    </MudItem>
+</MudGrid>
+
+@code {
+    private RegistrationRequestDto RegisterRequest { get; set; } = new();
+    private bool IsLoading { get; set; } = true;
+    private bool IsPasswordVisible = false;
+
+    protected override void OnInitialized()
+    {
+        // Initialization remains clean
+        RegisterRequest = new RegistrationRequestDto();
+        IsLoading = false;
+    }
+
+    private async Task HandleRegistration()
+    {
+        IsLoading = true;
+        StateHasChanged();
+
+        var result = await AuthService.RegisterAsync(RegisterRequest);
+
+        if (result)
+        {
+            Snackbar.Add("Registration successful. Please log in.", Severity.Success);
+            Navigation.NavigateTo("/login");
+        }
+        else
+        {
+            Snackbar.Add("Registration failed.", Severity.Error);
+        }
+
+        IsLoading = false;
+    }
+
+    private void TogglePasswordVisibility()
+    {
+        IsPasswordVisible = !IsPasswordVisible;
+    }
+}

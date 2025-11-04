@@ -4,8 +4,8 @@ namespace AnimeHubClient.Services
 {
     public interface IAuthService
     {
-        Task<AuthenticationResponseDto> Login(LoginRequestDto loginDto);
-        Task<bool> Register(RegistrationRequestDto registerDto);
+        Task<AuthenticationResponseDto> LoginAsync(LoginRequestDto loginDto);
+        Task<bool> RegisterAsync(RegistrationRequestDto registerDto);
         Task Logout();
     }
 }
