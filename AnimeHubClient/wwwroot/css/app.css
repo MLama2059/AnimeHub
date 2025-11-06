@@ -45,7 +45,7 @@ body {
 
 /* Ensure main content is reset for correct scrolling behavior */
 main {
-    margin-top: 1rem;
+    margin-top: 80px;
     padding: 0 1rem;
     padding-top: 0 !important; /* CRITICAL: Remove any previous fixed header padding */
     flex-grow: 1;
@@ -144,10 +144,6 @@ main {
     .navbar-nav .nav-link:hover::after {
         transform: translateX(-50%) scaleX(1);
     }
-
-main {
-    margin-top: 80px;
-}
 
 
 /* Button adjustments */
@@ -258,28 +254,48 @@ main {
 }
 
 /* CTA button */
-.hero-cta {
-    display: inline-flex;
-    gap: .6rem;
-    align-items: center;
+/* --- Home Page Button Styling for MudBlazor Consistency --- */
+
+/* Hero CTA Buttons */
+.hero-cta-button {
+    /* Ensure MudButton text transform is overridden if necessary, but keep MudBlazor defaults */
+    text-transform: none !important;
+    border-radius: 999px !important;
+    padding: .6rem 1.2rem !important;
+    font-weight: 600 !important;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.35) !important;
 }
 
-    .hero-cta .btn {
-        border-radius: 999px;
-        padding: .6rem 1.2rem;
-        font-weight: 600;
-        box-shadow: 0 8px 20px rgba(0,0,0,0.35);
+/* Outline button color override (for Trending button) */
+.hero-cta-outline-light.mud-button-outlined {
+    color: white !important;
+    border-color: rgba(255,255,255,0.18) !important;
+}
+
+    .hero-cta-outline-light.mud-button-outlined:hover {
+        background: rgba(255,255,255,0.12) !important;
+        color: white !important;
     }
 
-    .hero-cta .btn-outline-light {
-        color: white;
-        border-color: rgba(255,255,255,0.18);
+/* Category/Genre Outline Buttons */
+.category-genre-button.mud-button-outlined {
+    /* Use your primary color for the outline button hover */
+    border-color: #ced4da !important; /* Default grey */
+    color: #495057 !important; /* Default dark text */
+}
+
+    .category-genre-button.mud-button-outlined:hover {
+        background-color: var(--bs-primary) !important;
+        color: black !important;
+        border-color: var(--bs-primary) !important;
     }
 
-        .hero-cta .btn-outline-light:hover {
-            background: rgba(255,255,255,0.12);
-            color: white;
-        }
+/* MudPaper styling to match your old section-card div */
+.section-paper {
+    background: #fdfdfd !important;
+    border-radius: 12px !important;
+    box-shadow: 0 6px 18px rgba(3,8,20,0.04) !important; /* Match your custom shadow */
+}
 
 /* Anime Card Styles */
 .anime-card {

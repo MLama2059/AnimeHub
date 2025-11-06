@@ -1,27 +1,11 @@
-﻿@inject HttpClient Http
+﻿@using AnimeHubClient.Services
+@using Microsoft.AspNetCore.Components.Authorization
+@inject IAuthService AuthService
+@inject NavigationManager Navigation
 @inject IJSRuntime JSRuntime
 
 <nav class="navbar navbar-expand-md navbar-dark fixed-top py-3" id="mainNavbar">
     <div class="container">
-        <!-- Left Menu (mobile) -->
-        <MudMenu Icon="@Icons.Material.Filled.Menu" Color="Color.Primary">
-            <MudMenuItem Label="Home" Href="/" />
-            <MudMenuItem Label="Catalog" Href="/anime-catalog" />
-            <MudMenuItem Label="Anime" Href="/anime" />
-            <MudMenu Label="Categories">
-                @foreach (var category in Categories)
-                {
-                    <MudMenuItem Label="@category.Name" />
-                }
-            </MudMenu>
-            <MudMenu Label="Genres">
-                @foreach (var genre in Genres)
-                {
-                    <MudMenuItem Label="@genre.Name" />
-                }
-            </MudMenu>
-        </MudMenu>
-
         <!-- Brand -->
         <a class="navbar-brand d-flex align-items-center" href="/">
             <img src="/images/Anime-Hub.svg" loading="lazy" alt="AnimeHub" height="45" class="me-2" />
@@ -40,34 +24,58 @@
                     <NavLink class="nav-link" href="/" Match="NavLinkMatch.All">Home</NavLink>
                 </li>
                 <li class="nav-item">
-                    <NavLink class="nav-link" href="/anime-catalog">Catalog</NavLink>
+                    <NavLink class="nav-link" href="/animes">Catalog</NavLink>
                 </li>
-                <li class="nav-item">
-                    <NavLink class="nav-link" href="/anime">Anime</NavLink>
-                </li>
-                <li class="nav-item">
-                    <NavLink class="nav-link" href="/category">Category</NavLink>
-                </li>
+
+                <AuthorizeView Roles="Admin">
+                    <li class="nav-item dropdown">
+                        <NavLink class="nav-link" href="#" data-bs-toggle="dropdown">
+                            Manage
+                        </NavLink>
+
+                        <ul class="dropdown-menu text-center text" style="background-color: rgba(18, 18, 18, 0.6);">
+                            <li class="nav-item">
+                                <NavLink class="nav-link" href="/admin/animes">Anime</NavLink>
+                            </li>
+                            <li class="nav-item">
+                                <NavLink class="nav-link" href="/admin/categories">Category</NavLink>
+                            </li>
+                            @* <li><hr class="dropdown-divider"></li> *@
+                        </ul>
+                    </li>
+           
+                    
+                </AuthorizeView>
             </ul>
 
             <!-- Right Buttons -->
             <div class="d-flex align-items-center gap-2">
-                <NavLink href="/register" class="btn btn-outline-warning btn-sm px-3 fw-semibold">Register</NavLink>
-                <NavLink href="/login" class="btn btn-warning btn-sm text-dark px-3 fw-semibold">Login</NavLink>
+                <AuthorizeView>
+                    <Authorized>
+                        <NavLink class="text-white">
+                            Hello, @context.User.Identity?.Name!
+                        </NavLink>
+                        <NavLink @onclick="Logout" class="btn btn-outline-warning btn-sm px-3 fw-semibold">Logout</NavLink>
+                    </Authorized>
+                    <NotAuthorized>
+                        <NavLink href="/register" class="btn btn-outline-warning btn-sm px-3 fw-semibold">Register</NavLink>
+                        <NavLink href="/login" class="btn btn-warning btn-sm text-dark px-3 fw-semibold">Login</NavLink>
+                    </NotAuthorized>
+                </AuthorizeView> 
             </div>
         </div>
     </div>
 </nav>
 
 @code {
-    private List<CategoryReadDto>? Categories;
-    private List<GenreReadDto>? Genres;
+    // private List<CategoryReadDto>? Categories;
+    // private List<GenreReadDto>? Genres;
 
-    protected override async Task OnInitializedAsync()
-    {
-        Categories = await Http.GetFromJsonAsync<List<CategoryReadDto>>("api/category");
-        Genres = await Http.GetFromJsonAsync<List<GenreReadDto>>("api/genre");
-    }
+    // protected override async Task OnInitializedAsync()
+    // {
+    //     Categories = await Http.GetFromJsonAsync<List<CategoryReadDto>>("api/category");
+    //     Genres = await Http.GetFromJsonAsync<List<GenreReadDto>>("api/genre");
+    // }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -75,5 +83,11 @@
         {
             await JSRuntime.InvokeVoidAsync("navbarScroll.init");
         }
+    }
+
+    private async Task Logout()
+    {
+        await AuthService.Logout();
+        Navigation.NavigateTo("/", forceLoad: true);
     }
 }

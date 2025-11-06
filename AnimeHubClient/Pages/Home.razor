@@ -1,104 +1,134 @@
 ﻿@page "/"
+@using AnimeHub.Shared.Models.Dtos
+@using AnimeHub.Shared.Models.Dtos.Anime
+@using MudBlazor
 @inject HttpClient Http
 @inject NavigationManager Navigation
+@inject ISnackbar Snackbar
 
-<div class="container mt-4">
-    <div class="row">
-        <div class="col-12 hero-section">
-            <div class="hero-overlay"></div>
-            <div class="hero-content">
-                @* <h1 class="display-3 fw-bold mb-3">Welcome to AnimeHub</h1> *@
-                <h1 class="hero-title">Welcome to <span class="highlight">AnimeHub</span></h1>
-                <p class="hero-subtitle">Your destination for all things anime. Discover, rate, and explore a world of stories.</p>
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-4">
+    <MudGrid Justify="Justify.Center">
 
-                <div class="hero-cta">
-                    <a class="btn btn-warning" href="anime-catalog">Browse Anime</a>
-                    <a class="btn btn-outline-light" href="anime-catalog?sort=trending">
-                        <i class="fa-solid fa-fire"></i>&nbsp;Trending
-                    </a>
+        @* --- 1. HERO SECTION (Retaining your custom CSS structure) --- *@
+        <MudItem xs="12">
+            <div class="hero-section">
+                <div class="hero-overlay"></div>
+                <div class="hero-content">
+                    <h1 class="hero-title">Welcome to <span class="highlight">AnimeHub</span></h1>
+                    <p class="hero-subtitle">Your destination for all things anime. Discover, rate, and explore a world of stories.</p>
+
+                    <div class="hero-cta">
+                        @* Replacing Bootstrap Buttons with MudButtons for consistency *@
+                        <MudButton Href="anime-catalog"
+                                   Variant="Variant.Filled"
+                                   Color="Color.Primary"
+                                   Size="Size.Large"
+                                   Class="hero-cta-button">
+                            Browse Anime
+                        </MudButton>
+                        <MudButton Href="anime-catalog?sort=trending"
+                                   Variant="Variant.Outlined"
+                                   Color="Color.Inherit"
+                                   Size="Size.Large"
+                                   Class="hero-cta-button hero-cta-outline-light">
+                            <MudIcon Icon="@Icons.Material.Filled.Whatshot" Class="me-1" Size="Size.Small" />Trending
+                        </MudButton>
+                    </div>
                 </div>
             </div>
-        </div>
-    </div>
-    <div class="row pt-5">
-        <div class="col-12 section-card">
-            <h3 class="fw-bold mb-5 section-title">Top Rated Anime</h3>
+        </MudItem>
+        @* ----------------------------------------------------------------- *@
 
-            <div class="col-12">
-                <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 row-cols-xl-5 g-4 justify-content-center">
-                    @if (IsLoading)
-                    {
+        @* --- 2. TOP RATED ANIME SECTION (Using MudPaper for consistency) --- *@
+        <MudItem xs="12" Class="pt-5">
+            <MudPaper Class="pa-6 section-paper" Elevation="4">
+                <MudText Typo="Typo.h5" Class="fw-bold mb-5 section-title" Align="Align.Center">Top Rated Anime</MudText>
+
+                @if (IsLoading)
+                {
+                    <MudGrid Justify="Justify.Center">
                         @for (int i = 0; i < 5; i++)
                         {
-                            <div class="col d-flex justify-content-center">
+                            <MudItem lg="2" md="3" sm="4" xs="6" Class="d-flex justify-content-center">
                                 <AnimeCardSkeleton />
-                            </div>
+                            </MudItem>
                         }
-                    }
-                    else if (TopRatedAnimes != null && TopRatedAnimes.Any())
-                    {
+                    </MudGrid>
+                }
+                else if (TopRatedAnimes != null && TopRatedAnimes.Any())
+                {
+                    <MudGrid Justify="Justify.Center" Spacing="4">
                         @foreach (var anime in TopRatedAnimes)
                         {
-                            <div class="col d-flex justify-content-center">
+                            <MudItem lg="2" md="3" sm="4" xs="6" Class="d-flex justify-content-center">
+                                @* Assuming AnimeCard is a component that renders the card UI *@
                                 <AnimeCard Anime="anime" />
-                            </div>
+                            </MudItem>
                         }
-                    }
-                    else
-                    {
-                        <p>No top-rated anime to display.</p>
-                    }
-                </div>
-            </div>
-        </div>
+                    </MudGrid>
+                }
+                else
+                {
+                    <MudText Align="Align.Center">No top-rated anime to display.</MudText>
+                }
+            </MudPaper>
+        </MudItem>
+        @* ----------------------------------------------------------------- *@
 
-        <div class="row mt-5">
-            <div class="col-12 text-center">
-                <h3 class="fw-bold mb-4">Browse by Category</h3>
-            </div>
-            <div class="col-12">
-                <div class="row row-cols-2 row-cols-sm-3 row-cols-md-4 row-cols-lg-5 g-3 justify-content-center">
-                    @if (Categories != null && Categories.Any())
+        @* --- 3. CATEGORY & GENRE SECTIONS (Using MudButtons) --- *@
+        <MudItem xs="12" Class="mt-8">
+            <MudText Typo="Typo.h5" Class="fw-bold mb-4" Align="Align.Center">Browse by Category</MudText>
+            <MudGrid Justify="Justify.Center" Spacing="2">
+                @if (Categories != null && Categories.Any())
+                {
+                    @foreach (var category in Categories)
                     {
-                        foreach (var category in Categories)
-                        {
-                            <div class="col d-flex justify-content-center">
-                                <a href="category/@category.Id" class="btn btn-outline-secondary w-100">@category.Name</a>
-                            </div>
-                        }
+                        <MudItem lg="2" md="3" sm="4" xs="6">
+                            <MudButton Href="@($"category/{category.Id}")"
+                                       Variant="Variant.Outlined"
+                                       Color="Color.Secondary"
+                                       FullWidth="true"
+                                       Class="category-genre-button">
+                                @category.Name
+                            </MudButton>
+                        </MudItem>
                     }
-                    else
-                    {
-                        <p>No categories to display.</p>
-                    }
-                </div>
-            </div>
-        </div>
+                }
+                else
+                {
+                    <MudItem xs="12"><MudText Align="Align.Center">No categories to display.</MudText></MudItem>
+                }
+            </MudGrid>
+        </MudItem>
 
-        <div class="row mt-5">
-            <div class="col-12 text-center">
-                <h3 class="fw-bold mb-4">Browse by Genre</h3>
-            </div>
-            <div class="col-12 mb-3">
-                <div class="row row-cols-2 row-cols-sm-3 row-cols-md-4 row-cols-lg-5 g-3 justify-content-center">
-                    @if (Genres != null && Genres.Any())
+        <MudItem xs="12" Class="mt-8 mb-8">
+            <MudText Typo="Typo.h5" Class="fw-bold mb-4" Align="Align.Center">Browse by Genre</MudText>
+            <MudGrid Justify="Justify.Center" Spacing="2">
+                @if (Genres != null && Genres.Any())
+                {
+                    @foreach (var genre in Genres)
                     {
-                        foreach (var genre in Genres)
-                        {
-                            <div class="col d-flex justify-content-center">
-                                <a href="genre/@genre.Id" class="btn btn-outline-secondary w-100">@genre.Name</a>
-                            </div>
-                        }
+                        <MudItem lg="2" md="3" sm="4" xs="6">
+                            <MudButton Href="@($"genre/{genre.Id}")"
+                                       Variant="Variant.Outlined"
+                                       Color="Color.Secondary"
+                                       FullWidth="true"
+                                       Class="category-genre-button">
+                                @genre.Name
+                            </MudButton>
+                        </MudItem>
                     }
-                    else
-                    {
-                        <p>No genres to display.</p>
-                    }
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
+                }
+                else
+                {
+                    <MudItem xs="12"><MudText Align="Align.Center">No genres to display.</MudText></MudItem>
+                }
+            </MudGrid>
+        </MudItem>
+        @* ----------------------------------------------------------------- *@
+
+    </MudGrid>
+</MudContainer>
 
 @code {
     private bool IsLoading { get; set; } = true;
@@ -110,19 +140,21 @@
     {
         try
         {
-            var topRatedAnimes = Http.GetFromJsonAsync<List<AnimeListReadDto>>("api/anime/top");
-            var categories = Http.GetFromJsonAsync<List<CategoryReadDto>>("api/category");
-            var genres = Http.GetFromJsonAsync<List<GenreReadDto>>("api/genre");
+            // Concurrent data fetching
+            var topRatedAnimesTask = Http.GetFromJsonAsync<List<AnimeListReadDto>>("api/anime/top");
+            var categoriesTask = Http.GetFromJsonAsync<List<CategoryReadDto>>("api/category");
+            var genresTask = Http.GetFromJsonAsync<List<GenreReadDto>>("api/genre");
 
-            await Task.WhenAll(topRatedAnimes, categories, genres);
+            await Task.WhenAll(topRatedAnimesTask, categoriesTask, genresTask);
 
-            TopRatedAnimes = topRatedAnimes.Result;
-            Categories = categories.Result;
-            Genres = genres.Result;
-
+            TopRatedAnimes = topRatedAnimesTask.Result;
+            Categories = categoriesTask.Result;
+            Genres = genresTask.Result;
         }
         catch (Exception ex)
         {
+            // Use Snackbar for user feedback on error, consistent with admin pages
+            Snackbar.Add($"Error loading home page data: {ex.Message}", Severity.Error);
             Console.WriteLine($"An error occurred while fetching home page data: {ex.Message}");
         }
         finally

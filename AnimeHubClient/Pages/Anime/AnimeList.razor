@@ -1,4 +1,4 @@
-﻿@page "/anime"
+﻿@page "/admin/animes"
 @using AnimeHub.Shared.Models.Dtos
 @using AnimeHub.Shared.Models.Dtos.Anime
 @using AnimeHubClient.Shared
@@ -26,7 +26,7 @@
                             Value="SearchTerm"
                             ValueChanged="@(async (v) => await OnSearch(v))" />
 
-            <MudButton Href="anime/create"
+            <MudButton Href="admin/animes/create"
                         StartIcon="@Icons.Material.Filled.AddTask"
                         Variant="Variant.Filled"
                         Color="Color.Primary">
@@ -62,7 +62,7 @@
                 <MudTd DataLabel="Category">@context.CategoryName</MudTd>
                 <MudTd DataLabel="Rating">@context.Rating</MudTd>
                 <MudTd DataLabel="Actions" Style="white-space:nowrap;">
-                    <MudButton Href="@($"anime/update/{context.Id}")" StartIcon="@Icons.Material.Filled.EditNote" Variant="Variant.Filled" Color="Color.Primary">Edit</MudButton>
+                    <MudButton Href="@($"admin/animes/update/{context.Id}")" StartIcon="@Icons.Material.Filled.EditNote" Variant="Variant.Filled" Color="Color.Primary">Edit</MudButton>
                     <MudButton @onclick="() => DeleteAnime(context.Id)" StartIcon="@Icons.Material.Filled.Delete" Variant="Variant.Filled" Color="Color.Error">Delete</MudButton>
                 </MudTd>
             </RowTemplate>

@@ -1,4 +1,4 @@
-﻿@page "/category"
+﻿@page "/admin/categories"
 @using AnimeHub.Shared.Models.Dtos.Category
 @using AnimeHubClient.Shared
 @inject HttpClient Http
@@ -20,7 +20,7 @@ else
 
         <MudCardContent>
             <div class="mb-4 text-end">
-                <MudButton Href="category/create" StartIcon="@Icons.Material.Filled.AddTask" Variant="Variant.Filled" Color="Color.Primary">Add New Category</MudButton>
+                <MudButton Href="admin/categories/create" StartIcon="@Icons.Material.Filled.AddTask" Variant="Variant.Filled" Color="Color.Primary">Add New Category</MudButton>
             </div>
 
             @if (Categories != null && Categories.Any())
@@ -33,7 +33,7 @@ else
                     <RowTemplate>
                         <MudTd DataLabel="Name">@context.Name</MudTd>
                         <MudTd DataLabel="Actions" Style="white-space:nowrap;">
-                            <MudButton Href="@($"category/update/{context.Id}")" StartIcon="@Icons.Material.Filled.EditNote" Variant="Variant.Filled" Color="Color.Primary" Class="me-2">Edit</MudButton>
+                            <MudButton Href="@($"admin/categories/update/{context.Id}")" StartIcon="@Icons.Material.Filled.EditNote" Variant="Variant.Filled" Color="Color.Primary" Class="me-2">Edit</MudButton>
                             <MudButton @onclick="() => DeleteCategory(context.Id)" StartIcon="@Icons.Material.Filled.Delete" Variant="Variant.Filled" Color="Color.Error">Delete</MudButton>
                         </MudTd>
                     </RowTemplate>
