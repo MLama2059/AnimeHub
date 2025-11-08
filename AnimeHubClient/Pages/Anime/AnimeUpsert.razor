@@ -137,7 +137,7 @@ else
                             </MudButton>
                         </MudItem>
                         <MudItem xs="12" sm="6">
-                            <MudButton Href="anime"
+                            <MudButton Href="/admin/animes"
                                        StartIcon="@Icons.Material.Filled.ArrowCircleLeft"
                                        Variant="Variant.Filled"
                                        Color="Color.Default"
@@ -318,7 +318,7 @@ else
             IsLoading = false;
         }
 
-        Navigation.NavigateTo("anime");
+        Navigation.NavigateTo("/admin/animes");
     }
 
     private void ToggleGenre(int genreId, bool isChecked)

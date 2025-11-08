@@ -30,7 +30,7 @@ else
                             <MudButton ButtonType="ButtonType.Submit" StartIcon="@Icons.Material.Filled.LibraryAddCheck" Variant="Variant.Filled" Color="Color.Primary" FullWidth="true" Disabled="@IsLoading">@(Id > 0 ? "Update" : "Create")</MudButton>
                         </MudItem>
                         <MudItem xs="12" sm="6">
-                            <MudButton Href="category" StartIcon="@Icons.Material.Filled.ArrowCircleLeft" Variant="Variant.Filled" Color="Color.Default" FullWidth="true" Disabled="@IsLoading">Back to List</MudButton>
+                            <MudButton Href="/admin/categories" StartIcon="@Icons.Material.Filled.ArrowCircleLeft" Variant="Variant.Filled" Color="Color.Default" FullWidth="true" Disabled="@IsLoading">Back to List</MudButton>
                         </MudItem>
                     </MudGrid>
                 </MudCardActions>
@@ -93,6 +93,6 @@ else
         }
 
         IsLoading = false;
-        Navigation.NavigateTo("category");
+        Navigation.NavigateTo("/admin/categories");
     }
 }
