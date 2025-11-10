@@ -9,33 +9,49 @@
 <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-4">
     <MudGrid Justify="Justify.Center">
 
-        @* --- 1. HERO SECTION (Retaining your custom CSS structure) --- *@
+        @* --- 1. HERO SECTION (Using MudCarousel) --- *@
         <MudItem xs="12">
-            <div class="hero-section">
-                <div class="hero-overlay"></div>
-                <div class="hero-content">
-                    <h1 class="hero-title">Welcome to <span class="highlight">AnimeHub</span></h1>
-                    <p class="hero-subtitle">Your destination for all things anime. Discover, rate, and explore a world of stories.</p>
+            <div style="position:relative; height:84vh;">
+                <MudCarousel Class="mud-carousel-custom" Style="height:84vh" AutoCycle="true" TData="object">
+                    <MudCarouselItem Transition="Transition.Fade">
+                        <div class="hero-image-overlay" style="background-image: url('/images/hero1.jpg');"></div>
+                    </MudCarouselItem>
+                    <MudCarouselItem Transition="Transition.Fade">
+                        <div class="hero-image-overlay" style="background-image: url('/images/hero6.jpg');"></div>
+                    </MudCarouselItem>
+                    <MudCarouselItem Transition="Transition.Fade">
+                        <div class="hero-image-overlay" style="background-image: url('/images/hero7.jpg');"></div>
+                    </MudCarouselItem>
+                    <MudCarouselItem Transition="Transition.Fade">
+                        <div class="hero-image-overlay" style="background-image: url('/images/hero4.jpg');"></div>
+                    </MudCarouselItem>
+                </MudCarousel>
 
-                    <div class="hero-cta">
-                        @* Replacing Bootstrap Buttons with MudButtons for consistency *@
-                        <MudButton Href="animes"
-                                   Variant="Variant.Filled"
-                                   Color="Color.Primary"
-                                   Size="Size.Large"
-                                   Class="hero-cta-button">
-                            Browse Anime
-                        </MudButton>
-                        <MudButton Href="anime-catalog?sort=trending"
-                                   Variant="Variant.Outlined"
-                                   Color="Color.Inherit"
-                                   Size="Size.Large"
-                                   Class="hero-cta-button hero-cta-outline-light">
-                            <MudIcon Icon="@Icons.Material.Filled.Whatshot" Class="me-1" Size="Size.Small" />Trending
-                        </MudButton>
+                @* Overlay section *@
+                <div class="hero-content-overlay">
+                    <div class="hero-content">
+                        <h1 class="hero-title">Welcome to <span class="highlight">AnimeHub</span></h1>
+                        <p class="hero-subtitle">Your destination for all things anime. Discover, rate, and explore a world of stories.</p>
+                        <div class="hero-cta">
+                            <MudButton Href="animes"
+                                       Variant="Variant.Filled"
+                                       Color="Color.Primary"
+                                       Size="Size.Large"
+                                       Class="hero-cta-button">
+                                Browse Anime
+                            </MudButton>
+                            <MudButton Href="anime-catalog?sort=trending"
+                                       Variant="Variant.Outlined"
+                                       Color="Color.Inherit"
+                                       Size="Size.Large"
+                                       Class="hero-cta-button hero-cta-outline-light">
+                                <MudIcon Icon="@Icons.Material.Filled.Whatshot" Class="me-1" Size="Size.Small" />Trending
+                            </MudButton>
+                        </div>
                     </div>
                 </div>
             </div>
+            
         </MudItem>
         @* ----------------------------------------------------------------- *@
 
