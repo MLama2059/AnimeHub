@@ -208,6 +208,7 @@ main {
     display: flex;
     align-items: center;
     justify-content: center;
+    pointer-events: none;
 }
 
 /* Content (keep your fadeInUp animation, it's nice) */

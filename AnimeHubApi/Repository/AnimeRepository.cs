@@ -214,10 +214,10 @@ namespace AnimeHubApi.Repository
             anime.AnimeStudios.Clear();
 
             if (animeDto.GenreIds != null)
-                anime.AnimeGenres = animeDto.GenreIds.Select(id => new AnimeGenre { AnimeId = id, GenreId = id }).ToList();
+                anime.AnimeGenres = animeDto.GenreIds.Select(genreId => new AnimeGenre { AnimeId = id, GenreId = genreId }).ToList();
 
             if (animeDto.StudioIds != null)
-                anime.AnimeStudios = animeDto.StudioIds.Select(id => new AnimeStudio { AnimeId = id, StudioId = id }).ToList();
+                anime.AnimeStudios = animeDto.StudioIds.Select(studioId => new AnimeStudio { AnimeId = id, StudioId = studioId }).ToList();
 
             await _context.SaveChangesAsync();
             return true;

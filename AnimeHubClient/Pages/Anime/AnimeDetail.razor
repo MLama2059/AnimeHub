@@ -1,0 +1,138 @@
+﻿@page "/anime/{Id:int}"
+@inject HttpClient Http
+@inject ISnackbar Snackbar
+
+@if (IsLoading)
+{
+    <div class="py-4 text-center"><MudProgressCircular Indeterminate="true" /></div>
+}
+else if (Anime == null)
+{
+    <MudAlert Severity="Severity.Error" Class="mt-5">
+        <MudText Typo="Typo.h5">Anime Not Found</MudText>
+        <MudText>The requested anime ID (@Id) could not be retrieved.</MudText>
+    </MudAlert>
+}
+else
+{
+    <MudContainer MaxWidth="MaxWidth.ExtraExtraLarge" Class="mt-5">
+        <MudGrid Spacing="4">
+            @* --- Left Column: Image and Details --- *@
+            <MudItem xs="12" md="4" lg="3">
+                <MudPaper Elevation="8" Class="pa-2">
+                    <img src="@(Http.BaseAddress?.ToString() + Anime.ImageUrl)" alt="@Anime.Title" style="width:100%; height:auto; border-radius:4px;" />
+                </MudPaper>
+
+                <MudList T="string" Class="mt-4" Dense="true">
+                    <MudListItem Icon="@Icons.Material.Filled.CalendarMonth">
+                        <MudText Typo="Typo.subtitle1" Class="fw-bold">Premiered:</MudText>
+                        @Anime.Season @Anime.PremieredYear
+                    </MudListItem>
+                    <MudListItem Icon="@Icons.Material.Filled.StarRate">
+                        <MudText Typo="Typo.subtitle1" Class="fw-bold">Rating:</MudText>
+                        @(Anime.Rating.HasValue? Anime.Rating.ToString() : "N/A")
+                    </MudListItem>
+                    <MudListItem Icon="@Icons.Material.Filled.Movie">
+                        <MudText Typo="Typo.subtitle1" Class="fw-bold">Episodes:</MudText>
+                        @(Anime.Episodes.HasValue? Anime.Episodes.ToString() : "N/A")
+                    </MudListItem>
+                    <MudListItem Icon="@Icons.Material.Filled.Update">
+                        <MudText Typo="Typo.subtitle1" Class="fw-bold">Status:</MudText> @Anime.Status
+                    </MudListItem>
+                    <MudListItem Icon="@Icons.Material.Filled.MovieFilter">
+                        <MudText Typo="Typo.subtitle1" Class="fw-bold">Studios:</MudText>
+                        @if (Anime.Studios != null && Anime.Studios.Any())
+                        {
+                            @foreach (var studio in Anime.Studios)
+                            {
+                                <MudText Typo="Typo.body2">@studio</MudText>
+                            }
+                        }
+                        else
+                        {
+                            <MudText Typo="Typo.body2">N/A</MudText>
+                        }
+
+                    </MudListItem>
+                    @* <MudListItem Icon="@Icons.Material.Filled.Category">
+                        <MudText Typo="Typo.subtitle1" Class="fw-bold">Category:</MudText>
+                        @Anime.CategoryName
+                    </MudListItem> *@
+                </MudList>
+            </MudItem>
+
+            @* --- Right Column: Header, Description, Reviews --- *@
+            <MudItem xs="12" md="8" lg="9">
+                <MudText Typo="Typo.h3" Class="fw-bold mb-1">@Anime.Title</MudText>
+                <MudText Typo="Typo.subtitle1" Class="text-muted mb-3">@Anime.CategoryName</MudText>
+                
+                @* Genres Chip Group *@
+                <MudText Typo="Typo.subtitle1" Class="fw-bold mb-2">Genres</MudText>
+                <MudChipSet T="Color" Class="mb-4">
+                    @if (Anime.Genres != null && Anime.Genres.Any())
+                    {
+                        @foreach (var genre in Anime.Genres)
+                        {
+                            <MudChip Text="@genre" Color="Color.Primary" Variant="Variant.Filled" />
+                        }
+                    }
+                    else
+                    {
+                        <MudText Typo="Typo.body2">N/A</MudText>
+                    }
+                </MudChipSet>
+
+                <MudText Typo="Typo.h5" Class="mt-4">Synopsis</MudText>
+                <MudDivider Class="my-2" />
+                <MudText Typo="Typo.body1" Style="white-space: pre-wrap;">@Anime.Description</MudText>
+
+                @* --- User Review Section Placeholder --- *@
+                <MudPaper Elevation="2" Class="pa-4 mt-8">
+                    <MudText Typo="Typo.h5" Class="fw-bold">User Ratings & Reviews</MudText>
+                    <MudDivider Class="my-2" />
+                    
+                    @* Placeholder: Will be replaced by a dedicated UserRating component later *@
+                    <div class="pa-4 text-center text-muted">
+                        <p class="mb-0">Authentication needed to submit ratings and comments.</p>
+                        <MudButton Href="/login" Variant="Variant.Text" Color="Color.Primary" Class="mt-1">Login to Interact</MudButton>
+                    </div>
+
+                </MudPaper>
+            </MudItem>
+        </MudGrid>
+    </MudContainer>
+}
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+    private bool IsLoading { get; set; } = true;
+    private AnimeReadDto? Anime;
+    private List<CategoryReadDto>? Categories { get; set; } = new();
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadAnime();
+    }
+
+    private async Task LoadAnime()
+    {
+        IsLoading = true;
+        Anime = null;
+
+        try
+        {
+            Anime = await Http.GetFromJsonAsync<AnimeReadDto>($"api/anime/{Id}");
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error fetching anime details: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+
+}
