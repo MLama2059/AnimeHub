@@ -1,0 +1,163 @@
+﻿@using AnimeHub.Shared.Models.Dtos.Rating
+@using AnimeHubClient.Services
+@using Microsoft.AspNetCore.Components.Authorization
+@inject IRatingService RatingService
+@inject ISnackbar Snackbar
+@inject NavigationManager Navigation
+@inject Microsoft.AspNetCore.Components.Authorization.AuthenticationStateProvider AuthStateProvider
+
+<MudPaper Elevation="2" Class="pa-4 mt-8">
+    <MudText Typo="Typo.h5" Class="fw-bold">User Ratings & Reviews</MudText>
+    <MudDivider Class="my-3" />
+
+    @* Input Section for Logged in users *@
+    <AuthorizeView>
+        <Authorized>
+            <MudPaper Class="pa-4 mb-6" Elevation="0" Outlined="true" Style="background-color: #fafafa;">
+                <MudText Typo="Typo.subtitle1" Class="fw-bold mb-2">
+                    @(MyRating != null ? "Edit your review" : "Leave a review")
+                </MudText>
+
+                <div class="d-flex align-center mb-3">
+                    <MudRating @bind-SelectedValue="UserRatingInput" MaxValue="10" Size="Size.Medium" Color="Color.Primary" />
+                    <MudText Class="ml-3">@(UserRatingInput)/10</MudText>
+                </div>
+
+                <MudTextField T="string"
+                              Label="Write a comment..."
+                              Variant="Variant.Outlined"
+                              Lines="3"
+                              @bind-Value="UserCommentInput"
+                              MaxLength="500" />
+
+                <div class="d-flex justify-end mt-3">
+                    <MudButton Variant="Variant.Filled"
+                               Color="Color.Primary"
+                               OnClick="@SubmitRating"
+                               Disabled="@IsSubmitting">
+
+                        @if (IsSubmitting)
+                        {
+                            <MudProgressCircular Indeterminate="true" Size="Size.Small" Class="mr-2" />
+                        }
+                        Submit Review
+                    </MudButton>
+                </div>
+            </MudPaper>
+        </Authorized>
+        <NotAuthorized>
+            <MudAlert Severity="Severity.Info" Class="mb-4">
+                <MudLink Href="/login" Typo="Typo.body2" Class="fw-bold">Log in</MudLink> to rate this anime and leave a comment!
+            </MudAlert>
+        </NotAuthorized>
+    </AuthorizeView>
+
+    @* Reviews List *@
+    @if (Reviews == null)
+    {
+        <MudProgressCircular Indeterminate="true" />
+    }
+    else if (Reviews.Count == 0)
+    {
+        <MudText Typo="Typo.body2" Class="text-muted">No reviews yet. Be the first!</MudText>
+    }
+    else
+    {
+        <MudList T="RatingReadDto">
+            @foreach (var review in Reviews)
+            {
+                <MudPaper Class="pa-3 mb-3" Elevation="1">
+                    <div class="d-flex justify-space-between align-center">
+                        <div>
+                            <MudText Typo="Typo.subtitle2" Class="fw-bold">@review.UserName</MudText>
+                            <MudText Typo="Typo.caption" Class="text-muted">@review.CreatedAt.ToLocalTime().ToString("MMM dd, yyyy")</MudText>
+                        </div>
+                        <div class="d-flex align-center">
+                            <MudIcon Icon="@Icons.Material.Filled.Star" Color="Color.Primary" Size="Size.Small" />
+                            <MudText Typo="Typo.body2" Class="ml-1 fw-bold">@review.Rating</MudText>
+                        </div>
+                    </div>
+
+                    @if (!string.IsNullOrWhiteSpace(review.Comment))
+                    {
+                        <MudText Typo="Typo.body2" Class="mt-2">@review.Comment</MudText>
+                    }
+                </MudPaper>
+            }
+        </MudList>
+    }
+</MudPaper>
+
+    @code {
+    [Parameter]
+    public int AnimeId { get; set; }
+    private List<RatingReadDto>? Reviews;
+    private RatingReadDto? MyRating; // The existing rating if user has rated
+
+    // Input fields
+    private int UserRatingInput { get; set; } = 0;
+    private string? UserCommentInput { get; set; }
+    private bool IsSubmitting { get; set; } = false;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        // Re-load when AnimeId changes (e.g. navigation)
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        // Load all public reviews
+        Reviews = await RatingService.GetRatingsForAnimeAsync(AnimeId);
+
+        // Check if user is logged in, then try to fetch THEIR specific rating
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        if (authState.User.Identity?.IsAuthenticated ?? false)
+        {
+            MyRating = await RatingService.GetUserRatingAsync(AnimeId);
+            if (MyRating != null)
+            {
+                // Pre-fill the form
+                UserRatingInput = (int)MyRating.Rating;
+                UserCommentInput = MyRating.Comment;
+            }
+            else
+            {
+                // Reset form
+                UserRatingInput = 0;
+                UserCommentInput = "";
+            }
+        }
+    }
+
+    private async Task SubmitRating()
+    {
+        if (UserRatingInput < 1)
+        {
+            Snackbar.Add("Please select a star rating.", Severity.Error);
+            return;
+        }
+
+        IsSubmitting = true;
+
+        var dto = new RatingCreateDto
+        {
+            AnimeId = AnimeId,
+            Rating = UserRatingInput,
+            Comment = UserCommentInput
+        };
+
+        var result = await RatingService.UpsertRatingAsync(dto);
+
+        if (result != null)
+        {
+            Snackbar.Add("Review submitted!", Severity.Success);
+            MyRating = result; // Update local state
+
+            // Refresh the list to show the new/updated comment immediately
+            await LoadData();
+        }
+
+        IsSubmitting = false;
+    }
+}

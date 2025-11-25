@@ -87,17 +87,7 @@ else
                 <MudText Typo="Typo.body1" Style="white-space: pre-wrap;">@Anime.Description</MudText>
 
                 @* --- User Review Section Placeholder --- *@
-                <MudPaper Elevation="2" Class="pa-4 mt-8">
-                    <MudText Typo="Typo.h5" Class="fw-bold">User Ratings & Reviews</MudText>
-                    <MudDivider Class="my-2" />
-                    
-                    @* Placeholder: Will be replaced by a dedicated UserRating component later *@
-                    <div class="pa-4 text-center text-muted">
-                        <p class="mb-0">Authentication needed to submit ratings and comments.</p>
-                        <MudButton Href="/login" Variant="Variant.Text" Color="Color.Primary" Class="mt-1">Login to Interact</MudButton>
-                    </div>
-
-                </MudPaper>
+                <RatingSection AnimeId="@Id" />
             </MudItem>
         </MudGrid>
     </MudContainer>

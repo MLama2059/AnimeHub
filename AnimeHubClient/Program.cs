@@ -19,6 +19,7 @@ builder.Services.AddBlazoredLocalStorage(); // Registers the ILocalStorageServic
 
 builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri("https://localhost:7114") });
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IRatingService, RatingService>();
 
 // Add MudBlazor services and configure snackbar defaults
 builder.Services.AddMudServices(config =>
