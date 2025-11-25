@@ -25,6 +25,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)Models\Dtos\Genre\GenreUpsertDto.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\Dtos\PagedList.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\Dtos\PagedListMetadata.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Models\Dtos\Rating\RatingCreateDto.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Models\Dtos\Rating\RatingReadDto.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\Dtos\Studio\StudioReadDto.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\Dtos\Studio\StudioUpsertDto.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\Dtos\User\AuthenticationResponseDto.cs" />
@@ -37,5 +39,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Models\Genre.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\Studio.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\User.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Models\UserAnimeRating.cs" />
   </ItemGroup>
 </Project>

@@ -1,7 +1,9 @@
 ﻿using AnimeHub.Shared.Models;
 using AnimeHub.Shared.Models.Dtos.Genre;
+using AnimeHub.Shared.Models.Dtos.User;
 using AnimeHubApi.Repository;
 using AnimeHubApi.Repository.IRepository;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -43,6 +45,7 @@ namespace AnimeHubApi.Controllers
             return Ok(genre);
         }
 
+        [Authorize(Roles = RoleConstants.Admin)]
         [HttpPost]
         public async Task<ActionResult<GenreReadDto>> AddGenre(GenreUpsertDto createDto)
         {
@@ -56,6 +59,7 @@ namespace AnimeHubApi.Controllers
             return CreatedAtAction(nameof(GetGenreById), new { id = createdGenre.Id }, createdGenre);
         }
 
+        [Authorize(Roles = RoleConstants.Admin)]
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateGenre(int id, GenreUpsertDto updateDto)
         {
@@ -68,6 +72,7 @@ namespace AnimeHubApi.Controllers
             return NoContent();
         }
 
+        [Authorize(Roles = RoleConstants.Admin)]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteGenre(int id)
         {

@@ -1,7 +1,9 @@
 ﻿using AnimeHub.Shared.Models;
 using AnimeHub.Shared.Models.Dtos.Studio;
+using AnimeHub.Shared.Models.Dtos.User;
 using AnimeHubApi.Repository;
 using AnimeHubApi.Repository.IRepository;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -40,6 +42,7 @@ namespace AnimeHubApi.Controllers
             return Ok(studio);
         }
 
+        [Authorize(Roles = RoleConstants.Admin)]
         [HttpPost]
         public async Task<ActionResult<StudioReadDto>> AddStudio(StudioUpsertDto createDto)
         {
@@ -51,6 +54,7 @@ namespace AnimeHubApi.Controllers
             return CreatedAtAction(nameof(GetStudioById), new { id = createdStudio.Id }, createdStudio);
         }
 
+        [Authorize(Roles = RoleConstants.Admin)]
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateStudio(int id, StudioUpsertDto updateDto)
         {
@@ -64,6 +68,7 @@ namespace AnimeHubApi.Controllers
             return NoContent();
         }
 
+        [Authorize(Roles = RoleConstants.Admin)]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteStudio(int id)
         {

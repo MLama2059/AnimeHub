@@ -1,7 +1,9 @@
 ﻿using AnimeHub.Shared.Models;
 using AnimeHub.Shared.Models.Dtos.Category;
+using AnimeHub.Shared.Models.Dtos.User;
 using AnimeHubApi.Repository;
 using AnimeHubApi.Repository.IRepository;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -42,6 +44,7 @@ namespace AnimeHubApi.Controllers
             return Ok(category);
         }
 
+        [Authorize(Roles = RoleConstants.Admin)]
         [HttpPost]
         public async Task<ActionResult<CategoryReadDto>> AddCategory(CategoryCreateDto createDto)
         {
@@ -55,6 +58,7 @@ namespace AnimeHubApi.Controllers
             return CreatedAtAction(nameof(GetCategoryById), new { id = createdCategory.Id }, createdCategory);
         }
 
+        [Authorize(Roles = RoleConstants.Admin)]
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateCategory(int id, CategoryUpdateDto updateDto)
         {
@@ -67,6 +71,7 @@ namespace AnimeHubApi.Controllers
             return NoContent();
         }
 
+        [Authorize(Roles = RoleConstants.Admin)]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteCategory(int id)
         {

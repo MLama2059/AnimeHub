@@ -7,6 +7,8 @@ using Microsoft.EntityFrameworkCore;
 using AnimeHub.Shared.Models.Dtos;
 using AnimeHub.Shared.Models.Dtos.Anime;
 using AnimeHub.Shared.Models.Enums;
+using Microsoft.AspNetCore.Authorization;
+using AnimeHub.Shared.Models.Dtos.User;
 
 namespace AnimeHubApi.Controllers
 {
@@ -63,6 +65,7 @@ namespace AnimeHubApi.Controllers
             return Ok(animes);
         }
 
+        [Authorize(Roles = RoleConstants.Admin)]
         [HttpPost]
         public async Task<IActionResult> AddAnime([FromBody] AnimeCreateDto animeDto)
         {
@@ -74,6 +77,7 @@ namespace AnimeHubApi.Controllers
             return CreatedAtAction(nameof(GetAnimeById), new { id = createdAnime.Id }, createdAnime);
         }
 
+        [Authorize(Roles = RoleConstants.Admin)]
         [HttpPost("upload-image")]
         public async Task<IActionResult> UploadImage(IFormFile file, [FromQuery] string? oldImageUrl)
         {
@@ -117,6 +121,7 @@ namespace AnimeHubApi.Controllers
             return Ok(relativePath);
         }
 
+        [Authorize(Roles = RoleConstants.Admin)]
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateAnime(int id, [FromBody] AnimeUpdateDto animeDto)
         {
@@ -131,6 +136,7 @@ namespace AnimeHubApi.Controllers
             return NoContent();
         }
 
+        [Authorize(Roles = RoleConstants.Admin)]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteAnime(int id)
         {

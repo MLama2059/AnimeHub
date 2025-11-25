@@ -14,6 +14,7 @@ namespace AnimeHubApi.Data
         public DbSet<Studio> Studios => Set<Studio>();
         public DbSet<AnimeStudio> AnimeStudios => Set<AnimeStudio>();
         public DbSet<User> Users => Set<User>();
+        public DbSet<UserAnimeRating> UserAnimeRatings => Set<UserAnimeRating>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -196,6 +197,13 @@ namespace AnimeHubApi.Data
                 new AnimeStudio { AnimeId = 2, StudioId = 2 }, // Demon Slayer <-> Ufotable
                 new AnimeStudio { AnimeId = 3, StudioId = 3 }  // Spirited Away <-> Studio Ghibli
             );
+
+            // Configure UserAnimeRating
+            // Ensure the combination of AnimeId and UserId is unique 
+            // (A user cannot rate the same anime twice)
+            modelBuilder.Entity<UserAnimeRating>()
+                .HasIndex(r => new { r.AnimeId, r.UserId })
+                .IsUnique();
         }
     }
 }
