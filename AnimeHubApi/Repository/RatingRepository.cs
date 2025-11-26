@@ -88,9 +88,59 @@ namespace AnimeHubApi.Repository
 
             await _context.SaveChangesAsync();
 
+            // Recalculate the average rating for the Anime
+            await UpdateAnimeAverageRating(ratingDto.AnimeId);
+
             return await GetUserRatingsAsync(userId, ratingDto.AnimeId)
                    ?? throw new Exception("Failed to retrieve rating after saving.");
         }
 
+        public async Task<bool> DeleteRatingAsync(int ratingId, int userId)
+        {
+            var ratingToDelete = await _context.UserAnimeRatings.FirstOrDefaultAsync(r => r.Id == ratingId && r.UserId == userId);
+
+            if (ratingToDelete == null)
+            {
+                return false;
+            }
+
+            _context.UserAnimeRatings.Remove(ratingToDelete);
+            await _context.SaveChangesAsync();
+
+            // Recalculate average rating after deletion
+            await UpdateAnimeAverageRating(ratingToDelete.AnimeId);
+
+            return true;
+        }
+
+        public async Task UpdateAnimeAverageRating(int animeId)
+        {
+            var anime = await _context.Animes.FirstOrDefaultAsync(a => a.Id == animeId);
+            if (anime == null)
+            {
+                return;
+            }
+
+            // We query the count and average directly from the database
+            var ratingsQuery = _context.UserAnimeRatings.Where(r => r.AnimeId == animeId);
+            var count = await ratingsQuery.CountAsync();
+
+            if (count > 0)
+            {
+                var average = await ratingsQuery.AverageAsync(r => r.Rating);
+                anime.Rating = Math.Round(average, 1);
+            }
+            else
+            {
+                anime.Rating = null;
+            }
+
+            // CRITICAL: Force EF Core to recognize the change
+            // Sometimes if the value transitions from null to a value (or vice versa), 
+            // EF's change tracker might miss it if the context is complex.
+            _context.Entry(anime).Property(a => a.Rating).IsModified = true;
+
+            await _context.SaveChangesAsync();
+        }
     }
 }

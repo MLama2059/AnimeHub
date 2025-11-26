@@ -1,4 +1,5 @@
 ﻿using AnimeHub.Shared.Models.Dtos.Rating;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace AnimeHubApi.Repository.IRepository
 {
@@ -10,5 +11,9 @@ namespace AnimeHubApi.Repository.IRepository
         Task<RatingReadDto> GetUserRatingsAsync(int userId, int animeId);
         // Add or Update a rating
         Task<RatingReadDto> AddOrUpdateRatingAsync(int userId, RatingCreateDto ratingDto);
+        // Delete a specific rating
+        Task<bool> DeleteRatingAsync(int ratingId, int userId);
+        // Recalculates and updates the Anime's average rating
+        Task UpdateAnimeAverageRating(int animeId);
     }
 }

@@ -8,5 +8,6 @@ namespace AnimeHubClient.Services
         Task<List<RatingReadDto>> GetRatingsForAnimeAsync(int animeId);
         Task<RatingReadDto?> GetUserRatingAsync(int animeId);
         Task<RatingReadDto?> UpsertRatingAsync(RatingCreateDto ratingDto);
+        Task<bool> DeleteRatingAsync(int ratingId);
     }
 }

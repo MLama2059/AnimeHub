@@ -1,8 +1,10 @@
 ﻿@using AnimeHub.Shared.Models.Dtos.Rating
 @using AnimeHubClient.Services
 @using Microsoft.AspNetCore.Components.Authorization
+@using System.Security.Claims
 @inject IRatingService RatingService
 @inject ISnackbar Snackbar
+@inject IDialogService Dialog
 @inject NavigationManager Navigation
 @inject Microsoft.AspNetCore.Components.Authorization.AuthenticationStateProvider AuthStateProvider
 
@@ -73,6 +75,16 @@
                             <MudText Typo="Typo.caption" Class="text-muted">@review.CreatedAt.ToLocalTime().ToString("MMM dd, yyyy")</MudText>
                         </div>
                         <div class="d-flex align-center">
+                            @* --- Delete Button Logic --- *@
+                            @if (CurrentUserId != null && review.UserId.ToString() == CurrentUserId)
+                            {
+                                <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                               Color="Color.Error"
+                                               Size="Size.Small"
+                                               OnClick="() => DeleteRating(review.Id)"
+                                               Class="me-2" />
+                            }
+
                             <MudIcon Icon="@Icons.Material.Filled.Star" Color="Color.Primary" Size="Size.Small" />
                             <MudText Typo="Typo.body2" Class="ml-1 fw-bold">@review.Rating</MudText>
                         </div>
@@ -93,6 +105,7 @@
     public int AnimeId { get; set; }
     private List<RatingReadDto>? Reviews;
     private RatingReadDto? MyRating; // The existing rating if user has rated
+    private string? CurrentUserId { get; set; }
 
     // Input fields
     private int UserRatingInput { get; set; } = 0;
@@ -107,13 +120,13 @@
 
     private async Task LoadData()
     {
-        // Load all public reviews
-        Reviews = await RatingService.GetRatingsForAnimeAsync(AnimeId);
-
         // Check if user is logged in, then try to fetch THEIR specific rating
         var authState = await AuthStateProvider.GetAuthenticationStateAsync();
         if (authState.User.Identity?.IsAuthenticated ?? false)
         {
+            // Get the User ID (it's stored as a string claim)
+            CurrentUserId = authState.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
             MyRating = await RatingService.GetUserRatingAsync(AnimeId);
             if (MyRating != null)
             {
@@ -128,6 +141,13 @@
                 UserCommentInput = "";
             }
         }
+        else
+        {
+            CurrentUserId = null;
+        }
+
+        // Load all public reviews
+        Reviews = await RatingService.GetRatingsForAnimeAsync(AnimeId);
     }
 
     private async Task SubmitRating()
@@ -159,5 +179,26 @@
         }
 
         IsSubmitting = false;
+    }
+
+    private async Task DeleteRating(int ratingId)
+    {
+        var confirmed = await Dialog.ShowMessageBox(
+            "Confirm Delete",
+            "Are you sure you want to delete your review?",
+            yesText: "Delete", cancelText: "Cancel");
+
+        if (confirmed != true) return;
+
+        var success = await RatingService.DeleteRatingAsync(ratingId);
+
+        if (success)
+        {
+            // Update UI by removing the deleted item
+            await LoadData();
+            MyRating = null; // Clear the input form
+            UserRatingInput = 0;
+            UserCommentInput = "";
+        }
     }
 }

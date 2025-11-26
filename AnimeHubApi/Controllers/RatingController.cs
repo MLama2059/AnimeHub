@@ -72,6 +72,27 @@ namespace AnimeHubApi.Controllers
             }
         }
 
+        [Authorize]
+        [HttpDelete("{ratingId}")]
+        public async Task<IActionResult> DeleteRating(int ratingId)
+        {
+            var userId = GetCurrentUserId();
+            if (userId == 0)
+            {
+                return Unauthorized();
+            }
+
+            var result = await _ratingRepository.DeleteRatingAsync(ratingId, userId);
+
+            if (result)
+            {
+                return NoContent();
+            }
+
+            // If we couldn't find it or the UserId didn't match
+            return NotFound("Rating not found or you do not have permission to delete it.");
+        }
+
         // Helper Method to get User ID from Token
         private int GetCurrentUserId()
         {

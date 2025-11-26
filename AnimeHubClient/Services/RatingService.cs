@@ -79,5 +79,30 @@ namespace AnimeHubClient.Services
                 return null;
             }
         }
+
+        public async Task<bool> DeleteRatingAsync(int ratingId)
+        {
+            try
+            {
+                var response = await _httpClient.DeleteAsync($"api/Rating/{ratingId}");
+
+                if (response.IsSuccessStatusCode)
+                {
+                    _snackbar.Add("Review successfully deleted.", Severity.Success);
+                    return true;
+                }
+                else
+                {
+                    var error = await response.Content.ReadAsStringAsync();
+                    _snackbar.Add($"Failed to delete review: {error}", Severity.Error);
+                    return false;
+                }
+            }
+            catch (Exception ex)
+            {
+                _snackbar.Add($"Connection error during deletion: {ex.Message}", Severity.Error);
+                return false;
+            }
+        }
     }
 }
