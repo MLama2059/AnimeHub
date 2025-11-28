@@ -1,11 +1,12 @@
 ﻿@page "/admin/animes"
 @using AnimeHub.Shared.Models.Dtos
 @using AnimeHub.Shared.Models.Dtos.Anime
+@using AnimeHubClient.Services
 @using AnimeHubClient.Shared
 @using Microsoft.AspNetCore.WebUtilities
-@inject HttpClient Http
 @inject IDialogService Dialog
 @inject ISnackbar Snackbar
+@inject IAnimeService AnimeService
 
 <MudCard Elevation="4" Class="mt-4">
     <MudCardHeader>
@@ -81,9 +82,6 @@
 </MudCard>
 
 @code {
-    private List<AnimeListReadDto> AnimesList = new();
-    private PagedListMetadata Metadata = new();
-
     private MudTable<AnimeListReadDto>? MudTable;
     private string SearchTerm { get; set; } = string.Empty;
 
@@ -127,29 +125,14 @@
             queryParams.Add("filterQuery", SearchTerm);
         }
 
-        var queryString = await new FormUrlEncodedContent(queryParams).ReadAsStringAsync();
-
         try
         {
             // pass cancellationToken to Http call
-            var response = await Http.GetAsync($"api/anime?{queryString}", cancellationToken);
-            response.EnsureSuccessStatusCode();
+            var (items, metadata) = await AnimeService.GetPagedAnimeListAsync(queryParams, cancellationToken);
 
-            int totalItems = 0;
-            if (response.Headers.TryGetValues("X-Pagination", out var headerValues))
-            {
-                var metadataJson = headerValues.FirstOrDefault();
-                if (!string.IsNullOrWhiteSpace(metadataJson))
-                {
-                    var metadata = System.Text.Json.JsonSerializer.Deserialize<PagedListMetadata>(metadataJson);
-                    totalItems = metadata?.TotalCount ?? 0;
-                }
-            }
+            int totalItems = metadata?.TotalCount ?? 0;
 
-            var items = await response.Content.ReadFromJsonAsync<List<AnimeListReadDto>>(cancellationToken: cancellationToken)
-                                ?? new List<AnimeListReadDto>();
-
-            return new TableData<AnimeListReadDto>() { TotalItems = totalItems, Items = items };
+            return new TableData<AnimeListReadDto>() { TotalItems = totalItems, Items = items ?? new List<AnimeListReadDto>() };
         }
         catch (OperationCanceledException)
         {
@@ -189,8 +172,8 @@
 
         if (result != null && !result.Canceled)
         {
-            var response = await Http.DeleteAsync($"api/anime/{id}");
-            if (response.IsSuccessStatusCode)
+            var success = await AnimeService.DeleteAnimeAsync(id);
+            if (success)
             {
                 Snackbar.Add("Anime deleted successfully!", Severity.Success);
                 await MudTable!.ReloadServerData();

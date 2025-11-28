@@ -1,5 +1,7 @@
 ﻿@page "/anime/{Id:int}"
-@inject HttpClient Http
+@using AnimeHubClient.Services
+@inject IAnimeService AnimeService
+@inject IConfiguration Configuration
 @inject ISnackbar Snackbar
 
 @if (IsLoading)
@@ -20,7 +22,7 @@ else
             @* --- Left Column: Image and Details --- *@
             <MudItem xs="12" md="4" lg="3">
                 <MudPaper Elevation="8" Class="pa-2">
-                    <img src="@(Http.BaseAddress?.ToString() + Anime.ImageUrl)" alt="@Anime.Title" style="width:100%; height:auto; border-radius:4px;" />
+                    <img src="@Anime.ImageUrl" alt="@Anime.Title" style="width:100%; height:auto; border-radius:4px;" />
                 </MudPaper>
 
                 <MudList T="string" Class="mt-4" Dense="true">
@@ -98,8 +100,6 @@ else
     public int Id { get; set; }
     private bool IsLoading { get; set; } = true;
     private AnimeReadDto? Anime;
-    private List<CategoryReadDto>? Categories { get; set; } = new();
-
 
     protected override async Task OnInitializedAsync()
     {
@@ -113,7 +113,7 @@ else
 
         try
         {
-            Anime = await Http.GetFromJsonAsync<AnimeReadDto>($"api/anime/{Id}");
+            Anime = await AnimeService.GetAnimeByIdAsync(Id);
         }
         catch (Exception ex)
         {

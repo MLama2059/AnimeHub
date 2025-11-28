@@ -1,8 +1,8 @@
-﻿@inject HttpClient Http
+﻿@inject IConfiguration Configuration
 
 <div class="card anime-card border-0">
     <a href="anime/@Anime.Id">
-        <img src="@(Http.BaseAddress?.ToString() + Anime.ImageUrl)" class="card-img-top anime-img-top" alt="@Anime.Title" />
+        <img src="@Anime.ImageUrl" class="card-img-top anime-img-top" alt="@Anime.Title" />
     </a>
 
     <div class="card-body">

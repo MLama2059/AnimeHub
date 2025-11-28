@@ -6,9 +6,11 @@
 @using AnimeHub.Shared.Models.Dtos.Studio
 @using AnimeHub.Shared.Models.Enums
 @using System.ComponentModel.DataAnnotations
-@inject HttpClient Http
+@using AnimeHubClient.Services
 @inject NavigationManager Navigation
 @inject ISnackbar Snackbar
+@inject IAnimeService AnimeService
+@inject ILookUpService LookUpService
 
 @if (IsLoading)
 {
@@ -117,12 +119,70 @@ else
 
                 @if (!string.IsNullOrEmpty(PreviewImageUrl) || !string.IsNullOrEmpty(UploadedImageUrl))
                 {
-                    <MudImage Src="@(string.IsNullOrEmpty(PreviewImageUrl) ? $"{ApiBaseUrl}{UploadedImageUrl}" : PreviewImageUrl)"
+                    <MudImage Src="@(string.IsNullOrEmpty(PreviewImageUrl) ? UploadedImageUrl : PreviewImageUrl)"
                               Alt="Anime Image"
                               Elevation="25"
                               Class="rounded-lg ma-4 d-block mx-auto"
                               Style="max-height:200px; max-width: 100%;" />
                 }
+
+                @* TRAILER & MEDIA *@
+                <MudText Typo="Typo.h6" Class="mt-5">Trailer & Media</MudText>
+                <MudDivider Class="my-2"/>
+                
+                <MudGrid>
+                    @* Trailer Poster *@
+                    <MudItem xs="12" md="6">
+                        <MudFileUpload T="IBrowserFile" Accept=".jpg,.jpeg,.png" FilesChanged="HandlePosterUpload">
+                            <ActivatorContent>
+                                <MudButton HtmlTag="label"
+                                           Variant="Variant.Filled"
+                                           Color="Color.Secondary"
+                                           StartIcon="@Icons.Material.Filled.Image">
+                                    Upload Trailer Thumbnail
+                                </MudButton>
+                            </ActivatorContent>
+                        </MudFileUpload>
+                        
+                        @if (IsUploadingPoster)
+                        {
+                            <MudProgressLinear Color="Color.Secondary" Indeterminate="true" Class="mt-2" />
+                        }
+                        
+                        @if (!string.IsNullOrEmpty(Anime.TrailerPosterUrl))
+                        {
+                            <MudText Typo="Typo.caption" Class="d-block mt-1">Poster Uploaded</MudText>
+                            <MudImage Src="@Anime.TrailerPosterUrl" 
+                                      Height="100" Class="rounded mt-2" Style="object-fit:cover; aspect-ratio: 16/9;" />
+                        }
+                    </MudItem>
+
+                    @* Trailer Video (MP4) *@
+                    <MudItem xs="12" md="6">
+                        <MudFileUpload T="IBrowserFile" Accept=".mp4" FilesChanged="HandleTrailerUpload">
+                            <ActivatorContent>
+                                <MudButton HtmlTag="label"
+                                           Variant="Variant.Filled"
+                                           Color="Color.Error"
+                                           StartIcon="@Icons.Material.Filled.Movie">
+                                    Upload Trailer Video
+                                </MudButton>
+                            </ActivatorContent>
+                        </MudFileUpload>
+
+                        @if (IsUploadingTrailer)
+                        {
+                            <MudProgressLinear Color="Color.Error" Indeterminate="true" Class="mt-2" />
+                            <MudText Typo="Typo.caption">Uploading Video...</MudText>
+                        }
+
+                        @if (!string.IsNullOrEmpty(Anime.TrailerUrl))
+                        {
+                            <MudText Typo="Typo.caption" Class="d-block mt-1">Video Uploaded</MudText>
+                            <MudText Typo="Typo.body2" Color="Color.Success">@Anime.TrailerUrl</MudText>
+                        }
+                    </MudItem>
+                </MudGrid>
 
                 <MudCardActions Class="py-4">
                     <MudGrid Justify="Justify.Center" Class="px-2">
@@ -165,18 +225,16 @@ else
     private List<StudioReadDto>? Studios { get; set; } = new();
 
     private bool IsLoading { get; set; } = true;
+    // Upload State Flags
+    private bool IsUploadingPoster { get; set; } = false;
+    private bool IsUploadingTrailer { get; set; } = false;
 
     private IBrowserFile? SelectedFile;
     private string? PreviewImageUrl;   // Base64 local preview
     private string? UploadedImageUrl;  // Server path from API
-    private string? ApiBaseUrl { get; set; }
-
 
     protected override async Task OnParametersSetAsync()
     {
-        // Set the API base URL from the HttpClient
-        ApiBaseUrl = Http.BaseAddress?.ToString();
-
         await LoadAnime();
         IsLoading = false;
         StateHasChanged();
@@ -186,7 +244,7 @@ else
     {
         if (Id > 0)
         {
-            var result = await Http.GetFromJsonAsync<AnimeReadDto>($"api/anime/{Id}");
+            var result = await AnimeService.GetAnimeByIdAsync(Id);
             if (result != null)
             {
                 Anime.Id = result.Id;
@@ -196,6 +254,8 @@ else
                 Anime.PremieredYear = result.PremieredYear;
                 Anime.Description = result.Description;
                 Anime.ImageUrl = result.ImageUrl;
+                Anime.TrailerPosterUrl = result.TrailerPosterUrl;
+                Anime.TrailerUrl = result.TrailerUrl;
                 Anime.Rating = result.Rating;
                 Anime.Status = (int)Enum.Parse(typeof(Status), result.Status);
                 Anime.CategoryId = result.CategoryId;
@@ -213,16 +273,16 @@ else
             {
                 GenreIds = new List<int>(),
                 StudioIds = new HashSet<int>(),
-                // FIX: Set status to null, so the MudSelect appears unselected.
+                // Set status to null, so the MudSelect appears unselected.
                 Status = null
             };
             PreviewImageUrl = null;
             UploadedImageUrl = null;
         }
 
-        var categories = Http.GetFromJsonAsync<List<CategoryReadDto>>("api/category");
-        var genres = Http.GetFromJsonAsync<List<GenreReadDto>>("api/genre");
-        var studios = Http.GetFromJsonAsync<List<StudioReadDto>>("api/studio");
+        var categories = LookUpService.GetCategoriesAsync();
+        var genres = LookUpService.GetGenresAsync();
+        var studios = LookUpService.GetStudiosAsync();
 
         await Task.WhenAll(categories, genres, studios);
 
@@ -232,38 +292,79 @@ else
         Studios = studios.Result?.OrderBy(s => s.Name).ToList() ?? new();
     }
 
+    // Trailer file handlers
+    private async Task HandlePosterUpload(IBrowserFile file)
+    {
+        if (file.Size > 5 * 1024 * 1024)
+        {
+            Snackbar.Add("Poster file too large.", Severity.Warning);
+            return;
+        }
+
+        IsUploadingPoster = true;
+        StateHasChanged();
+
+        var path = await AnimeService.UploadTrailerPosterAsync(file);
+
+        if (!string.IsNullOrEmpty(path))
+        {
+            Anime.TrailerPosterUrl = path; // Update DTO
+            Snackbar.Add("Trailer poster uploaded!", Severity.Success);
+        }
+        else
+        {
+            Snackbar.Add("Trailer poster upload failed.", Severity.Error);
+        }
+
+        IsUploadingPoster = false;
+        StateHasChanged();
+    }
+
+    private async Task HandleTrailerUpload(IBrowserFile file)
+    {
+        if (file.Size > 100 * 1024 * 1024)
+        {
+            Snackbar.Add("Video file too large (Max 100MB).", Severity.Warning);
+            return;
+        }
+
+        IsUploadingTrailer = true;
+        StateHasChanged();
+
+        var path = await AnimeService.UploadTrailerAsync(file);
+
+        if (!string.IsNullOrEmpty(path))
+        {
+            Anime.TrailerUrl = path; // Update DTO
+            Snackbar.Add("Trailer video uploaded!", Severity.Success);
+        }
+        else
+        {
+            Snackbar.Add("Trailer video upload failed.", Severity.Error);
+        }
+
+        IsUploadingTrailer = false;
+        StateHasChanged();
+    }
+
     private async Task UpsertAnime()
     {
         IsLoading = true;
+        bool success = false;
 
         try
         {
             // Check if a new file has been selected
             if (SelectedFile != null)
             {
-                // Create a byte array with the file's size
-                var buffer = new byte[(int)SelectedFile.Size];
+                // The service handles the file stream, API call, and oldImageUrl parameter.
+                var newImagePath = await AnimeService.UploadImageAsync(SelectedFile, Anime.ImageUrl);
 
-                // Read the file stream into the buffer
-                await SelectedFile.OpenReadStream(5 * 1024 * 1024).ReadAsync(buffer);
-
-                var content = new MultipartFormDataContent();
-                var fileContent = new ByteArrayContent(buffer);
-                fileContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(SelectedFile.ContentType);
-                content.Add(fileContent, "file", SelectedFile.Name);
-
-                // Send the existing image URL to the API as a query parameter
-                // This URL will be null on a new create, and the old path on an update.
-                string oldImageUrlParam = string.IsNullOrEmpty(Anime.ImageUrl) ? "" : $"&oldImageUrl={Uri.EscapeDataString(Anime.ImageUrl)}";
-
-                // Upload the new image to the API
-                var response = await Http.PostAsync($"api/anime/upload-image?{oldImageUrlParam}", content);
-
-                if (response.IsSuccessStatusCode)
+                if (!string.IsNullOrEmpty(newImagePath))
                 {
                     // Get the new image path from the API
-                    UploadedImageUrl = await response.Content.ReadAsStringAsync();
-                    Anime.ImageUrl = UploadedImageUrl;
+                    UploadedImageUrl = newImagePath;
+                    Anime.ImageUrl = newImagePath;
                 }
                 else
                 {
@@ -282,7 +383,7 @@ else
             if (Id == 0)
             {
                 // Create
-                var response = await Http.PostAsJsonAsync("api/anime", new AnimeCreateDto
+                var createDto = new AnimeCreateDto
                 {
                     Title = Anime.Title,
                     Description = Anime.Description,
@@ -290,35 +391,44 @@ else
                     Season = Anime.Season,
                     PremieredYear = Anime.PremieredYear,
                     ImageUrl = Anime.ImageUrl,
+                    TrailerPosterUrl = Anime.TrailerPosterUrl,
+                    TrailerUrl = Anime.TrailerUrl,
                     Rating = Anime.Rating,
                     Status = Anime.Status,
                     CategoryId = Anime.CategoryId,
                     GenreIds = Anime.GenreIds,
                     StudioIds = Anime.StudioIds
-                });
+                };
 
-                if (response.IsSuccessStatusCode)
-                    Snackbar.Add("Anime created successfully.", Severity.Success);
-                else
-                    Snackbar.Add("Failed to create anime.", Severity.Error);
+                success = await AnimeService.CreateAnimeAsync(createDto);
             }
             else
             {
                 // Update
-                var response = await Http.PutAsJsonAsync($"api/anime/{Anime.Id}", Anime);
-
-                if (response.IsSuccessStatusCode)
-                    Snackbar.Add("Anime updated successfully.", Severity.Success);
-                else
-                    Snackbar.Add("Failed to update anime.", Severity.Error);
+                success = await AnimeService.UpdateAnimeAsync(Anime);
             }
+
+            // Handle Result
+            if (success)
+            {
+                Snackbar.Add($"Anime {(Id > 0 ? "updated" : "created")} successfully.", Severity.Success);
+                Navigation.NavigateTo("/admin/animes");
+            }
+            else
+            {
+                Snackbar.Add($"Failed to {(Id > 0 ? "update" : "create")} anime.", Severity.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"An unexpected error occurred: {ex.Message}", Severity.Error);
         }
         finally
         {
             IsLoading = false;
+            Navigation.NavigateTo("/admin/animes");
         }
 
-        Navigation.NavigateTo("/admin/animes");
     }
 
     private void ToggleGenre(int genreId, bool isChecked)
@@ -350,8 +460,6 @@ else
         // If null is passed (unselected), set the DTO's Status to null.
         set => Anime.Status = value.HasValue ? (int)value.Value : null;
     }
-
-    // Inside the @code block of AnimeUpsert.razor
 
     private string GetEnumDisplayName(Enum enumValue)
     {

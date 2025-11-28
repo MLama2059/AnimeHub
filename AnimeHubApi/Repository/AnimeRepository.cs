@@ -131,6 +131,8 @@ namespace AnimeHubApi.Repository
                     PremieredYear = a.PremieredYear,
                     Description = a.Description,
                     ImageUrl = a.ImageUrl,
+                    TrailerPosterUrl = a.TrailerPosterUrl,
+                    TrailerUrl = a.TrailerUrl,
                     Rating = a.Rating,
                     Status = a.Status.ToString(), // (Enum to String)
                     CategoryId = a.CategoryId,
@@ -177,6 +179,8 @@ namespace AnimeHubApi.Repository
                 PremieredYear = animeDto.PremieredYear,
                 Description = animeDto.Description,
                 ImageUrl = animeDto.ImageUrl,
+                TrailerPosterUrl = animeDto.TrailerPosterUrl,
+                TrailerUrl = animeDto.TrailerUrl,
                 Rating = animeDto.Rating,
                 Status = (Status)animeDto.Status,
                 CategoryId = animeDto.CategoryId,
@@ -206,6 +210,8 @@ namespace AnimeHubApi.Repository
             anime.PremieredYear = animeDto.PremieredYear;
             anime.Description = animeDto.Description;
             anime.ImageUrl = animeDto.ImageUrl;
+            anime.TrailerPosterUrl = animeDto.TrailerPosterUrl;
+            anime.TrailerUrl = animeDto.TrailerUrl;
             anime.Rating = animeDto.Rating;
             anime.Status = (Status)animeDto.Status;
             anime.CategoryId = animeDto.CategoryId;

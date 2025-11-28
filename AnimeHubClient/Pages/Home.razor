@@ -1,10 +1,12 @@
 ﻿@page "/"
 @using AnimeHub.Shared.Models.Dtos
 @using AnimeHub.Shared.Models.Dtos.Anime
+@using AnimeHubClient.Services
 @using MudBlazor
-@inject HttpClient Http
 @inject NavigationManager Navigation
 @inject ISnackbar Snackbar
+@inject IAnimeService AnimeService
+@inject ILookUpService LookUpService
 
 <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-4">
     <MudGrid Justify="Justify.Center">
@@ -141,8 +143,6 @@
                 }
             </MudGrid>
         </MudItem>
-        @* ----------------------------------------------------------------- *@
-
     </MudGrid>
 </MudContainer>
 
@@ -157,9 +157,9 @@
         try
         {
             // Concurrent data fetching
-            var topRatedAnimesTask = Http.GetFromJsonAsync<List<AnimeListReadDto>>("api/anime/top");
-            var categoriesTask = Http.GetFromJsonAsync<List<CategoryReadDto>>("api/category");
-            var genresTask = Http.GetFromJsonAsync<List<GenreReadDto>>("api/genre");
+            var topRatedAnimesTask = AnimeService.GetTopRatedAnimesAsync();
+            var categoriesTask = LookUpService.GetCategoriesAsync();
+            var genresTask = LookUpService.GetGenresAsync();
 
             await Task.WhenAll(topRatedAnimesTask, categoriesTask, genresTask);
 

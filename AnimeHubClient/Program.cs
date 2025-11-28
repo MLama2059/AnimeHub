@@ -3,6 +3,7 @@ using AnimeHubClient.Services;
 using Blazored.LocalStorage;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Web;
+using Microsoft.AspNetCore.Components.WebAssembly.Authentication;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using MudBlazor;
 using MudBlazor.Extensions;
@@ -12,14 +13,35 @@ var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 
+// Read the URL from appsettings.json
+string apiUrlStr = builder.Configuration["ApiBaseUrl"]
+                   ?? "https://localhost:7114"; // Fallback if file missing
+var apiUrl = new Uri(apiUrlStr);
+
 // Authentication Services
 builder.Services.AddAuthorizationCore(); // Adds core authorization services
 builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthStateProvider>(); // Tells Blazor to use your custom provider
 builder.Services.AddBlazoredLocalStorage(); // Registers the ILocalStorageService
+builder.Services.AddScoped<JwtAuthorizationMessageHandler>(); // Register the custom handler
 
-builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri("https://localhost:7114") });
-builder.Services.AddScoped<IAuthService, AuthService>();
-builder.Services.AddScoped<IRatingService, RatingService>();
+builder.Services.AddHttpClient<IAnimeService, AnimeService>(client =>
+    client.BaseAddress = apiUrl)
+    .AddHttpMessageHandler<JwtAuthorizationMessageHandler>();
+
+builder.Services.AddHttpClient<ICategoryService, CategoryService>(client =>
+    client.BaseAddress = new Uri("https://localhost:7114"))
+    .AddHttpMessageHandler<JwtAuthorizationMessageHandler>();
+
+builder.Services.AddHttpClient<IRatingService, RatingService>(client =>
+    client.BaseAddress = apiUrl)
+    .AddHttpMessageHandler<JwtAuthorizationMessageHandler>();
+
+builder.Services.AddHttpClient<ILookUpService, LookUpService>(client =>
+    client.BaseAddress = apiUrl);
+
+builder.Services.AddHttpClient<IAuthService, AuthService>(client =>
+    // This ensures the HttpClient injected into AuthService knows the base URI (https://localhost:7114)
+    client.BaseAddress = apiUrl);
 
 // Add MudBlazor services and configure snackbar defaults
 builder.Services.AddMudServices(config =>

@@ -1,9 +1,10 @@
 ﻿@page "/animes"
 @using AnimeHub.Shared.Models.Dtos
+@using AnimeHubClient.Services
 @using Microsoft.AspNetCore.WebUtilities
-@inject HttpClient Http
 @inject ISnackbar Snackbar
 @inject IJSRuntime JSRuntime
+@inject IAnimeService AnimeService
 @implements IDisposable
 
 <MudPaper Elevation="4" Class="mt-4">
@@ -109,7 +110,7 @@
         }
     }
 
-    // --- JS INTEROP METHOD (Called by JavaScript) ---
+    // JS INTEROP METHOD
     [JSInvokable]
     public async Task LoadMoreData()
     {
@@ -130,49 +131,34 @@
 
         try
         {
-            // await Task.Delay(1000);
-            // Build the Query String
-            var queryParams = new Dictionary<string, string?>
-            {
-                {"pageNumber", CurrentPage.ToString()},
-                {"pageSize", PageSize.ToString()},
-                {"orderBy", OrderBy}
-            };
-
-            // Add Filter Params if a search query is present
-            if (!string.IsNullOrWhiteSpace(FilterQuery))
-            {
-                queryParams.Add("filterOn", FilterOn);
-                queryParams.Add("filterQuery", FilterQuery);
-            }
-
-            var queryString = new FormUrlEncodedContent(queryParams).ReadAsStringAsync().Result;
-
-            var response = await Http.GetAsync($"api/anime?{queryString}");
-            response.EnsureSuccessStatusCode();
-
-            var newAnimes = await response.Content.ReadFromJsonAsync<List<AnimeListReadDto>>() ?? new();
+            var (newAnimes, metadata) = await AnimeService.GetAnimeCatalogAsync(
+                CurrentPage,
+                PageSize,
+                OrderBy,
+                FilterQuery,
+                FilterOn // This parameter is optional but included for completeness
+            );
 
             // Append or Replace logic
             if (append)
             {
-                AnimesList.AddRange(newAnimes);
+                AnimesList.AddRange(newAnimes ?? new());
             }
             else
             {
-                AnimesList = newAnimes;
+                AnimesList = newAnimes ?? new();
                 CurrentPage = 1;
             }
 
             // Update Metadata for HasMorePages
-            if (response.Headers.TryGetValues("X-Pagination", out var headerValues))
+            if (metadata != null)
             {
-                var metadataJson = headerValues.FirstOrDefault();
-                if (!string.IsNullOrWhiteSpace(metadataJson))
-                {
-                    Metadata = System.Text.Json.JsonSerializer.Deserialize<PagedListMetadata>(metadataJson) ?? new PagedListMetadata();
-                    HasMorePages = Metadata.HasNext;
-                }
+                Metadata = metadata;
+                HasMorePages = Metadata.HasNext;
+            }
+            else if (!append) // If no metadata on first load, assume no more pages
+            {
+                HasMorePages = false;
             }
         }
         catch (Exception ex)

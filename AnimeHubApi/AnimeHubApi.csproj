@@ -21,6 +21,8 @@
 
   <ItemGroup>
     <Folder Include="Images\Animes\" />
+    <Folder Include="Images\Posters\" />
+    <Folder Include="Videos\Trailers\" />
   </ItemGroup>
 
   <Import Project="..\AnimeHub.Shared\AnimeHub.Shared.projitems" Label="Shared" />

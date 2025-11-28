@@ -15,6 +15,9 @@ namespace AnimeHub.Shared.Models
         public int? PremieredYear { get; set; }
         public string? Description { get; set; }
         public string? ImageUrl { get; set; }
+        // Properties for the trailer
+        public string? TrailerUrl { get; set; }
+        public string? TrailerPosterUrl { get; set; }
         [Range(0, 10)]
         public double? Rating { get; set; }
         public Status Status { get; set; }

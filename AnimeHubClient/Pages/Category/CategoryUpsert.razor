@@ -1,9 +1,10 @@
 ﻿@page "/admin/categories/create"
 @page "/admin/categories/update/{Id:int}"
 @using AnimeHub.Shared.Models.Dtos.Category
-@inject HttpClient Http
+@using AnimeHubClient.Services
 @inject NavigationManager Navigation
 @inject ISnackbar Snackbar
+@inject ICategoryService CategoryService
 
 @if (IsLoading)
 {
@@ -59,7 +60,7 @@ else
     {
         if (Id > 0)
         {
-            var result = await Http.GetFromJsonAsync<CategoryReadDto>($"api/category/{Id}");
+            var result = await CategoryService.GetCategoryByIdAsync(Id);
             if (result != null)
             {
                 Category.Id = result.Id;
@@ -71,28 +72,43 @@ else
     private async Task UpsertCategory()
     {
         IsLoading = true;
+        StateHasChanged();
+
+        bool success = false;
 
         try
         {
             if (Id == 0)
             {
                 // Create
-                await Http.PostAsJsonAsync("api/Category", new CategoryCreateDto { Name = Category.Name });
-                Snackbar.Add("Category created successfully.", Severity.Success);
+                var createDto = new CategoryCreateDto { Name = Category.Name };
+                success = await CategoryService.CreateCategoryAsync(createDto);
             }
             else
             {
                 // Update
-                await Http.PutAsJsonAsync($"api/category/{Category.Id}", Category);
-                Snackbar.Add("Category updated successfully.", Severity.Success);
-            } 
+                success = await CategoryService.UpdateCategoryAsync(Category);
+            }
+
+            // Handle Result
+            if (success)
+            {
+                Snackbar.Add($"Category {(Id > 0 ? "updated" : "created")} successfully.", Severity.Success);
+                Navigation.NavigateTo("/admin/categories");
+            }
+            else
+            {
+                Snackbar.Add($"Failed to {(Id > 0 ? "update" : "create")} category.", Severity.Error);
+            }
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"An error occured: {ex.Message}", Severity.Error);
+            Snackbar.Add($"An unexpected error occured: {ex.Message}", Severity.Error);
         }
-
-        IsLoading = false;
-        Navigation.NavigateTo("/admin/categories");
+        finally
+        {
+            IsLoading = false;
+            Navigation.NavigateTo("/admin/categories"); 
+        }
     }
 }

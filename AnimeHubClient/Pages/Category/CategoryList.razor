@@ -1,9 +1,11 @@
 ﻿@page "/admin/categories"
 @using AnimeHub.Shared.Models.Dtos.Category
+@using AnimeHubClient.Services
 @using AnimeHubClient.Shared
-@inject HttpClient Http
 @inject IDialogService Dialog
 @inject ISnackbar Snackbar
+@inject ILookUpService LookUpService
+@inject ICategoryService CategoryService
 
 @if (IsLoading)
 {
@@ -58,7 +60,7 @@ else
     {
         try
         {
-            Categories = await Http.GetFromJsonAsync<List<CategoryReadDto>>("api/category");
+            Categories = await LookUpService.GetCategoriesAsync();
         }
         catch (Exception ex)
         {
@@ -86,16 +88,31 @@ else
 
         if (!result.Canceled)
         {
-            // Call API to delete
-            var response = await Http.DeleteAsync($"api/category/{id}");
-            if (response.IsSuccessStatusCode)
+            IsLoading = true; // Show loading spinner while API call is running
+            StateHasChanged();
+
+            try
             {
-                Snackbar.Add("Category deleted successfully!", Severity.Success);
-                await LoadCategories(); // Reload list
+                // Call API to delete
+                var success = await CategoryService.DeleteCategoryAsync(id);
+                if (success)
+                {
+                    Snackbar.Add("Category deleted successfully!", Severity.Success);
+                    await LoadCategories(); // Reload list
+                }
+                else
+                {
+                    Snackbar.Add("Failed to delete category.", Severity.Error);
+                } 
             }
-            else
+            catch (Exception ex)
             {
-                Snackbar.Add("Failed to delete category.", Severity.Error);
+                Snackbar.Add($"An error occurred during deletion: {ex.Message}", Severity.Error);
+            }
+            finally
+            {
+                IsLoading = false;
+                StateHasChanged();
             }
         }
     }

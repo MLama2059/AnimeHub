@@ -59,6 +59,12 @@ namespace AnimeHubApi.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
+                    b.Property<string>("TrailerPosterUrl")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("TrailerUrl")
+                        .HasColumnType("nvarchar(max)");
+
                     b.HasKey("Id");
 
                     b.HasIndex("CategoryId");

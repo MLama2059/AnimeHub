@@ -61,13 +61,22 @@ builder.Services.AddAuthentication(options =>
 
 var app = builder.Build();
 
-// Enable serving static files
+// Enable serving static files for images
 app.UseStaticFiles(new StaticFileOptions
 {
     FileProvider = new PhysicalFileProvider(
         Path.Combine(Directory.GetCurrentDirectory(), "Images")
     ),
     RequestPath = "/images"
+});
+
+// Enable serving static files for videos
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(
+        Path.Combine(Directory.GetCurrentDirectory(), "Videos")
+    ),
+    RequestPath = "/videos"
 });
 
 // Configure the HTTP request pipeline.
