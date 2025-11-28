@@ -22,7 +22,7 @@ else
             @* --- Left Column: Image and Details --- *@
             <MudItem xs="12" md="4" lg="3">
                 <MudPaper Elevation="8" Class="pa-2">
-                    <img src="@Anime.ImageUrl" alt="@Anime.Title" style="width:100%; height:auto; border-radius:4px;" />
+                    <img src="@(Configuration["ApiBaseUrl"]?.ToString() + Anime.ImageUrl)" alt="@Anime.Title" style="width:100%; height:auto; border-radius:4px;" />
                 </MudPaper>
 
                 <MudList T="string" Class="mt-4" Dense="true">
@@ -84,7 +84,25 @@ else
                     }
                 </MudChipSet>
 
-                <MudText Typo="Typo.h5" Class="mt-4">Synopsis</MudText>
+                @* Trailer *@
+                @if (!string.IsNullOrEmpty(Anime.TrailerUrl))
+                {
+                    // Use a variable to safely get the absolute URLs for trailer/poster
+                    string trailerBaseUrl = Configuration["ApiBaseUrl"]?.ToString() ?? "";
+                    string fullTrailerUrl = trailerBaseUrl + Anime.TrailerUrl;
+                    string fullPosterUrl = trailerBaseUrl + Anime.TrailerPosterUrl;
+
+                    <MudText Typo="Typo.h5" Class="mt-4 mb-2 fw-bold">Official Trailer</MudText>
+                    <MudPaper Elevation="4" Class="mb-4 pa-1" Style="max-width: 300px;">
+                        <video controls style="width: 100%; height: auto; border-radius: 4px;"
+                               poster="@fullPosterUrl">
+                            <source src="@fullTrailerUrl" type="video/mp4">
+                            Your browser does not support the video tag.
+                        </video>
+                    </MudPaper>
+                }
+
+                <MudText Typo="Typo.h5" Class="mt-4 fw-bold">Synopsis</MudText>
                 <MudDivider Class="my-2" />
                 <MudText Typo="Typo.body1" Style="white-space: pre-wrap;">@Anime.Description</MudText>
 

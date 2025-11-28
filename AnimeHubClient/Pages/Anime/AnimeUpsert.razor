@@ -11,6 +11,8 @@
 @inject ISnackbar Snackbar
 @inject IAnimeService AnimeService
 @inject ILookUpService LookUpService
+@inject IConfiguration Configuration
+
 
 @if (IsLoading)
 {
@@ -119,7 +121,7 @@ else
 
                 @if (!string.IsNullOrEmpty(PreviewImageUrl) || !string.IsNullOrEmpty(UploadedImageUrl))
                 {
-                    <MudImage Src="@(string.IsNullOrEmpty(PreviewImageUrl) ? UploadedImageUrl : PreviewImageUrl)"
+                    <MudImage Src="@(string.IsNullOrEmpty(PreviewImageUrl) ? $"{Configuration["ApiBaseUrl"]}{UploadedImageUrl}" : PreviewImageUrl)"
                               Alt="Anime Image"
                               Elevation="25"
                               Class="rounded-lg ma-4 d-block mx-auto"
@@ -152,7 +154,7 @@ else
                         @if (!string.IsNullOrEmpty(Anime.TrailerPosterUrl))
                         {
                             <MudText Typo="Typo.caption" Class="d-block mt-1">Poster Uploaded</MudText>
-                            <MudImage Src="@Anime.TrailerPosterUrl" 
+                            <MudImage Src="@(Configuration["ApiBaseUrl"]?.ToString() + Anime.TrailerPosterUrl)" 
                                       Height="100" Class="rounded mt-2" Style="object-fit:cover; aspect-ratio: 16/9;" />
                         }
                     </MudItem>
@@ -179,7 +181,7 @@ else
                         @if (!string.IsNullOrEmpty(Anime.TrailerUrl))
                         {
                             <MudText Typo="Typo.caption" Class="d-block mt-1">Video Uploaded</MudText>
-                            <MudText Typo="Typo.body2" Color="Color.Success">@Anime.TrailerUrl</MudText>
+                            <MudText Typo="Typo.body2" Color="Color.Success">@(Configuration["ApiBaseUrl"]?.ToString() + Anime.TrailerUrl)</MudText>
                         }
                     </MudItem>
                 </MudGrid>
@@ -232,6 +234,7 @@ else
     private IBrowserFile? SelectedFile;
     private string? PreviewImageUrl;   // Base64 local preview
     private string? UploadedImageUrl;  // Server path from API
+
 
     protected override async Task OnParametersSetAsync()
     {

@@ -2,7 +2,7 @@
 
 <div class="card anime-card border-0">
     <a href="anime/@Anime.Id">
-        <img src="@Anime.ImageUrl" class="card-img-top anime-img-top" alt="@Anime.Title" />
+        <img src="@(Configuration["ApiBaseUrl"]?.ToString() + Anime.ImageUrl)" class="card-img-top anime-img-top" alt="@Anime.Title" />
     </a>
 
     <div class="card-body">
@@ -15,4 +15,5 @@
 @code {
     [Parameter]
     public AnimeListReadDto Anime { get; set; } = default!;
+
 }

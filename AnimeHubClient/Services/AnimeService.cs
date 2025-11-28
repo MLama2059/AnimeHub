@@ -75,11 +75,16 @@ namespace AnimeHubClient.Services
 
                 if (response.IsSuccessStatusCode)
                 {
-                    var relativePath = await response.Content.ReadAsStringAsync();
-                    relativePath = relativePath.Trim('"').Replace("\\", "/");
+                    var path = await response.Content.ReadAsStringAsync();
 
-                    // Return absolute URL
-                    return new Uri(_httpClient.BaseAddress!, relativePath).ToString();
+                    // Clean up and return the path
+
+                    return path.Trim('"').Replace("\\", "/");
+                    //var relativePath = await response.Content.ReadAsStringAsync();
+                    //relativePath = relativePath.Trim('"').Replace("\\", "/");
+
+                    //// Return absolute URL
+                    //return new Uri(_httpClient.BaseAddress!, relativePath).ToString();
                 }
                 else
                 {
@@ -129,13 +134,18 @@ namespace AnimeHubClient.Services
 
                 if (response.IsSuccessStatusCode)
                 {
-                    var relativePath = await response.Content.ReadAsStringAsync();
-                    relativePath = relativePath.Trim('"').Replace("\\", "/");
+                    var path = await response.Content.ReadAsStringAsync();
 
-                    // Prepend the API Base Address
-                    var absoluteUrl = new Uri(_httpClient.BaseAddress!, relativePath).ToString();
+                    // Clean up and return the path
 
-                    return absoluteUrl;
+                    return path.Trim('"').Replace("\\", "/");
+                    //var relativePath = await response.Content.ReadAsStringAsync();
+                    //relativePath = relativePath.Trim('"').Replace("\\", "/");
+
+                    //// Prepend the API Base Address
+                    //var absoluteUrl = new Uri(_httpClient.BaseAddress!, relativePath).ToString();
+
+                    //return absoluteUrl;
                 }
                 else
                 {
