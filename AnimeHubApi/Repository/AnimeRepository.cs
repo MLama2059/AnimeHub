@@ -13,10 +13,12 @@ namespace AnimeHubApi.Repository
     public class AnimeRepository : IAnimeRepository
     {
         private readonly ApplicationDbContext _context;
+        private readonly IFileService _fileService;
 
-        public AnimeRepository(ApplicationDbContext context)
+        public AnimeRepository(ApplicationDbContext context, IFileService fileService)
         {
             _context = context;
+            _fileService = fileService;
         }
 
         public async Task<PagedList<AnimeListReadDto>> GetAllAsync(APIParams apiParams)
@@ -231,17 +233,54 @@ namespace AnimeHubApi.Repository
 
         public async Task<bool> DeleteAsync(int id)
         {
-            var anime = await _context.Animes.FindAsync(id);
-            if (anime == null) return false;
+            // Retrieve the entity and its file paths before deleting it
+            var anime = await _context.Animes
+                .Where(a => a.Id == id)
+                .Select(a => new {
+                    Entity = a,
+                    a.ImageUrl,
+                    a.TrailerUrl,
+                    a.TrailerPosterUrl
+                })
+                .FirstOrDefaultAsync();
 
-            _context.Animes.Remove(anime);
+            if (anime == null)
+                return false;
+
+            // Delete the associated files from the file system
+            var filesToDelete = new List<string?>
+            { 
+                anime.ImageUrl,
+                anime.TrailerUrl,
+                anime.TrailerPosterUrl
+            };
+
+            // Delete files using the service
+            _fileService.DeleteFiles(filesToDelete);
+
+            _context.Animes.Remove(anime.Entity);
             await _context.SaveChangesAsync();
             return true;
+        }
+
+        public async Task<(string? imageUrl, string? trailerUrl, string? trailerPosterUrl)> GetFilePathsAsync(int id)
+        {
+            var anime = await _context.Animes
+                .AsNoTracking()
+                .Where(a => a.Id == id)
+                .Select(a => new { a.ImageUrl, a.TrailerUrl, a.TrailerPosterUrl })
+                .FirstOrDefaultAsync();
+
+            if (anime == null) 
+                return (null, null, null);
+
+            return (anime.ImageUrl, anime.TrailerUrl, anime.TrailerPosterUrl);
         }
 
         public bool Exists(int id)
         {
             return _context.Animes.Any(a => a.Id == id);
         }
+
     }
 }

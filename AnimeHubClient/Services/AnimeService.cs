@@ -4,6 +4,7 @@ using AnimeHub.Shared.Models.Dtos.Category;
 using AnimeHub.Shared.Models.Dtos.Genre;
 using AnimeHub.Shared.Models.Dtos.Studio;
 using Microsoft.AspNetCore.Components.Forms;
+using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
 
@@ -13,6 +14,8 @@ namespace AnimeHubClient.Services
     {
         private readonly HttpClient _httpClient;
         private readonly string API_BASE_URL = "api/anime";
+        private const int MAX_IMAGE_SIZE_MB = 5;
+        private const int MAX_VIDEO_SIZE_MB = 100;
 
         public AnimeService(HttpClient httpClient)
         {
@@ -52,63 +55,79 @@ namespace AnimeHubClient.Services
         // IMAGE UPLOAD
         public async Task<string?> UploadImageAsync(IBrowserFile file, string? oldImageUrl)
         {
-            var maxFileSize = 5 * 1024 * 1024; // 5MB limit
+            return await UploadFileInternalAsync(
+                file,
+                $"{API_BASE_URL}/upload-image",
+                oldImageUrl,
+                "oldImageUrl",
+                MAX_IMAGE_SIZE_MB
+            );
+        }
+
+
+      
+
+        // PRIVATE UNIFIED HELPER METHOD
+        private async Task<string?> UploadFileInternalAsync(
+            IBrowserFile file,
+            string endpoint,
+            string? oldUrl,
+            string oldUrlParamName,
+            int maxFileSizeMb)
+        {
+            var maxFileSize = maxFileSizeMb * 1024 * 1024;
 
             if (file.Size > maxFileSize)
             {
-                return null;
+                // CRITICAL FIX: If file fails validation (e.g., too big), return the original URL
+                // to prevent accidentally deleting the existing file path during an update.
+                return oldUrl;
             }
 
             try
             {
                 var content = new MultipartFormDataContent();
 
-                // Read the file stream into the content
+                // Read the file stream into the content, limiting the stream length to the max file size
                 var fileContent = new StreamContent(file.OpenReadStream(maxFileSize));
-                fileContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(file.ContentType);
+                fileContent.Headers.ContentType = new MediaTypeHeaderValue(file.ContentType);
                 content.Add(fileContent, "file", file.Name);
 
-                // Build the query parameter for the old image
-                string oldImageUrlParam = string.IsNullOrEmpty(oldImageUrl) ? "" : $"&oldImageUrl={Uri.EscapeDataString(oldImageUrl)}";
+                // Build the query parameter for the old file
+                string oldUrlQuery = string.IsNullOrEmpty(oldUrl)
+                    ? string.Empty
+                    : $"{oldUrlParamName}={Uri.EscapeDataString(oldUrl)}";
 
-                var response = await _httpClient.PostAsync($"{API_BASE_URL}/upload-image?{oldImageUrlParam}", content);
+                // Construct the full URI, handling the query parameter
+                string requestUri = $"{endpoint}";
+                if (!string.IsNullOrEmpty(oldUrlQuery))
+                {
+                    requestUri += $"?{oldUrlQuery}";
+                }
+
+                var response = await _httpClient.PostAsync(requestUri, content);
 
                 if (response.IsSuccessStatusCode)
                 {
                     var path = await response.Content.ReadAsStringAsync();
-
                     // Clean up and return the path
-
                     return path.Trim('"').Replace("\\", "/");
-                    //var relativePath = await response.Content.ReadAsStringAsync();
-                    //relativePath = relativePath.Trim('"').Replace("\\", "/");
-
-                    //// Return absolute URL
-                    //return new Uri(_httpClient.BaseAddress!, relativePath).ToString();
                 }
                 else
                 {
-                    // Handle API failure
-                    return null;
+                    // If API call fails, also return the old URL to preserve existing state
+                    return oldUrl;
                 }
             }
             catch (Exception)
             {
-                return null;
+                // Log exception in a production app
+                // If an exception occurs, return the old URL to preserve existing state
+                return oldUrl;
             }
         }
 
-        // TRAILER UPLOADS
-        public async Task<string?> UploadTrailerPosterAsync(IBrowserFile file)
-        {
-            return await UploadFileAsync(file, $"{API_BASE_URL}/upload-trailer-poster");
-        }
-
-        public async Task<string?> UploadTrailerAsync(IBrowserFile file)
-        {
-            return await UploadFileAsync(file, $"{API_BASE_URL}/upload-trailer");
-        }
-
+        /*
         // PRIVATE HELPER METHOD
         private async Task<string?> UploadFileAsync(IBrowserFile file, string endpoint)
         {
@@ -157,6 +176,7 @@ namespace AnimeHubClient.Services
                 return null;
             }
         }
+        */
 
         public async Task<(List<AnimeListReadDto>? Items, PagedListMetadata? Metadata)> GetPagedAnimeListAsync(Dictionary<string, string?> queryParams, CancellationToken cancellationToken)
         {
@@ -216,6 +236,28 @@ namespace AnimeHubClient.Services
             var items = await response.Content.ReadFromJsonAsync<List<AnimeListReadDto>>();
 
             return (items, metadata);
+        }
+
+        public async Task<string?> UploadTrailerPosterAsync(IBrowserFile file, string? oldPosterUrl)
+        {
+            return await UploadFileInternalAsync(
+                file,
+                $"{API_BASE_URL}/upload-trailer-poster",
+                oldPosterUrl,
+                "oldPosterUrl",
+                MAX_IMAGE_SIZE_MB
+            );
+        }
+
+        public async Task<string?> UploadTrailerAsync(IBrowserFile file, string? oldTrailerUrl)
+        {
+            return await UploadFileInternalAsync(
+                file,
+                $"{API_BASE_URL}/upload-trailer",
+                oldTrailerUrl,
+                "oldTrailerUrl",
+                MAX_VIDEO_SIZE_MB
+            );
         }
     }
 }

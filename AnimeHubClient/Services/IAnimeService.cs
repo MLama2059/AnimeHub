@@ -20,8 +20,8 @@ namespace AnimeHubClient.Services
 
         // File Uploads
         Task<string?> UploadImageAsync(IBrowserFile file, string? oldImageUrl);
-        Task<string?> UploadTrailerAsync(IBrowserFile file);
-        Task<string?> UploadTrailerPosterAsync(IBrowserFile file);
+        Task<string?> UploadTrailerPosterAsync(IBrowserFile file, string? oldPosterUrl);
+        Task<string?> UploadTrailerAsync(IBrowserFile file, string? oldTrailerUrl);
 
         // Methods for AnimeList.razor
         Task<(List<AnimeListReadDto>? Items, PagedListMetadata? Metadata)> GetPagedAnimeListAsync(Dictionary<string, string?> queryParams, CancellationToken cancellationToken);

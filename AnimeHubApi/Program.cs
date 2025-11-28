@@ -24,6 +24,7 @@ builder.Services.AddScoped<IStudioRepository, StudioRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IRatingRepository, RatingRepository>();
 builder.Services.AddScoped<IJwtService, JwtService>();
+builder.Services.AddScoped<IFileService, FileService>();
 
 // Add the CORS service registration
 builder.Services.AddCors(options =>

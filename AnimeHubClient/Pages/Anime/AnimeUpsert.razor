@@ -109,7 +109,7 @@ else
                     </MudGrid>
                 </MudPaper>
 
-                <MudFileUpload T="IBrowserFile" OnFilesChanged="OnFileSelected" Class="mt-3">
+                <MudFileUpload T="IBrowserFile" OnFilesChanged="OnImageFileSelected" Class="mt-3">
                     <ActivatorContent>
                         <MudButton Variant="Variant.Filled"
                                    Color="Color.Primary"
@@ -135,7 +135,7 @@ else
                 <MudGrid>
                     @* Trailer Poster *@
                     <MudItem xs="12" md="6">
-                        <MudFileUpload T="IBrowserFile" Accept=".jpg,.jpeg,.png" FilesChanged="HandlePosterUpload">
+                        <MudFileUpload T="IBrowserFile" Accept=".jpg,.jpeg,.png" OnFilesChanged="OnPosterFileSelected">
                             <ActivatorContent>
                                 <MudButton HtmlTag="label"
                                            Variant="Variant.Filled"
@@ -161,7 +161,7 @@ else
 
                     @* Trailer Video (MP4) *@
                     <MudItem xs="12" md="6">
-                        <MudFileUpload T="IBrowserFile" Accept=".mp4" FilesChanged="HandleTrailerUpload">
+                        <MudFileUpload T="IBrowserFile" Accept=".mp4" OnFilesChanged="OnTrailerFileSelected">
                             <ActivatorContent>
                                 <MudButton HtmlTag="label"
                                            Variant="Variant.Filled"
@@ -227,13 +227,26 @@ else
     private List<StudioReadDto>? Studios { get; set; } = new();
 
     private bool IsLoading { get; set; } = true;
-    // Upload State Flags
+    // Upload State Flags - Kept for UI feedback but file upload logic is in the service
     private bool IsUploadingPoster { get; set; } = false;
     private bool IsUploadingTrailer { get; set; } = false;
 
-    private IBrowserFile? SelectedFile;
-    private string? PreviewImageUrl;   // Base64 local preview
-    private string? UploadedImageUrl;  // Server path from API
+    // Image files for upload
+    private IBrowserFile? SelectedImageFile;
+    private string? PreviewImageUrl;    // Base64 local preview
+    private string? UploadedImageUrl;   // Server path from API
+
+    // Trailer Poster files for upload
+    private IBrowserFile? SelectedPosterFile;
+    private string? PreviewPosterUrl;
+
+    // Trailer Video files for upload
+    private IBrowserFile? SelectedTrailerFile;
+    private string? PreviewTrailerUrl;
+
+    // No longer needed:
+    // private string? UploadedPosterUrl;
+    // private string? UploadedTrailerUrl;
 
 
     protected override async Task OnParametersSetAsync()
@@ -253,6 +266,7 @@ else
                 Anime.Id = result.Id;
                 Anime.Title = result.Title;
                 Anime.Episodes = result.Episodes;
+                // Safely parse the enum from string/int
                 Anime.Season = (int)Enum.Parse(typeof(Season), result.Season);
                 Anime.PremieredYear = result.PremieredYear;
                 Anime.Description = result.Description;
@@ -260,9 +274,10 @@ else
                 Anime.TrailerPosterUrl = result.TrailerPosterUrl;
                 Anime.TrailerUrl = result.TrailerUrl;
                 Anime.Rating = result.Rating;
+                // Safely parse the enum from string/int
                 Anime.Status = (int)Enum.Parse(typeof(Status), result.Status);
                 Anime.CategoryId = result.CategoryId;
-                Anime.GenreIds = result.GenreIds ?? new List<int>();
+                Anime.GenreIds = result.GenreIds?.ToList() ?? new List<int>();
                 Anime.StudioIds = result.StudioIds ?? new HashSet<int>();
 
                 // Ensure the path uses forward slashes for web access
@@ -279,8 +294,12 @@ else
                 // Set status to null, so the MudSelect appears unselected.
                 Status = null
             };
+
+            // Reset all file URLs for a new entry
             PreviewImageUrl = null;
             UploadedImageUrl = null;
+            PreviewPosterUrl = null;
+            PreviewTrailerUrl = null;
         }
 
         var categories = LookUpService.GetCategoriesAsync();
@@ -295,97 +314,43 @@ else
         Studios = studios.Result?.OrderBy(s => s.Name).ToList() ?? new();
     }
 
-    // Trailer file handlers
-    private async Task HandlePosterUpload(IBrowserFile file)
-    {
-        if (file.Size > 5 * 1024 * 1024)
-        {
-            Snackbar.Add("Poster file too large.", Severity.Warning);
-            return;
-        }
-
-        IsUploadingPoster = true;
-        StateHasChanged();
-
-        var path = await AnimeService.UploadTrailerPosterAsync(file);
-
-        if (!string.IsNullOrEmpty(path))
-        {
-            Anime.TrailerPosterUrl = path; // Update DTO
-            Snackbar.Add("Trailer poster uploaded!", Severity.Success);
-        }
-        else
-        {
-            Snackbar.Add("Trailer poster upload failed.", Severity.Error);
-        }
-
-        IsUploadingPoster = false;
-        StateHasChanged();
-    }
-
-    private async Task HandleTrailerUpload(IBrowserFile file)
-    {
-        if (file.Size > 100 * 1024 * 1024)
-        {
-            Snackbar.Add("Video file too large (Max 100MB).", Severity.Warning);
-            return;
-        }
-
-        IsUploadingTrailer = true;
-        StateHasChanged();
-
-        var path = await AnimeService.UploadTrailerAsync(file);
-
-        if (!string.IsNullOrEmpty(path))
-        {
-            Anime.TrailerUrl = path; // Update DTO
-            Snackbar.Add("Trailer video uploaded!", Severity.Success);
-        }
-        else
-        {
-            Snackbar.Add("Trailer video upload failed.", Severity.Error);
-        }
-
-        IsUploadingTrailer = false;
-        StateHasChanged();
-    }
-
     private async Task UpsertAnime()
     {
         IsLoading = true;
-        bool success = false;
 
         try
         {
-            // Check if a new file has been selected
-            if (SelectedFile != null)
-            {
-                // The service handles the file stream, API call, and oldImageUrl parameter.
-                var newImagePath = await AnimeService.UploadImageAsync(SelectedFile, Anime.ImageUrl);
+            // --- 1. Concurrent File Uploads using the Service Pattern ---
+            // Create tasks for all potential file uploads. If a file is null, we return the existing URL.
+            // This is cleaner and more performant. The IAnimeService methods handle the API calls.
+            var imageUploadTask = SelectedImageFile != null
+                ? AnimeService.UploadImageAsync(SelectedImageFile, Anime.ImageUrl)
+                : Task.FromResult(Anime.ImageUrl);
 
-                if (!string.IsNullOrEmpty(newImagePath))
-                {
-                    // Get the new image path from the API
-                    UploadedImageUrl = newImagePath;
-                    Anime.ImageUrl = newImagePath;
-                }
-                else
-                {
-                    Snackbar.Add("Image upload failed.", Severity.Error);
-                    IsLoading = false;
-                    return; // Stop the process if image upload fails
-                }
-            }
-            else
-            {
-                // If no new file, retain the existing ImageUrl from the loaded Anime object
-                // This is crucial for updates where the user doesn't change the image
-                Anime.ImageUrl = UploadedImageUrl;
-            }
+            var posterUploadTask = SelectedPosterFile != null
+                ? AnimeService.UploadTrailerPosterAsync(SelectedPosterFile, Anime.TrailerPosterUrl)
+                : Task.FromResult(Anime.TrailerPosterUrl);
 
+            var trailerUploadTask = SelectedTrailerFile != null
+                ? AnimeService.UploadTrailerAsync(SelectedTrailerFile, Anime.TrailerUrl)
+                : Task.FromResult(Anime.TrailerUrl);
+
+            // Wait for all three uploads/path resolutions concurrently
+            await Task.WhenAll(imageUploadTask, posterUploadTask, trailerUploadTask);
+
+            // 2. Update the DTO with the new (or retained old) paths
+            Anime.ImageUrl = imageUploadTask.Result;
+            Anime.TrailerPosterUrl = posterUploadTask.Result;
+            Anime.TrailerUrl = trailerUploadTask.Result;
+
+            bool success;
+            string successMessage;
+
+            // --- 3. CRUD Operation using the Service Pattern ---
             if (Id == 0)
             {
-                // Create
+                // Create logic: Map the AnimeUpdateDto properties to an AnimeCreateDto
+                // as the form model is AnimeUpdateDto to handle the update scenario cleanly.
                 var createDto = new AnimeCreateDto
                 {
                     Title = Anime.Title,
@@ -393,46 +358,51 @@ else
                     Episodes = Anime.Episodes,
                     Season = Anime.Season,
                     PremieredYear = Anime.PremieredYear,
-                    ImageUrl = Anime.ImageUrl,
-                    TrailerPosterUrl = Anime.TrailerPosterUrl,
-                    TrailerUrl = Anime.TrailerUrl,
                     Rating = Anime.Rating,
                     Status = Anime.Status,
                     CategoryId = Anime.CategoryId,
-                    GenreIds = Anime.GenreIds,
-                    StudioIds = Anime.StudioIds
+                    GenreIds = Anime.GenreIds.ToList(), // Convert to list for the Create DTO
+                    StudioIds = Anime.StudioIds,
+                    ImageUrl = Anime.ImageUrl,
+                    TrailerUrl = Anime.TrailerUrl,
+                    TrailerPosterUrl = Anime.TrailerPosterUrl
                 };
 
                 success = await AnimeService.CreateAnimeAsync(createDto);
+                successMessage = "Anime created successfully.";
             }
             else
             {
-                // Update
+                // Update logic: Pass the AnimeUpdateDto directly
                 success = await AnimeService.UpdateAnimeAsync(Anime);
+                successMessage = "Anime updated successfully.";
             }
 
-            // Handle Result
             if (success)
             {
-                Snackbar.Add($"Anime {(Id > 0 ? "updated" : "created")} successfully.", Severity.Success);
+                Snackbar.Add(successMessage, Severity.Success);
+                // Navigate only on successful save
                 Navigation.NavigateTo("/admin/animes");
             }
             else
             {
-                Snackbar.Add($"Failed to {(Id > 0 ? "update" : "create")} anime.", Severity.Error);
+                // The service should ideally handle API error messages, but provide a fallback.
+                Snackbar.Add("Operation failed. The service may have provided more details.", Severity.Error);
             }
         }
         catch (Exception ex)
         {
+            // Handle any exceptions during upload or DTO transfer
             Snackbar.Add($"An unexpected error occurred: {ex.Message}", Severity.Error);
         }
         finally
         {
             IsLoading = false;
-            Navigation.NavigateTo("/admin/animes");
+            StateHasChanged(); // Ensure UI state is updated
         }
-
     }
+    
+    // --- File Selection Handlers (Kept for local preview state) ---
 
     private void ToggleGenre(int genreId, bool isChecked)
     {
@@ -451,62 +421,90 @@ else
     private string ConvertStudioIdToName(int id)
     {
         // Find the studio object corresponding to the ID and return its Name.
-        // Use a default value if the studio isn't found (e.g., for safety).
         return Studios?.FirstOrDefault(s => s.Id == id)?.Name ?? $"ID {id}";
     }
 
     private Status? AnimeStatusEnum
     {
         get => Anime.Status.HasValue ? (Status)Anime.Status.Value : null;
-
-        // When the user selects a value (Status), set the DTO's Status (int?)
-        // If null is passed (unselected), set the DTO's Status to null.
         set => Anime.Status = value.HasValue ? (int)value.Value : null;
     }
 
     private string GetEnumDisplayName(Enum enumValue)
     {
-        // Use reflection to get the MemberInfo for the enum value
+        // Implementation for getting DisplayAttribute name is correct and kept.
         var memberInfo = enumValue.GetType().GetMember(enumValue.ToString()).FirstOrDefault();
-
         if (memberInfo == null)
         {
-            return enumValue.ToString(); // Fallback to raw string
+            return enumValue.ToString();
         }
 
-        // Check if the DisplayAttribute is present
         var displayAttribute = memberInfo.GetCustomAttributes(typeof(DisplayAttribute), false)
-                                         .OfType<DisplayAttribute>()
-                                         .FirstOrDefault();
+                                             .OfType<DisplayAttribute>()
+                                             .FirstOrDefault();
 
-        // Return the Name from the DisplayAttribute, or fallback to raw string
         return displayAttribute?.Name ?? enumValue.ToString();
     }
 
-    private async Task OnFileSelected(InputFileChangeEventArgs e)
+    // New/Updated OnFileSelected methods (Simplified)
+
+    private async Task OnImageFileSelected(InputFileChangeEventArgs e)
     {
-        SelectedFile = e.File;
+        SelectedImageFile = e.File;
+        await OnFileSelectedInternal(e.File, url => PreviewImageUrl = url, "image/");
+    }
 
-        if (SelectedFile == null)
+    private async Task OnPosterFileSelected(InputFileChangeEventArgs e)
+    {
+        SelectedPosterFile = e.File;
+        await OnFileSelectedInternal(e.File, url => PreviewPosterUrl = url, "image/");
+    }
+
+    private async Task OnTrailerFileSelected(InputFileChangeEventArgs e)
+    {
+        SelectedTrailerFile = e.File;
+        await OnFileSelectedInternal(e.File, url => PreviewTrailerUrl = url, "video/");
+    }
+
+    // Unified internal file handler for preview logic
+    private async Task OnFileSelectedInternal(IBrowserFile file, Action<string> setPreviewUrl, string mimeTypePrefix)
+    {
+        if (file == null)
             return;
 
-        if (!SelectedFile.ContentType.StartsWith("image/"))
+        if (!file.ContentType.StartsWith(mimeTypePrefix))
         {
-            Snackbar.Add("Please select a valid image file.", Severity.Warning);
+            Snackbar.Add($"Please select a valid {mimeTypePrefix.Trim('/')} file.", Severity.Warning);
             return;
         }
 
-        if (SelectedFile.Size > 5 * 1024 * 1024)
+        var maxFileSize = mimeTypePrefix.StartsWith("video") ? 100 * 1024 * 1024 : 5 * 1024 * 1024;
+
+        if (file.Size > maxFileSize)
         {
-            Snackbar.Add("File size exceeds 5 MB.", Severity.Warning);
+            Snackbar.Add($"File size exceeds {maxFileSize / (1024 * 1024)} MB.", Severity.Warning);
             return;
         }
 
-        // Base 64 Preview
-        var buffer = new byte[(int)SelectedFile.Size];
-        await SelectedFile.OpenReadStream(5 * 1024 * 1024).ReadAsync(buffer); // 5MB max
-        PreviewImageUrl = $"data:{SelectedFile.ContentType};base64,{Convert.ToBase64String(buffer)}";
+        // Base 64 Preview (only for images/posters)
+        if (!mimeTypePrefix.StartsWith("video"))
+        {
+            try
+            {
+                var buffer = new byte[Math.Min(file.Size, 5 * 1024 * 1024)]; // Limit read size for preview
+                await file.OpenReadStream(5 * 1024 * 1024).ReadAsync(buffer);
+                setPreviewUrl($"data:{file.ContentType};base64,{Convert.ToBase64String(buffer)}");
+            }
+            catch (Exception)
+            {
+                setPreviewUrl(null); // Clear preview on error
+            }
+        }
+        else
+        {
+            setPreviewUrl(null); // No base64 preview for videos
+        }
 
-        UploadedImageUrl = null; // Reset uploaded URL until upload completes
+        StateHasChanged();
     }
 }

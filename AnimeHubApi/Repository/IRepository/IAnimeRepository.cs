@@ -12,6 +12,8 @@ namespace AnimeHubApi.Repository.IRepository
         Task<AnimeReadDto> AddAsync(AnimeCreateDto animeDto);
         Task<bool> UpdateAsync(int id, AnimeUpdateDto animeDto);
         Task<bool> DeleteAsync(int id);
+        // Method to fetch file paths based on ID
+        Task<(string? imageUrl, string? trailerUrl, string? trailerPosterUrl)> GetFilePathsAsync(int id);
         bool Exists(int id);
     }
 }

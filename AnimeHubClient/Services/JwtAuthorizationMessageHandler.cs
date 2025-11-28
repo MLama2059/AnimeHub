@@ -20,7 +20,8 @@ namespace AnimeHubClient.Services
             // Attach it to the Authorization header if it exists
             if (!string.IsNullOrEmpty(token))
             {
-                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+                string cleanToken = token.Trim('"');
+                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", cleanToken);
             }
 
             return await base.SendAsync(request, cancellationToken);
