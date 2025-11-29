@@ -97,10 +97,11 @@ else
                             @foreach (var genre in Genres)
                             {
                                 <MudItem xs="6" sm="4" md="3" lg="2">
-                                    <MudCheckBox onchange="e => ToggleGenre(genre.Id, e)"
-                                                 T="bool"
+                                    <MudCheckBox T="bool"
                                                  @key="genre.Id"
                                                  Label="@genre.Name"
+                                                 Dense="true"
+                                                 Size="Size.Small"
                                                  Value="@Anime.GenreIds.Contains(genre.Id)"
                                                  ValueChanged="e => ToggleGenre(genre.Id, e)" />
                                 </MudItem>
@@ -119,13 +120,16 @@ else
                     </ActivatorContent>
                 </MudFileUpload>
 
-                @if (!string.IsNullOrEmpty(PreviewImageUrl) || !string.IsNullOrEmpty(UploadedImageUrl))
+                @if (!string.IsNullOrEmpty(PreviewImageUrl))
                 {
-                    <MudImage Src="@(string.IsNullOrEmpty(PreviewImageUrl) ? $"{Configuration["ApiBaseUrl"]}{UploadedImageUrl}" : PreviewImageUrl)"
-                              Alt="Anime Image"
-                              Elevation="25"
-                              Class="rounded-lg ma-4 d-block mx-auto"
-                              Style="max-height:200px; max-width: 100%;" />
+                    @* Local Preview (Base64) *@
+                    @* <MudText Typo="Typo.caption" Class="d-block mt-1">New Image Selected:</MudText> *@
+                    <MudImage Src="@PreviewImageUrl" Alt="New Preview" Elevation="25" Class="rounded-lg ma-4 d-block mx-auto" Style="max-height:200px; max-width: 100%;" />
+                }
+                else if (!string.IsNullOrEmpty(UploadedImageUrl))
+                {
+                    @* Existing Server Image *@
+                    <MudImage Src="@($"{ApiBaseUrl}{UploadedImageUrl}")" Alt="Current Image" Elevation="25" Class="rounded-lg ma-4 d-block mx-auto" Style="max-height:200px; max-width: 100%;" />
                 }
 
                 @* TRAILER & MEDIA *@
@@ -148,14 +152,21 @@ else
                         
                         @if (IsUploadingPoster)
                         {
-                            <MudProgressLinear Color="Color.Secondary" Indeterminate="true" Class="mt-2" />
+                            <MudProgressLinear Color="Color.Error" Indeterminate="true" Class="mt-2" />
+                            <MudText Typo="Typo.caption">Uploading Poster...</MudText>
                         }
                         
-                        @if (!string.IsNullOrEmpty(Anime.TrailerPosterUrl))
+                        @if (!string.IsNullOrEmpty(PreviewPosterUrl))
                         {
-                            <MudText Typo="Typo.caption" Class="d-block mt-1">Poster Uploaded</MudText>
-                            <MudImage Src="@(Configuration["ApiBaseUrl"]?.ToString() + Anime.TrailerPosterUrl)" 
-                                      Height="100" Class="rounded mt-2" Style="object-fit:cover; aspect-ratio: 16/9;" />
+                            @* Local Preview (Base64) *@
+                            @* <MudText Typo="Typo.caption" Class="d-block mt-1">New Poster Selected:</MudText> *@
+                            <MudImage Src="@PreviewPosterUrl" Height="100" Class="rounded mt-2" Style="object-fit:cover; aspect-ratio: 16/9;" />
+                        }
+                        else if (!string.IsNullOrEmpty(Anime.TrailerPosterUrl))
+                        {
+                            @* Existing Server Poster *@
+                            @* <MudText Typo="Typo.caption" Class="d-block mt-1">Current Poster:</MudText> *@
+                            <MudImage Src="@($"{ApiBaseUrl}{Anime.TrailerPosterUrl}")" Height="100" Class="rounded mt-2" Style="object-fit:cover; aspect-ratio: 16/9;" />
                         }
                     </MudItem>
 
@@ -178,10 +189,22 @@ else
                             <MudText Typo="Typo.caption">Uploading Video...</MudText>
                         }
 
-                        @if (!string.IsNullOrEmpty(Anime.TrailerUrl))
+                        @if (SelectedTrailerFile != null)
                         {
-                            <MudText Typo="Typo.caption" Class="d-block mt-1">Video Uploaded</MudText>
-                            <MudText Typo="Typo.body2" Color="Color.Success">@(Configuration["ApiBaseUrl"]?.ToString() + Anime.TrailerUrl)</MudText>
+                            <MudAlert Severity="Severity.Info" Class="mt-2" Dense="true">
+                                <MudText Typo="Typo.caption"><strong>Selected:</strong> @SelectedTrailerFile.Name</MudText>
+                                <br />
+                                <MudText Typo="Typo.caption"><strong>Size:</strong> @(SelectedTrailerFile.Size / 1024 / 1024) MB</MudText>
+                                <br />
+                                @* <MudText Typo="Typo.caption"><em>Will be uploaded upon saving.</em></MudText> *@
+                            </MudAlert>
+                        }
+                        @* Scenario B: Existing File (Show Link/Player) *@
+                        else if (!string.IsNullOrEmpty(Anime.TrailerUrl))
+                        {
+                            @* <MudText Typo="Typo.caption" Class="d-block mt-1">Current Video:</MudText> *@
+                            @* Display Relative Path for clean UI *@
+                            <MudText Typo="Typo.body2" Color="Color.Success" Class="text-truncate mt-2">@Anime.TrailerUrl</MudText>
                         }
                     </MudItem>
                 </MudGrid>
@@ -228,6 +251,7 @@ else
 
     private bool IsLoading { get; set; } = true;
     // Upload State Flags - Kept for UI feedback but file upload logic is in the service
+    private bool IsUploadingImage { get; set; } = false;
     private bool IsUploadingPoster { get; set; } = false;
     private bool IsUploadingTrailer { get; set; } = false;
 
@@ -242,12 +266,10 @@ else
 
     // Trailer Video files for upload
     private IBrowserFile? SelectedTrailerFile;
-    private string? PreviewTrailerUrl;
+    // private string? PreviewTrailerUrl;
 
-    // No longer needed:
-    // private string? UploadedPosterUrl;
-    // private string? UploadedTrailerUrl;
-
+    // Helper property to get Base URL cleanly in HTML
+    private string ApiBaseUrl => Configuration["ApiBaseUrl"] ?? "";
 
     protected override async Task OnParametersSetAsync()
     {
@@ -266,7 +288,6 @@ else
                 Anime.Id = result.Id;
                 Anime.Title = result.Title;
                 Anime.Episodes = result.Episodes;
-                // Safely parse the enum from string/int
                 Anime.Season = (int)Enum.Parse(typeof(Season), result.Season);
                 Anime.PremieredYear = result.PremieredYear;
                 Anime.Description = result.Description;
@@ -274,7 +295,6 @@ else
                 Anime.TrailerPosterUrl = result.TrailerPosterUrl;
                 Anime.TrailerUrl = result.TrailerUrl;
                 Anime.Rating = result.Rating;
-                // Safely parse the enum from string/int
                 Anime.Status = (int)Enum.Parse(typeof(Status), result.Status);
                 Anime.CategoryId = result.CategoryId;
                 Anime.GenreIds = result.GenreIds?.ToList() ?? new List<int>();
@@ -299,7 +319,7 @@ else
             PreviewImageUrl = null;
             UploadedImageUrl = null;
             PreviewPosterUrl = null;
-            PreviewTrailerUrl = null;
+            // PreviewTrailerUrl = null;
         }
 
         var categories = LookUpService.GetCategoriesAsync();
@@ -317,6 +337,11 @@ else
     private async Task UpsertAnime()
     {
         IsLoading = true;
+        IsUploadingImage = (SelectedPosterFile != null);
+        IsUploadingPoster = (SelectedPosterFile != null);
+        IsUploadingTrailer = (SelectedTrailerFile != null);
+
+        StateHasChanged();
 
         try
         {
@@ -338,13 +363,18 @@ else
             // Wait for all three uploads/path resolutions concurrently
             await Task.WhenAll(imageUploadTask, posterUploadTask, trailerUploadTask);
 
+            // Turn off upload indicators as tasks complete
+            IsUploadingImage = false;
+            IsUploadingPoster = false;
+            IsUploadingTrailer = false;
+            StateHasChanged();
+
             // 2. Update the DTO with the new (or retained old) paths
             Anime.ImageUrl = imageUploadTask.Result;
             Anime.TrailerPosterUrl = posterUploadTask.Result;
             Anime.TrailerUrl = trailerUploadTask.Result;
 
             bool success;
-            string successMessage;
 
             // --- 3. CRUD Operation using the Service Pattern ---
             if (Id == 0)
@@ -369,25 +399,22 @@ else
                 };
 
                 success = await AnimeService.CreateAnimeAsync(createDto);
-                successMessage = "Anime created successfully.";
             }
             else
             {
                 // Update logic: Pass the AnimeUpdateDto directly
                 success = await AnimeService.UpdateAnimeAsync(Anime);
-                successMessage = "Anime updated successfully.";
             }
 
             if (success)
             {
-                Snackbar.Add(successMessage, Severity.Success);
-                // Navigate only on successful save
+                Snackbar.Add($"Anime {(Id == 0 ? "created" : "updated")} successfully.", Severity.Success);
                 Navigation.NavigateTo("/admin/animes");
             }
             else
             {
                 // The service should ideally handle API error messages, but provide a fallback.
-                Snackbar.Add("Operation failed. The service may have provided more details.", Severity.Error);
+                Snackbar.Add("Operation failed.", Severity.Error);
             }
         }
         catch (Exception ex)
@@ -398,11 +425,12 @@ else
         finally
         {
             IsLoading = false;
+            IsUploadingImage = false;
+            IsUploadingPoster = false;
+            IsUploadingTrailer = false;
             StateHasChanged(); // Ensure UI state is updated
         }
     }
-    
-    // --- File Selection Handlers (Kept for local preview state) ---
 
     private void ToggleGenre(int genreId, bool isChecked)
     {
@@ -446,65 +474,77 @@ else
         return displayAttribute?.Name ?? enumValue.ToString();
     }
 
-    // New/Updated OnFileSelected methods (Simplified)
-
+    // OnFileSelected methods
     private async Task OnImageFileSelected(InputFileChangeEventArgs e)
     {
-        SelectedImageFile = e.File;
-        await OnFileSelectedInternal(e.File, url => PreviewImageUrl = url, "image/");
+        if (await ValidateAndPreviewFile(e.File, "image/", url => PreviewImageUrl = url))
+            SelectedImageFile = e.File;
+        else
+            SelectedImageFile = null;
     }
 
     private async Task OnPosterFileSelected(InputFileChangeEventArgs e)
     {
-        SelectedPosterFile = e.File;
-        await OnFileSelectedInternal(e.File, url => PreviewPosterUrl = url, "image/");
+        if (await ValidateAndPreviewFile(e.File, "image/", url => PreviewPosterUrl = url))
+            SelectedPosterFile = e.File;
+        else
+            SelectedPosterFile = null;
     }
 
     private async Task OnTrailerFileSelected(InputFileChangeEventArgs e)
     {
-        SelectedTrailerFile = e.File;
-        await OnFileSelectedInternal(e.File, url => PreviewTrailerUrl = url, "video/");
-    }
-
-    // Unified internal file handler for preview logic
-    private async Task OnFileSelectedInternal(IBrowserFile file, Action<string> setPreviewUrl, string mimeTypePrefix)
-    {
-        if (file == null)
-            return;
-
-        if (!file.ContentType.StartsWith(mimeTypePrefix))
+        // For video, we don't generate a preview URL (base64 is too heavy).
+        // We just validate. The UI will show the file name.
+        if (await ValidateAndPreviewFile(e.File, "video/", null))
         {
-            Snackbar.Add($"Please select a valid {mimeTypePrefix.Trim('/')} file.", Severity.Warning);
-            return;
-        }
-
-        var maxFileSize = mimeTypePrefix.StartsWith("video") ? 100 * 1024 * 1024 : 5 * 1024 * 1024;
-
-        if (file.Size > maxFileSize)
-        {
-            Snackbar.Add($"File size exceeds {maxFileSize / (1024 * 1024)} MB.", Severity.Warning);
-            return;
-        }
-
-        // Base 64 Preview (only for images/posters)
-        if (!mimeTypePrefix.StartsWith("video"))
-        {
-            try
-            {
-                var buffer = new byte[Math.Min(file.Size, 5 * 1024 * 1024)]; // Limit read size for preview
-                await file.OpenReadStream(5 * 1024 * 1024).ReadAsync(buffer);
-                setPreviewUrl($"data:{file.ContentType};base64,{Convert.ToBase64String(buffer)}");
-            }
-            catch (Exception)
-            {
-                setPreviewUrl(null); // Clear preview on error
-            }
+            SelectedTrailerFile = e.File;
+            // Clear existing URL so UI knows we are pending a new upload
+            // But KEEP it in Anime.TrailerUrl so we can pass it as 'oldUrl' to the service!
+            // The UI check `SelectedTrailerFile != null` handles the display logic.
         }
         else
         {
-            setPreviewUrl(null); // No base64 preview for videos
+            SelectedTrailerFile = null;
+        }
+    }
+
+    // Consolidated Validator & Previewer
+    private async Task<bool> ValidateAndPreviewFile(IBrowserFile file, string mimePrefix, Action<string?>? setPreview)
+    {
+        if (file == null) return false;
+
+        if (!file.ContentType.StartsWith(mimePrefix))
+        {
+            Snackbar.Add($"Invalid file type. Expected {mimePrefix}", Severity.Warning);
+            setPreview?.Invoke(null);
+            return false;
+        }
+
+        long maxFileSize = mimePrefix == "video/" ? 100 * 1024 * 1024 : 5 * 1024 * 1024;
+        if (file.Size > maxFileSize)
+        {
+            Snackbar.Add($"File too large. Max {maxFileSize / 1024 / 1024}MB", Severity.Warning);
+            setPreview?.Invoke(null);
+            return false;
+        }
+
+        // Only generate preview for images
+        if (mimePrefix == "image/" && setPreview != null)
+        {
+            try
+            {
+                var buffer = new byte[file.Size];
+                await file.OpenReadStream(maxFileSize).ReadAsync(buffer);
+                setPreview.Invoke($"data:{file.ContentType};base64,{Convert.ToBase64String(buffer)}");
+            }
+            catch
+            {
+                setPreview.Invoke(null);
+                return false;
+            }
         }
 
         StateHasChanged();
+        return true;
     }
 }
