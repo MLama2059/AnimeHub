@@ -78,6 +78,11 @@ namespace AnimeHubApi.Controllers
         [HttpPost]
         public async Task<IActionResult> AddAnime([FromBody] AnimeCreateDto animeDto)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             var createdAnime = await _animeRepository.AddAsync(animeDto);
 
             if (createdAnime == null)
@@ -137,6 +142,8 @@ namespace AnimeHubApi.Controllers
         }
 
         [Authorize(Roles = RoleConstants.Admin)]
+        [DisableRequestSizeLimit]
+        [RequestSizeLimit(104857600)]
         [HttpPost("upload-trailer")]
         public async Task<IActionResult> UploadTrailer(IFormFile file, [FromQuery] string? oldTrailerUrl)
         {
@@ -147,6 +154,11 @@ namespace AnimeHubApi.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateAnime(int id, [FromBody] AnimeUpdateDto animeDto)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             if (!_animeRepository.Exists(id))
                 return NotFound();
 

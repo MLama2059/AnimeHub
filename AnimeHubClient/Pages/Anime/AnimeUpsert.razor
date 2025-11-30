@@ -102,6 +102,7 @@ else
                                                  Label="@genre.Name"
                                                  Dense="true"
                                                  Size="Size.Small"
+                                                 Color="Color.Primary"
                                                  Value="@Anime.GenreIds.Contains(genre.Id)"
                                                  ValueChanged="e => ToggleGenre(genre.Id, e)" />
                                 </MudItem>
@@ -114,7 +115,7 @@ else
                     <ActivatorContent>
                         <MudButton Variant="Variant.Filled"
                                    Color="Color.Primary"
-                                   StartIcon="@Icons.Material.Filled.CloudUpload">
+                                   StartIcon="@Icons.Material.Filled.Image">
                             Upload Image
                         </MudButton>
                     </ActivatorContent>
@@ -143,18 +144,12 @@ else
                             <ActivatorContent>
                                 <MudButton HtmlTag="label"
                                            Variant="Variant.Filled"
-                                           Color="Color.Secondary"
+                                           Color="Color.Primary"
                                            StartIcon="@Icons.Material.Filled.Image">
                                     Upload Trailer Thumbnail
                                 </MudButton>
                             </ActivatorContent>
                         </MudFileUpload>
-                        
-                        @if (IsUploadingPoster)
-                        {
-                            <MudProgressLinear Color="Color.Error" Indeterminate="true" Class="mt-2" />
-                            <MudText Typo="Typo.caption">Uploading Poster...</MudText>
-                        }
                         
                         @if (!string.IsNullOrEmpty(PreviewPosterUrl))
                         {
@@ -182,12 +177,6 @@ else
                                 </MudButton>
                             </ActivatorContent>
                         </MudFileUpload>
-
-                        @if (IsUploadingTrailer)
-                        {
-                            <MudProgressLinear Color="Color.Error" Indeterminate="true" Class="mt-2" />
-                            <MudText Typo="Typo.caption">Uploading Video...</MudText>
-                        }
 
                         @if (SelectedTrailerFile != null)
                         {
@@ -250,10 +239,6 @@ else
     private List<StudioReadDto>? Studios { get; set; } = new();
 
     private bool IsLoading { get; set; } = true;
-    // Upload State Flags - Kept for UI feedback but file upload logic is in the service
-    private bool IsUploadingImage { get; set; } = false;
-    private bool IsUploadingPoster { get; set; } = false;
-    private bool IsUploadingTrailer { get; set; } = false;
 
     // Image files for upload
     private IBrowserFile? SelectedImageFile;
@@ -337,10 +322,6 @@ else
     private async Task UpsertAnime()
     {
         IsLoading = true;
-        IsUploadingImage = (SelectedPosterFile != null);
-        IsUploadingPoster = (SelectedPosterFile != null);
-        IsUploadingTrailer = (SelectedTrailerFile != null);
-
         StateHasChanged();
 
         try
@@ -362,12 +343,6 @@ else
 
             // Wait for all three uploads/path resolutions concurrently
             await Task.WhenAll(imageUploadTask, posterUploadTask, trailerUploadTask);
-
-            // Turn off upload indicators as tasks complete
-            IsUploadingImage = false;
-            IsUploadingPoster = false;
-            IsUploadingTrailer = false;
-            StateHasChanged();
 
             // 2. Update the DTO with the new (or retained old) paths
             Anime.ImageUrl = imageUploadTask.Result;
@@ -425,9 +400,6 @@ else
         finally
         {
             IsLoading = false;
-            IsUploadingImage = false;
-            IsUploadingPoster = false;
-            IsUploadingTrailer = false;
             StateHasChanged(); // Ensure UI state is updated
         }
     }
