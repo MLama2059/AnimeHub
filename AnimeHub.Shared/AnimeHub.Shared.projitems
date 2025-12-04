@@ -36,9 +36,11 @@
     <Compile Include="$(MSBuildThisFileDirectory)Models\Dtos\User\UserResponseDto.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\Enums\Season.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\Enums\Status.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Models\Enums\WatchStatus.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\Genre.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\Studio.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\User.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Models\UserAnime.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\UserAnimeRating.cs" />
   </ItemGroup>
 </Project>

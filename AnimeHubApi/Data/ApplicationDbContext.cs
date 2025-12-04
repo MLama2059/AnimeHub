@@ -15,6 +15,7 @@ namespace AnimeHubApi.Data
         public DbSet<AnimeStudio> AnimeStudios => Set<AnimeStudio>();
         public DbSet<User> Users => Set<User>();
         public DbSet<UserAnimeRating> UserAnimeRatings => Set<UserAnimeRating>();
+        public DbSet<UserAnime> UserAnimes => Set<UserAnime>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -203,6 +204,12 @@ namespace AnimeHubApi.Data
             // (A user cannot rate the same anime twice)
             modelBuilder.Entity<UserAnimeRating>()
                 .HasIndex(r => new { r.AnimeId, r.UserId })
+                .IsUnique();
+
+            // Define Composite Unique Key: 
+            // A user can't have the same AnimeId in their list more than once.
+            modelBuilder.Entity<UserAnime>()
+                .HasIndex(ua => new { ua.UserId, ua.AnimeId })
                 .IsUnique();
         }
     }
