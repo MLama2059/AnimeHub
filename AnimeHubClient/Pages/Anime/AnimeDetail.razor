@@ -1,8 +1,12 @@
 ﻿@page "/anime/{Id:int}"
+@using AnimeHub.Shared.Models.Enums
 @using AnimeHubClient.Services
+@using Microsoft.AspNetCore.Components.Authorization
 @inject IAnimeService AnimeService
+@inject IWatchlistService WatchlistService
 @inject IConfiguration Configuration
 @inject ISnackbar Snackbar
+@inject AuthenticationStateProvider AuthenticationStateProvider
 
 @if (IsLoading)
 {
@@ -67,6 +71,49 @@ else
             <MudItem xs="12" md="8" lg="9">
                 <MudText Typo="Typo.h3" Class="fw-bold mb-1">@Anime.Title</MudText>
                 <MudText Typo="Typo.subtitle1" Class="text-muted mb-3">@Anime.CategoryName</MudText>
+
+                @* Watchlist UI block *@
+                <MudStack Row="true" Spacing="2" Class="mb-4 align-items-center">
+                    @if (!IsAuthenticated)
+                    {
+                        <MudButton Variant="Variant.Filled" Color ="Color.Dark" Disabled="true" StartIcon="@Icons.Material.Filled.Lock">
+                            Log In to Add to Watchlist
+                        </MudButton>
+                    }
+                    else if (CurrentWatchStatus.HasValue)
+                    {
+                        <MudSelect T="WatchStatus"
+                                   Value="@CurrentWatchStatus.Value"
+                                   ValueChanged="OnStatusChangeAsync"
+                                   Label="My Status"
+                                   Variant="Variant.Filled"
+                                   Disabled="@IsLoading"
+                                   Style="min-width: 180px;">
+                            @foreach (var status in Statuses)
+                            {
+                                <MudSelectItem Value="@status">@status.ToString()</MudSelectItem>
+                            }
+                        </MudSelect>
+
+                        <MudButton @onclick="ToggleWatchlistAsync"
+                                   StartIcon="@Icons.Material.Filled.BookmarkRemove"
+                                   Variant="Variant.Filled"
+                                   Color="Color.Error"
+                                   Disabled="@IsLoading">
+                            Remove
+                        </MudButton>
+                    }
+                    else
+                    {
+                        <MudButton @onclick="ToggleWatchlistAsync"
+                                   StartIcon="@Icons.Material.Filled.BookmarkAdd"
+                                   Variant="Variant.Filled"
+                                   Color="Color.Primary"
+                                   Disabled="@IsLoading">
+                            Add to Watchlist
+                        </MudButton>
+                    }
+                </MudStack>
                 
                 @* Genres Chip Group *@
                 <MudText Typo="Typo.subtitle1" Class="fw-bold mb-2">Genres</MudText>
@@ -117,7 +164,13 @@ else
     [Parameter]
     public int Id { get; set; }
     private bool IsLoading { get; set; } = true;
+
     private AnimeReadDto? Anime;
+    private WatchStatus? CurrentWatchStatus = null;
+    private bool IsAuthenticated;
+
+    // Enum to hold the watching statuses for the dropdown
+    private List<WatchStatus> Statuses = Enum.GetValues<WatchStatus>().ToList();
 
     protected override async Task OnInitializedAsync()
     {
@@ -128,10 +181,19 @@ else
     {
         IsLoading = true;
         Anime = null;
+        CurrentWatchStatus = null;
+
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        IsAuthenticated = authState.User.Identity?.IsAuthenticated ?? false;
 
         try
         {
             Anime = await AnimeService.GetAnimeByIdAsync(Id);
+
+            if (Anime != null && IsAuthenticated)
+            {
+                CurrentWatchStatus = await WatchlistService.GetWatchStatusAsync(Id);
+            }
         }
         catch (Exception ex)
         {
@@ -143,4 +205,78 @@ else
         }
     }
 
+    private async Task ToggleWatchlistAsync()
+    {
+        if (!IsAuthenticated) return;
+
+        IsLoading = true;
+
+        try
+        {
+            if (CurrentWatchStatus.HasValue)
+            {
+                var success = await WatchlistService.RemoveFromWatchlistAsync(Id);
+                if (success)
+                {
+                    CurrentWatchStatus = null;
+                    Snackbar.Add("Anime removed from watchlist.", Severity.Success);
+                }
+                else
+                {
+                    Snackbar.Add("Failed to removed from watchlist.", Severity.Error);
+                }
+            }
+            else
+            {
+                var success = await WatchlistService.AddToWatchlistAsync(Id);
+                if (success)
+                {
+                    CurrentWatchStatus = await WatchlistService.GetWatchStatusAsync(Id);
+                    Snackbar.Add("Anime added to watchlist!", Severity.Success);
+                }
+                else
+                {
+                    Snackbar.Add("Failed to add to watchlist. It might already exist.", Severity.Error);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Watchlist error: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+
+    private async Task OnStatusChangeAsync(WatchStatus newStatus)
+    {
+        if (!IsAuthenticated || !CurrentWatchStatus.HasValue || CurrentWatchStatus == newStatus) return;
+
+        IsLoading = true;
+
+        try
+        {
+            var success = await WatchlistService.UpdateWatchStatusAsync(Id, newStatus);
+
+            if (success)
+            {
+                CurrentWatchStatus = newStatus;
+                Snackbar.Add($"Watch status updated to {newStatus}!", Severity.Success);
+            }
+            else
+            {
+                Snackbar.Add("Failed to update status.", Severity.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error updating status: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
 }

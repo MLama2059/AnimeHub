@@ -26,13 +26,18 @@ builder.Services.AddScoped<JwtAuthorizationMessageHandler>(); // Register the cu
 
 builder.Services.AddHttpClient<IAnimeService, AnimeService>(client =>
     client.BaseAddress = apiUrl)
+    // This line is critical for security: it attaches the JWT token
     .AddHttpMessageHandler<JwtAuthorizationMessageHandler>();
 
 builder.Services.AddHttpClient<ICategoryService, CategoryService>(client =>
-    client.BaseAddress = new Uri("https://localhost:7114"))
+    client.BaseAddress = apiUrl)
     .AddHttpMessageHandler<JwtAuthorizationMessageHandler>();
 
 builder.Services.AddHttpClient<IRatingService, RatingService>(client =>
+    client.BaseAddress = apiUrl)
+    .AddHttpMessageHandler<JwtAuthorizationMessageHandler>();
+
+builder.Services.AddHttpClient<IWatchlistService, WatchlistService>(client =>
     client.BaseAddress = apiUrl)
     .AddHttpMessageHandler<JwtAuthorizationMessageHandler>();
 
