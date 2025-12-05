@@ -82,7 +82,7 @@ namespace AnimeHubApi.Controllers
                 if (status == null)
                     return NotFound("Anime not found in your watchlist.");
 
-                return Ok(status.ToString());
+                return Ok(status);
             }
             catch (UnauthorizedAccessException ex)
             {

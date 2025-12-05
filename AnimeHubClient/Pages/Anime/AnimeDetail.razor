@@ -2,6 +2,7 @@
 @using AnimeHub.Shared.Models.Enums
 @using AnimeHubClient.Services
 @using Microsoft.AspNetCore.Components.Authorization
+@using AnimeHubClient.Extensions
 @inject IAnimeService AnimeService
 @inject IWatchlistService WatchlistService
 @inject IConfiguration Configuration
@@ -29,6 +30,62 @@ else
                     <img src="@(Configuration["ApiBaseUrl"]?.ToString() + Anime.ImageUrl)" alt="@Anime.Title" style="width:100%; height:auto; border-radius:4px;" />
                 </MudPaper>
 
+                @* Watchlist UI block *@
+                <div class="d-flex gap-2 mt-4 mb-4">
+                    @if (!IsAuthenticated)
+                    {
+                        <MudButton Variant="Variant.Filled" Color="Color.Dark" Disabled="true" StartIcon="@Icons.Material.Filled.Lock" FullWidth="true">
+                            Log In to Add
+                        </MudButton>
+                    }
+                    else
+                    {
+                        <MudButtonGroup Color="@(CurrentWatchStatus.HasValue ? Color.Info : Color.Primary)"
+                                        Variant="Variant.Filled"
+                                        FullWidth="true"
+                                        Class="flex-grow-1">
+                            @* Main Button Area *@
+                            @if (CurrentWatchStatus.HasValue)
+                            {
+                                @* If Added: Shows Current Status *@
+                                <MudButton Class="flex-grow-1" StartIcon="@Icons.Material.Filled.BookmarkAdded">
+                                    @CurrentWatchStatus.Value.GetDisplayName()
+                                </MudButton>
+                            }
+                            else
+                            {
+                                @* If Not Added: Shows "Add to Watchlist" *@
+                                <MudButton Class="flex-grow-1"
+                                           OnClick="AddToWatchlistDefault"
+                                           StartIcon="@Icons.Material.Filled.BookmarkAdd"
+                                           Disabled="@IsActionLoading">
+                                    Add to Watchlist
+                                </MudButton>
+                            }
+
+                            @* Dropdown Arrow Area *@
+                            <MudMenu Icon="@Icons.Material.Filled.ArrowDropDown" AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight">
+                                @foreach (var status in Statuses)
+                                {
+                                    <MudMenuItem OnClick="() => OnStatusChangeAsync(status)">
+                                        <div class="d-flex align-content-center gap-2">
+                                            @if (CurrentWatchStatus == status)
+                                            {
+                                                <MudIcon Icon="@Icons.Material.Filled.Check" Size="Size.Small" Color="Color.Success" />
+                                            }
+                                            else
+                                            {
+                                                <MudIcon Icon="@Icons.Material.Filled.Circle" Size="Size.Small" Style="opacity:0;" />
+                                            }
+                                            @status.GetDisplayName()
+                                        </div>
+                                    </MudMenuItem>
+                                }
+                            </MudMenu>
+                        </MudButtonGroup>
+                    }
+                </div>
+
                 <MudList T="string" Class="mt-4" Dense="true">
                     <MudListItem Icon="@Icons.Material.Filled.CalendarMonth">
                         <MudText Typo="Typo.subtitle1" Class="fw-bold">Premiered:</MudText>
@@ -43,7 +100,7 @@ else
                         @(Anime.Episodes.HasValue? Anime.Episodes.ToString() : "N/A")
                     </MudListItem>
                     <MudListItem Icon="@Icons.Material.Filled.Update">
-                        <MudText Typo="Typo.subtitle1" Class="fw-bold">Status:</MudText> @Anime.Status
+                        <MudText Typo="Typo.subtitle1" Class="fw-bold">Status:</MudText> @(((Status)Enum.Parse(typeof(Status), Anime.Status)).GetDisplayName())
                     </MudListItem>
                     <MudListItem Icon="@Icons.Material.Filled.CameraRoll">
                         <MudText Typo="Typo.subtitle1" Class="fw-bold">Studios:</MudText>
@@ -71,49 +128,6 @@ else
             <MudItem xs="12" md="8" lg="9">
                 <MudText Typo="Typo.h3" Class="fw-bold mb-1">@Anime.Title</MudText>
                 <MudText Typo="Typo.subtitle1" Class="text-muted mb-3">@Anime.CategoryName</MudText>
-
-                @* Watchlist UI block *@
-                <MudStack Row="true" Spacing="2" Class="mb-4 align-items-center">
-                    @if (!IsAuthenticated)
-                    {
-                        <MudButton Variant="Variant.Filled" Color ="Color.Dark" Disabled="true" StartIcon="@Icons.Material.Filled.Lock">
-                            Log In to Add to Watchlist
-                        </MudButton>
-                    }
-                    else if (CurrentWatchStatus.HasValue)
-                    {
-                        <MudSelect T="WatchStatus"
-                                   Value="@CurrentWatchStatus.Value"
-                                   ValueChanged="OnStatusChangeAsync"
-                                   Label="My Status"
-                                   Variant="Variant.Filled"
-                                   Disabled="@IsLoading"
-                                   Style="min-width: 180px;">
-                            @foreach (var status in Statuses)
-                            {
-                                <MudSelectItem Value="@status">@status.ToString()</MudSelectItem>
-                            }
-                        </MudSelect>
-
-                        <MudButton @onclick="ToggleWatchlistAsync"
-                                   StartIcon="@Icons.Material.Filled.BookmarkRemove"
-                                   Variant="Variant.Filled"
-                                   Color="Color.Error"
-                                   Disabled="@IsLoading">
-                            Remove
-                        </MudButton>
-                    }
-                    else
-                    {
-                        <MudButton @onclick="ToggleWatchlistAsync"
-                                   StartIcon="@Icons.Material.Filled.BookmarkAdd"
-                                   Variant="Variant.Filled"
-                                   Color="Color.Primary"
-                                   Disabled="@IsLoading">
-                            Add to Watchlist
-                        </MudButton>
-                    }
-                </MudStack>
                 
                 @* Genres Chip Group *@
                 <MudText Typo="Typo.subtitle1" Class="fw-bold mb-2">Genres</MudText>
@@ -139,7 +153,7 @@ else
                     string fullTrailerUrl = trailerBaseUrl + Anime.TrailerUrl;
                     string fullPosterUrl = trailerBaseUrl + Anime.TrailerPosterUrl;
 
-                    <MudText Typo="Typo.h5" Class="mt-4 mb-2 fw-bold">Official Trailer</MudText>
+                    <MudText Typo="Typo.h6" Class="mt-4 mb-2 fw-bold">Official Trailer</MudText>
                     <MudPaper Elevation="4" Class="mb-4 pa-1" Style="max-width: 300px;">
                         <video controls style="width: 100%; height: auto; border-radius: 4px;"
                                poster="@fullPosterUrl">
@@ -164,6 +178,7 @@ else
     [Parameter]
     public int Id { get; set; }
     private bool IsLoading { get; set; } = true;
+    private bool IsActionLoading { get; set; } = false; // Separate loader for button actions
 
     private AnimeReadDto? Anime;
     private WatchStatus? CurrentWatchStatus = null;
@@ -205,56 +220,53 @@ else
         }
     }
 
-    private async Task ToggleWatchlistAsync()
+    private async Task AddToWatchlistDefault()
     {
         if (!IsAuthenticated) return;
-
-        IsLoading = true;
+        IsActionLoading = true;
 
         try
         {
-            if (CurrentWatchStatus.HasValue)
+            var success = await WatchlistService.AddToWatchlistAsync(Id);
+            if (success)
             {
-                var success = await WatchlistService.RemoveFromWatchlistAsync(Id);
-                if (success)
-                {
-                    CurrentWatchStatus = null;
-                    Snackbar.Add("Anime removed from watchlist.", Severity.Success);
-                }
-                else
-                {
-                    Snackbar.Add("Failed to removed from watchlist.", Severity.Error);
-                }
+                CurrentWatchStatus = WatchStatus.PlanToWatch;
+                Snackbar.Add("Added to watchlist!", Severity.Success);
             }
             else
             {
-                var success = await WatchlistService.AddToWatchlistAsync(Id);
-                if (success)
-                {
-                    CurrentWatchStatus = await WatchlistService.GetWatchStatusAsync(Id);
-                    Snackbar.Add("Anime added to watchlist!", Severity.Success);
-                }
-                else
-                {
-                    Snackbar.Add("Failed to add to watchlist. It might already exist.", Severity.Error);
-                }
+                Snackbar.Add("Failed to add to watchlist.", Severity.Error);
             }
-        }
-        catch (Exception ex)
-        {
-            Snackbar.Add($"Watchlist error: {ex.Message}", Severity.Error);
         }
         finally
         {
-            IsLoading = false;
+            IsActionLoading = false;
         }
     }
 
     private async Task OnStatusChangeAsync(WatchStatus newStatus)
     {
-        if (!IsAuthenticated || !CurrentWatchStatus.HasValue || CurrentWatchStatus == newStatus) return;
+        if (!IsAuthenticated) return;
 
-        IsLoading = true;
+        // If not in watchlist yet, Add it first, then Update status
+        if (!CurrentWatchStatus.HasValue)
+        {
+            IsActionLoading = true;
+            var addSuccess = await WatchlistService.AddToWatchlistAsync(Id);
+            if (!addSuccess)
+            {
+                Snackbar.Add("Failed to create entry.", Severity.Error);
+                IsActionLoading = false;
+                return;
+            }
+        }
+        else if (CurrentWatchStatus == newStatus)
+        {
+            return;
+        }
+
+        // Update the status
+        IsActionLoading = true;
 
         try
         {
@@ -279,4 +291,6 @@ else
             IsLoading = false;
         }
     }
+
+    
 }

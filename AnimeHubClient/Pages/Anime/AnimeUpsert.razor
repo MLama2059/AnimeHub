@@ -7,6 +7,7 @@
 @using AnimeHub.Shared.Models.Enums
 @using System.ComponentModel.DataAnnotations
 @using AnimeHubClient.Services
+@using AnimeHubClient.Extensions
 @inject NavigationManager Navigation
 @inject ISnackbar Snackbar
 @inject IAnimeService AnimeService
@@ -59,7 +60,7 @@ else
                 <MudSelect T="Status?" Label="Status" Variant="Variant.Outlined" @bind-Value="@AnimeStatusEnum" Class="my-3">
                     @foreach (Status statusValue in Enum.GetValues(typeof(Status)))
                     {
-                        <MudSelectItem T="Status?" Value="@statusValue">@GetEnumDisplayName(statusValue)</MudSelectItem>
+                        <MudSelectItem T="Status?" Value="@statusValue">@statusValue.GetDisplayName()</MudSelectItem>
                     }
                 </MudSelect>
 
@@ -428,22 +429,6 @@ else
     {
         get => Anime.Status.HasValue ? (Status)Anime.Status.Value : null;
         set => Anime.Status = value.HasValue ? (int)value.Value : null;
-    }
-
-    private string GetEnumDisplayName(Enum enumValue)
-    {
-        // Implementation for getting DisplayAttribute name is correct and kept.
-        var memberInfo = enumValue.GetType().GetMember(enumValue.ToString()).FirstOrDefault();
-        if (memberInfo == null)
-        {
-            return enumValue.ToString();
-        }
-
-        var displayAttribute = memberInfo.GetCustomAttributes(typeof(DisplayAttribute), false)
-                                             .OfType<DisplayAttribute>()
-                                             .FirstOrDefault();
-
-        return displayAttribute?.Name ?? enumValue.ToString();
     }
 
     // OnFileSelected methods
