@@ -29,6 +29,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Models\Dtos\Rating\RatingReadDto.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\Dtos\Studio\StudioReadDto.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\Dtos\Studio\StudioUpsertDto.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Models\Dtos\UserAnime\UserAnimeReadDto.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\Dtos\User\AuthenticationResponseDto.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\Dtos\User\LoginRequestDto.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\Dtos\User\RegistrationRequestDto.cs" />

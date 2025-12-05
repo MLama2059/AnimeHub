@@ -1,5 +1,6 @@
 ﻿using AnimeHub.Shared.Models;
 using AnimeHub.Shared.Models.Dtos.Anime;
+using AnimeHub.Shared.Models.Dtos.UserAnime;
 using AnimeHub.Shared.Models.Enums;
 using AnimeHubApi.Data;
 using AnimeHubApi.Repository.IRepository;
@@ -60,26 +61,19 @@ namespace AnimeHubApi.Repository
             return await _context.SaveChangesAsync() > 0;
         }
 
-        public async Task<List<AnimeListReadDto>> GetMyWatchlistAsync(int userId)
+        public async Task<List<UserAnimeReadDto>> GetMyWatchlistAsync(int userId)
         {
             var watchlist = await _context.UserAnimes
                     .AsNoTracking()
                     .Where(ua => ua.UserId == userId)
                     .Include(ua => ua.Anime)
-                    .ThenInclude(a => a.Category)
                     .OrderByDescending(ua => ua.DateAdded)
-                    .Select(ua => new AnimeListReadDto
+                    .Select(ua => new UserAnimeReadDto
                     {
-                        Id = ua.Anime.Id,
+                        AnimeId = ua.AnimeId,
                         Title = ua.Anime.Title,
                         ImageUrl = ua.Anime.ImageUrl,
-                        Rating = ua.Anime.Rating,
-                        Episodes = ua.Anime.Episodes,
-                        Season = ua.Anime.Season.ToString(),
-                        PremieredYear = ua.Anime.PremieredYear,
-                        Status = ua.Anime.Status.ToString(),
-                        CategoryId = ua.Anime.CategoryId,
-                        CategoryName = ua.Anime.Category.Name
+                        WatchStatus = ua.Status
                     })
                     .ToListAsync();
 

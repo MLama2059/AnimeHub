@@ -1,4 +1,5 @@
 ﻿using AnimeHub.Shared.Models.Dtos.Anime;
+using AnimeHub.Shared.Models.Dtos.UserAnime;
 using AnimeHub.Shared.Models.Enums;
 
 namespace AnimeHubClient.Services
@@ -9,6 +10,6 @@ namespace AnimeHubClient.Services
         Task<bool> RemoveFromWatchlistAsync(int animeId);
         Task<WatchStatus?> GetWatchStatusAsync(int animeId);
         Task<bool> UpdateWatchStatusAsync(int animeId, WatchStatus newStatus);
-        Task<List<AnimeListReadDto>> GetMyWatchListAsync();
+        Task<List<UserAnimeReadDto>> GetMyWatchListAsync();
     }
 }

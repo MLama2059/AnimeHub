@@ -1,4 +1,5 @@
 ﻿using AnimeHub.Shared.Models.Dtos.Anime;
+using AnimeHub.Shared.Models.Dtos.UserAnime;
 using AnimeHub.Shared.Models.Enums;
 using System.Net.Http.Json;
 
@@ -43,16 +44,16 @@ namespace AnimeHubClient.Services
             return response.IsSuccessStatusCode;
         }
 
-        public async Task<List<AnimeListReadDto>> GetMyWatchListAsync()
+        public async Task<List<UserAnimeReadDto>> GetMyWatchListAsync()
         {
             var response = await _httpClient.GetAsync("api/watchlist");
 
             if (response.IsSuccessStatusCode)
             {
-                return await response.Content.ReadFromJsonAsync<List<AnimeListReadDto>>() ?? new List<AnimeListReadDto>();
+                return await response.Content.ReadFromJsonAsync<List<UserAnimeReadDto>>() ?? new List<UserAnimeReadDto>();
             }
 
-            return new List<AnimeListReadDto>();
+            return new List<UserAnimeReadDto>();
         }
     }
 }

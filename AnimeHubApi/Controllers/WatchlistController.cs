@@ -1,5 +1,6 @@
 ﻿using AnimeHub.Shared.Models;
 using AnimeHub.Shared.Models.Dtos.Anime;
+using AnimeHub.Shared.Models.Dtos.UserAnime;
 using AnimeHub.Shared.Models.Enums;
 using AnimeHubApi.Data;
 using AnimeHubApi.Repository.IRepository;
@@ -111,7 +112,7 @@ namespace AnimeHubApi.Controllers
 
         // Retrieves the full list of Animes in the user's watchlist.
         [HttpGet]
-        public async Task <ActionResult<AnimeListReadDto>> GetMyWatchlist()
+        public async Task <ActionResult<UserAnimeReadDto>> GetMyWatchlist()
         {
             try
             {
