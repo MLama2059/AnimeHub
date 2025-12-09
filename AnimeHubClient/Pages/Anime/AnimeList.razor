@@ -68,6 +68,10 @@
                 </MudTd>
             </RowTemplate>
 
+            <NoRecordsContent>
+                <MudText>No data available.</MudText>
+            </NoRecordsContent>
+
             <LoadingContent>
                 <div class="py-4 text-center">
                     <MudProgressCircular Indeterminate="true" Color="Color.Primary" />
@@ -141,7 +145,8 @@
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Error loading data: {ex.Message}", Severity.Error);
+            Console.WriteLine(ex.Message);
+            // Snackbar.Add($"Error loading data: {ex.Message}", Severity.Error);
             return new TableData<AnimeListReadDto>() { TotalItems = 0, Items = new List<AnimeListReadDto>() };
         }
     }

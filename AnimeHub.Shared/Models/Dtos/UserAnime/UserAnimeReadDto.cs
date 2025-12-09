@@ -11,5 +11,6 @@ namespace AnimeHub.Shared.Models.Dtos.UserAnime
         public string Title { get; set; } = string.Empty;
         public string? ImageUrl { get; set; }
         public WatchStatus WatchStatus { get; set; }
+        public DateTime DateAdded { get; set; }
     }
 }

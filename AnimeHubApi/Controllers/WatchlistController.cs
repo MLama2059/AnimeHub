@@ -1,4 +1,5 @@
 ﻿using AnimeHub.Shared.Models;
+using AnimeHub.Shared.Models.Dtos;
 using AnimeHub.Shared.Models.Dtos.Anime;
 using AnimeHub.Shared.Models.Dtos.UserAnime;
 using AnimeHub.Shared.Models.Enums;
@@ -9,6 +10,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
+using System.Text.Json;
 
 namespace AnimeHubApi.Controllers
 {
@@ -18,9 +20,13 @@ namespace AnimeHubApi.Controllers
     public class WatchlistController : ControllerBase
     {
         private readonly IWatchlistRepository _watchlistRepository;
-        public WatchlistController(IWatchlistRepository watchlistRepository)
+        private readonly ILogger<WatchlistController> _logger;
+        private readonly IConfiguration _configuration;
+        public WatchlistController(IWatchlistRepository watchlistRepository, ILogger<WatchlistController> logger, IConfiguration configuration)
         {
             _watchlistRepository = watchlistRepository;
+            _logger = logger;
+            _configuration = configuration;
         }
 
         // Helper method to get user id as int
@@ -112,19 +118,29 @@ namespace AnimeHubApi.Controllers
 
         // Retrieves the full list of Animes in the user's watchlist.
         [HttpGet]
-        public async Task <ActionResult<UserAnimeReadDto>> GetMyWatchlist()
+        public async Task <ActionResult<UserAnimeReadDto>> GetMyWatchlist([FromQuery] APIParams apiParams)
         {
-            try
-            {
-                var userId = GetUserId();
-                var watchlist = await _watchlistRepository.GetMyWatchlistAsync(userId);
+            var userId = GetUserId();
+            // 1. Call the new Paged Repository Method
+            var pagedList = await _watchlistRepository.GetMyWatchlistAsync(userId, apiParams);
+            if (!pagedList.Any())
+                return NotFound();
 
-                return Ok(watchlist);
-            }
-            catch (UnauthorizedAccessException ex)
+            // 2. Add the X-Pagination Header to the HTTP Response
+            var metadata = new
             {
-                return Unauthorized(ex.Message);
-            }
+                pagedList.TotalCount,
+                pagedList.PageSize,
+                pagedList.CurrentPage,
+                pagedList.TotalPages,
+                pagedList.HasNext,
+                pagedList.HasPrevious
+            };
+
+            Response.Headers.Add("X-Pagination", JsonSerializer.Serialize(metadata));
+
+            // 3. Return the paged items
+            return Ok(pagedList);
         }
     }
 }

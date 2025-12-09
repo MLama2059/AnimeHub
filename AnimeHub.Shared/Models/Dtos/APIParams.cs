@@ -13,6 +13,7 @@ namespace AnimeHub.Shared.Models.Dtos
         public string? OrderBy { get; set; }
         public string? FilterOn { get; set; }
         public string? FilterQuery { get; set; }
+        public int? StatusFilter { get; set; }
 
         public int PageSize
         {

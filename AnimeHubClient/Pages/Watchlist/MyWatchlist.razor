@@ -4,104 +4,139 @@
 @using AnimeHub.Shared.Models.Enums
 @using AnimeHubClient.Services
 @using AnimeHubClient.Extensions
+@using AnimeHubClient.Shared
 @using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
 @using Microsoft.Extensions.Configuration
 @inject IWatchlistService WatchlistService
 @inject ISnackbar Snackbar
 @inject NavigationManager NavManager
 @inject IConfiguration Configuration
-@attribute [Authorize]
 
-<MudCard Elevation="4" Class="mt-4">
-    <MudCardHeader>
-        <CardHeaderContent>
-            <MudText Align="Align.Center" Typo="Typo.h4" Class="fw-bold">My Watchlist</MudText>
-        </CardHeaderContent>
-    </MudCardHeader>
+<AuthorizeView>
+    <Authorized>
+        <MudCard Elevation="4" Class="mt-4">
+            <MudCardHeader>
+                <CardHeaderContent>
+                    <MudText Align="Align.Center" Typo="Typo.h4" Class="fw-bold">My Watchlist</MudText>
+                </CardHeaderContent>
+            </MudCardHeader>
 
-    <MudCardContent>
-        @if (IsLoading)
-        {
-            <div class="py-4 text-center"><MudProgressCircular Indeterminate="true" /></div>
-        }
-        else
-        {
-            <MudTable Items="@WatchlistItems"
-                      FixedHeader="false"
-                      Hover="true"
-                      Striped="true"
-                      Breakpoint="Breakpoint.Sm"
-                      LoadingProgressColor="Color.Primary">
+            <MudCardContent>
+                @if (IsLoading)
+                {
+                    <div class="py-4 text-center"><MudProgressCircular Indeterminate="true" /></div>
+                }
+                else
+                {
+                    <MudTable T="UserAnimeReadDto"
+                              ServerData="ServerReload"
+                              Items="@WatchlistItems"
+                              @ref="MudTable"
+                              FixedHeader="false"
+                              Hover="true"
+                              Striped="true"
+                              Breakpoint="Breakpoint.Sm"
+                              LoadingProgressColor="Color.Primary">
 
-                <ToolBarContent>
-                    <MudText Typo="Typo.h6">@WatchlistItems.Count() Items</MudText>
-                    <MudSpacer />
-                    <MudTextField T="string" 
-                                  Placeholder="Search by Title" 
-                                  Adornment="Adornment.Start" 
-                                  AdornmentIcon="@Icons.Material.Filled.Search"
-                                  Immediate="true"
-                                  Clearable="true"
-                                  Style="max-width:300px;" 
-                                  Value="SearchTerm"
-                                  ValueChanged="@(async (v) => await OnSearch(v))" />
-                </ToolBarContent>
+                        <ToolBarContent>
+                            <div class="d-flex justify-content-between align-items-center mb-4">
+                                <MudText Typo="Typo.h6">@WatchlistItems.Count() Items</MudText>
 
-                <HeaderContent>
-                    <MudTh Style="width: 100px;">Image</MudTh>
-                    <MudTh><MudTableSortLabel SortLabel="Title" T="UserAnimeReadDto">Title</MudTableSortLabel></MudTh>
-                    <MudTh Style="width: 200px;">Watch Status</MudTh>
-                    <MudTh Style="width:1%;">Actions</MudTh>
-                </HeaderContent>
+                                <MudTextField T="string" 
+                                              Placeholder="Search by Title" 
+                                              Adornment="Adornment.Start" 
+                                              AdornmentIcon="@Icons.Material.Filled.Search"
+                                              Immediate="true"
+                                              Clearable="true"
+                                              Style="max-width:300px;" 
+                                              Value="SearchTerm"
+                                              ValueChanged="@(async (v) => await OnSearch(v))" />
 
-                <RowTemplate>
-                    <MudTd DataLabel="Image" Style="width: 100px;">
-                        @if (!string.IsNullOrEmpty(context.ImageUrl))
-                        {
-                            <MudImage Src="@($"{ApiBaseUrl}{context.ImageUrl.Replace("\\", "/")}")" 
-                                      Alt="@context.Title" 
-                                      Height="70" 
-                                      Style="max-width: 100%; object-fit: cover; aspect-ratio: 1/1.4;" 
-                                      Class="rounded-sm" />
-                        }
-                    </MudTd>
-                    <MudTd DataLabel="Title">
-                        <MudLink Href="@($"/anime/{context.AnimeId}")" Typo="Typo.body1" Color="Color.Primary">
-                            @context.Title
-                        </MudLink>
-                    </MudTd>
-                    <MudTd DataLabel="Watch Status">
-                        @* Implement the User Watch Status Dropdown *@
-                        <MudSelect T="WatchStatus" 
-                                   Variant="Variant.Outlined"
-                                   Margin="Margin.Dense"
-                                   Value="context.WatchStatus" 
-                                   ValueChanged="((WatchStatus newStatus) => UpdateWatchStatus(context.AnimeId, newStatus, context))">
+                                <MudSelect T="WatchStatus"
+                                           Label="Filter by Status"
+                                           Variant="Variant.Outlined"
+                                           Dense="true"
+                                           Style="width:200px;"
+                                           Value="StatusFilter"
+                                           ValueChanged="@(async (v) => await OnStatusFilterChanged(v))">
+
+                                    <MudSelectItem T="WatchStatus?" Value="null">All Statuses</MudSelectItem>
+                                    @foreach (WatchStatus statusValue in Enum.GetValues(typeof(WatchStatus)))
+                                    {
+                                        <MudSelectItem T="WatchStatus ?" Value="statusValue">
+                                            @statusValue.GetDisplayName()
+                                        </MudSelectItem>
+                                    }
+
+                                </MudSelect>
+                            </div>
+                        </ToolBarContent>
+
+                        <HeaderContent>
+                            <MudTh Style="width: 100px;">Image</MudTh>
+                            <MudTh><MudTableSortLabel SortLabel="Title" T="UserAnimeReadDto">Title</MudTableSortLabel></MudTh>
+                            <MudTh Style="width: 200px;">Watch Status</MudTh>
+                            <MudTh Style="width:1%;">Actions</MudTh>
+                        </HeaderContent>
+
+                        <RowTemplate Context="rowContext">
+                            <MudTd DataLabel="Image" Style="width: 100px;">
+                                @if (!string.IsNullOrEmpty(rowContext.ImageUrl))
+                                {
+                                    <MudImage Src="@($"{ApiBaseUrl}{rowContext.ImageUrl.Replace("\\", "/")}")"
+                                              Alt="@rowContext.Title"
+                                              Height="70" 
+                                              Style="max-width: 100%; object-fit: cover; aspect-ratio: 1/1.4;" 
+                                              Class="rounded-sm" />
+                                }
+                            </MudTd>
+                            <MudTd DataLabel="Title">
+                                <MudLink Href="@($"/anime/{rowContext.AnimeId}")" Typo="Typo.body1" Color="Color.Primary">
+                                    @rowContext.Title
+                                </MudLink>
+                            </MudTd>
+                            <MudTd DataLabel="Watch Status">
+                                @* Implement the User Watch Status Dropdown *@
+                                <MudSelect T="WatchStatus" 
+                                           Variant="Variant.Outlined"
+                                           Margin="Margin.Dense"
+                                           Value="rowContext.WatchStatus"
+                                           ValueChanged="((WatchStatus newStatus) => UpdateWatchStatus(rowContext.AnimeId, newStatus, rowContext))">
                             
-                            @foreach (WatchStatus statusValue in Enum.GetValues(typeof(WatchStatus)))
-                            {
-                                <MudSelectItem T="WatchStatus" Value="statusValue">
-                                    @statusValue.GetDisplayName()
-                                </MudSelectItem>
-                            }
-                        </MudSelect>
-                    </MudTd>
-                    <MudTd DataLabel="Actions" Style="white-space:nowrap;">
-                        <MudIconButton OnClick="() => RemoveAnime(context.AnimeId, context.Title)" 
-                                       Icon="@Icons.Material.Filled.Delete" 
-                                       Color="Color.Error" 
-                                       Size="Size.Medium"
-                                       Title="Remove from Watchlist" />
-                    </MudTd>
-                </RowTemplate>
+                                    @foreach (WatchStatus statusValue in Enum.GetValues(typeof(WatchStatus)))
+                                    {
+                                        <MudSelectItem T="WatchStatus" Value="statusValue">
+                                            @statusValue.GetDisplayName()
+                                        </MudSelectItem>
+                                    }
+                                </MudSelect>
+                            </MudTd>
+                            <MudTd DataLabel="Actions" Style="white-space:nowrap;">
+                                <MudIconButton OnClick="() => RemoveAnime(rowContext.AnimeId, rowContext.Title)"
+                                               Icon="@Icons.Material.Filled.Delete" 
+                                               Color="Color.Error" 
+                                               Size="Size.Medium" />
+                            </MudTd>
+                        </RowTemplate>
 
-                <NoRecordsContent>
-                    <MudText>You have no anime in your watchlist yet.</MudText>
-                </NoRecordsContent>
-            </MudTable>
-        }
-    </MudCardContent>
-</MudCard>
+                        <NoRecordsContent>
+                            <MudText>No data available.</MudText>
+                        </NoRecordsContent>
+                    </MudTable>
+                }
+            </MudCardContent>
+        </MudCard>
+    </Authorized>
+    <NotAuthorized>
+        <div class="d-flex justify-content-center mt-5">
+            <MudAlert Severity="Severity.Info" Class="p-2">
+                <MudLink Href="/login" Typo="Typo.body2" Class="fw-bold">Log in</MudLink> to view watchlist!
+            </MudAlert>
+        </div>
+    </NotAuthorized>
+</AuthorizeView>
+
 
 @code {
     private List<UserAnimeReadDto> AllWatchlistItems = new();
@@ -111,34 +146,112 @@
         a => string.IsNullOrEmpty(SearchTerm) || a.Title.Contains(SearchTerm, StringComparison.OrdinalIgnoreCase)
     ).ToList();
 
+    private MudTable<UserAnimeReadDto>? MudTable;
     private string SearchTerm { get; set; } = string.Empty;
-    private bool IsLoading = true;
+    private WatchStatus StatusFilter { get; set; } // New filter property
+    private bool IsLoading = false;
+
+    private Dictionary<string, string> SortMapping = new()
+    {
+        {"Title", "title"},
+        {"DateAdded", "dateadded"},
+    };
 
     // Helper property to get Base URL and handle path separators
     private string ApiBaseUrl => Configuration["ApiBaseUrl"] ?? "";
 
-    protected override async Task OnInitializedAsync()
-    {
-        await LoadWatchlist();
-    }
+    // protected override async Task OnInitializedAsync()
+    // {
+    //     await LoadWatchlist();
+    // }
 
-    private async Task LoadWatchlist()
+    // private async Task LoadWatchlist()
+    // {
+    //     IsLoading = true;
+    //     try
+    //     {
+    //         AllWatchlistItems = (await WatchlistService.GetMyWatchListAsync())
+    //             .OfType<UserAnimeReadDto>() Use OfType for safety if it returns object/interface
+    //             .ToList();
+    //     }
+    //     catch (Exception ex)
+    //     {
+    //         Snackbar.Add($"Error loading watchlist: {ex.Message}", Severity.Error);
+    //     }
+    //     finally
+    //     {
+    //         IsLoading = false;
+    //     }
+    // }
+
+    private async Task<TableData<UserAnimeReadDto>> ServerReload(TableState state, CancellationToken cancellationToken)
     {
-        IsLoading = true;
+        int pageNumber = state.Page + 1;
+        int pageSize = state.PageSize;
+
+        string orderBy = "dateadded_desc"; // Default sort
+        if (!string.IsNullOrEmpty(state.SortLabel) && SortMapping.ContainsKey(state.SortLabel))
+        {
+            orderBy = SortMapping[state.SortLabel];
+
+            if (state.SortDirection == SortDirection.Descending)
+            {
+                orderBy += "_desc";
+            }
+        }
+
+        // 1. Build Query Parameters
+        var queryParams = new Dictionary<string, string?>
+        {
+            {"pageNumber", pageNumber.ToString()},
+            {"pageSize", pageSize.ToString()},
+            {"orderBy", orderBy}
+        };
+
+        if (!string.IsNullOrWhiteSpace(SearchTerm))
+        {
+            queryParams.Add("filterOn", "Title");
+            queryParams.Add("filterQuery", SearchTerm);
+        }
+
+        if (StatusFilter != null)
+        {
+            queryParams.Add("statusFilter", StatusFilter.ToString());
+        }
+
         try
         {
-            AllWatchlistItems = (await WatchlistService.GetMyWatchListAsync())
-                .OfType<UserAnimeReadDto>() // Use OfType for safety if it returns object/interface
-                .ToList();
+            // 2. Call the service (You must update IWatchlistService to accept queryParams)
+            var (items, metadata) = await WatchlistService.GetPagedWatchlistAsync(queryParams, cancellationToken);
+
+            int totalItems = metadata?.TotalCount ?? 0;
+
+            return new TableData<UserAnimeReadDto>() { TotalItems = totalItems, Items = items ?? new List<UserAnimeReadDto>() };
+        }
+        catch (OperationCanceledException)
+        {
+            // request was cancelled; return empty result
+            return new TableData<UserAnimeReadDto>() { TotalItems = 0, Items = new List<UserAnimeReadDto>() };
         }
         catch (Exception ex)
         {
             Snackbar.Add($"Error loading watchlist: {ex.Message}", Severity.Error);
+            return new TableData<UserAnimeReadDto>() { TotalItems = 0, Items = new List<UserAnimeReadDto>() };
         }
-        finally
-        {
-            IsLoading = false;
-        }
+    }
+
+    private async Task OnSearch(string text)
+    {
+        SearchTerm = text;
+        // Trigger data reload
+        await MudTable!.ReloadServerData();
+    }
+
+    private async Task OnStatusFilterChanged(WatchStatus status)
+    {
+        StatusFilter = status;
+        // Trigger data reload
+        await MudTable!.ReloadServerData();
     }
 
     private async Task UpdateWatchStatus(int animeId, WatchStatus newStatus, UserAnimeReadDto item)
@@ -158,6 +271,7 @@
             if (success)
             {
                 Snackbar.Add($"Status updated.", Severity.Success);
+                StateHasChanged();
             }
             else
             {
@@ -189,7 +303,7 @@
             if (success)
             {
                 Snackbar.Add($"{title} removed from your watchlist.", Severity.Success);
-                await LoadWatchlist();
+                await MudTable!.ReloadServerData();
             }
             else
             {
@@ -207,11 +321,5 @@
     {
         // For a real application, replace this with a MudDialog confirmation
         return Task.FromResult(true); 
-    }
-
-    private async Task OnSearch(string text)
-    {
-        SearchTerm = text;
-        StateHasChanged();
     }
 }

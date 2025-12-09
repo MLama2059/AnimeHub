@@ -1,4 +1,5 @@
 ﻿using AnimeHub.Shared.Models;
+using AnimeHub.Shared.Models.Dtos;
 using AnimeHub.Shared.Models.Dtos.Anime;
 using AnimeHub.Shared.Models.Dtos.UserAnime;
 using AnimeHub.Shared.Models.Enums;
@@ -78,6 +79,83 @@ namespace AnimeHubApi.Repository
                     .ToListAsync();
 
             return watchlist;
+        }
+
+        public async Task<PagedList<UserAnimeReadDto>> GetMyWatchlistAsync(int userId, APIParams apiParams)
+        {
+            // Base query: Only retrieve items for the given user, and include the related Anime details.
+            var query = _context.UserAnimes
+                .AsNoTracking()
+                .Where(ua => ua.UserId == userId)
+                .Include(ua => ua.Anime);
+
+            // 1. Apply Filtering by Title (Search Box)
+            if (!string.IsNullOrWhiteSpace(apiParams.FilterOn) && !string.IsNullOrWhiteSpace(apiParams.FilterQuery))
+            {
+                var filterOn = apiParams.FilterOn.ToLowerInvariant();
+                var filterQuery = apiParams.FilterQuery.ToLowerInvariant();
+
+                if (filterOn.Equals("title"))
+                {
+                    query = (Microsoft.EntityFrameworkCore.Query.IIncludableQueryable<UserAnime, Anime?>)query.Where(ua => ua.Anime != null && ua.Anime.Title.ToLower().Contains(filterQuery));
+                }
+            }
+
+            // 2. Apply Filtering by Watch Status (New requirement)
+            // We'll use a new custom property in APIParams or query string, let's call it StatusFilter
+            if (apiParams.StatusFilter != null && apiParams.StatusFilter > 0)
+            {
+                // Assuming WatchStatus enum values start at 1 (or 0 for planning)
+                query = (Microsoft.EntityFrameworkCore.Query.IIncludableQueryable<UserAnime, Anime?>)query.Where(ua => (int)ua.Status == apiParams.StatusFilter);
+            }
+
+            // 3. Apply Projection (Map to DTO)
+            var projectedQuery = query.Select(ua => new UserAnimeReadDto
+            {
+                AnimeId = ua.AnimeId,
+                Title = ua.Anime.Title ?? "Unknown Title", // Null check for safety
+                ImageUrl = ua.Anime.ImageUrl,
+                WatchStatus = ua.Status,
+                DateAdded = ua.DateAdded // Include DateAdded for sorting
+            });
+
+            // 4. Apply Sorting (Title or Date Added)
+            if (!string.IsNullOrWhiteSpace(apiParams.OrderBy))
+            {
+                var orderByParts = apiParams.OrderBy.ToLowerInvariant().Split('_');
+                var sortField = orderByParts[0];
+                var sortDirection = orderByParts.Length > 1 && orderByParts[1] == "desc" ? "desc" : "asc";
+
+                switch (sortField)
+                {
+                    case "title":
+                        projectedQuery = sortDirection == "desc"
+                            ? projectedQuery.OrderByDescending(a => a.Title)
+                            : projectedQuery.OrderBy(a => a.Title);
+                        break;
+
+                    case "dateadded":
+                        projectedQuery = sortDirection == "desc"
+                            ? projectedQuery.OrderByDescending(a => a.DateAdded)
+                            : projectedQuery.OrderBy(a => a.DateAdded);
+                        break;
+
+                    default: // Default: Date Added Descending
+                        projectedQuery = projectedQuery.OrderByDescending(a => a.DateAdded);
+                        break;
+                }
+            }
+            else
+            {
+                // Default sorting
+                projectedQuery = projectedQuery.OrderByDescending(a => a.DateAdded);
+            }
+
+            // 5. Apply Pagination
+            return await PagedList<UserAnimeReadDto>.CreateAsync(
+                projectedQuery,
+                apiParams.PageNumber,
+                apiParams.PageSize);
         }
     }
 }
