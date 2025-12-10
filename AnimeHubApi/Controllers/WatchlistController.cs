@@ -137,7 +137,7 @@ namespace AnimeHubApi.Controllers
                 pagedList.HasPrevious
             };
 
-            Response.Headers.Add("X-Pagination", JsonSerializer.Serialize(metadata));
+            Response.Headers.Append("X-Pagination", JsonSerializer.Serialize(metadata));
 
             // 3. Return the paged items
             return Ok(pagedList);

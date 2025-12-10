@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Hosting;
+using System.Text.Json;
 
 namespace AnimeHubApi.Controllers
 {
@@ -50,7 +51,7 @@ namespace AnimeHubApi.Controllers
             };
 
             // Must serialize the metadata and add it to a custom response header
-            Response.Headers.Append("X-Pagination", System.Text.Json.JsonSerializer.Serialize(metadata));
+            Response.Headers.Append("X-Pagination", JsonSerializer.Serialize(metadata));
 
             return Ok(pagedList);
         }

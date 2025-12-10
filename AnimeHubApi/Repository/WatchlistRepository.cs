@@ -85,11 +85,11 @@ namespace AnimeHubApi.Repository
         {
             // Base query: Only retrieve items for the given user, and include the related Anime details.
             var query = _context.UserAnimes
-                .AsNoTracking()
                 .Where(ua => ua.UserId == userId)
-                .Include(ua => ua.Anime);
+                .Include(ua => ua.Anime)
+                .AsNoTracking();
 
-            // 1. Apply Filtering by Title (Search Box)
+            // 1. Apply searching
             if (!string.IsNullOrWhiteSpace(apiParams.FilterOn) && !string.IsNullOrWhiteSpace(apiParams.FilterQuery))
             {
                 var filterOn = apiParams.FilterOn.ToLowerInvariant();
@@ -97,23 +97,25 @@ namespace AnimeHubApi.Repository
 
                 if (filterOn.Equals("title"))
                 {
-                    query = (Microsoft.EntityFrameworkCore.Query.IIncludableQueryable<UserAnime, Anime?>)query.Where(ua => ua.Anime != null && ua.Anime.Title.ToLower().Contains(filterQuery));
+                    query = query.Where(ua => ua.Anime.Title.ToLower().Contains(filterQuery));
                 }
             }
 
             // 2. Apply Filtering by Watch Status (New requirement)
             // We'll use a new custom property in APIParams or query string, let's call it StatusFilter
-            if (apiParams.StatusFilter != null && apiParams.StatusFilter > 0)
+            if (apiParams.StatusFilter.HasValue && apiParams.StatusFilter > 0)
             {
                 // Assuming WatchStatus enum values start at 1 (or 0 for planning)
-                query = (Microsoft.EntityFrameworkCore.Query.IIncludableQueryable<UserAnime, Anime?>)query.Where(ua => (int)ua.Status == apiParams.StatusFilter);
+                WatchStatus statusToFilter = (WatchStatus)apiParams.StatusFilter.Value;
+
+                query = query.Where(ua => ua.Status == statusToFilter);
             }
 
             // 3. Apply Projection (Map to DTO)
             var projectedQuery = query.Select(ua => new UserAnimeReadDto
             {
                 AnimeId = ua.AnimeId,
-                Title = ua.Anime.Title ?? "Unknown Title", // Null check for safety
+                Title = ua.Anime.Title, // Null check for safety
                 ImageUrl = ua.Anime.ImageUrl,
                 WatchStatus = ua.Status,
                 DateAdded = ua.DateAdded // Include DateAdded for sorting
