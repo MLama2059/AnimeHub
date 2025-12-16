@@ -20,12 +20,14 @@ namespace AnimeHubApi.Controllers
     public class AnimeController : ControllerBase
     {
         private readonly IAnimeRepository _animeRepository;
+        private readonly IRecommendationRepository _recommendationRepository;
         private readonly IFileService _fileService;
         private readonly IWebHostEnvironment _webHostEnvironment;
 
-        public AnimeController(IAnimeRepository animeRepository, IFileService fileService, IWebHostEnvironment webHostEnvironment)
+        public AnimeController(IAnimeRepository animeRepository, IRecommendationRepository recommendationRepository, IFileService fileService, IWebHostEnvironment webHostEnvironment)
         {
             _animeRepository = animeRepository;
+            _recommendationRepository = recommendationRepository;
             _fileService = fileService;
             _webHostEnvironment = webHostEnvironment;
         }
@@ -180,6 +182,13 @@ namespace AnimeHubApi.Controllers
                 return NotFound();
 
             return NoContent();
+        }
+
+        [HttpGet("{id}/recommendations")]
+        public async Task<ActionResult<List<AnimeListReadDto>>> GetRecommendations(int id, [FromQuery] int count = 6)
+        {
+            var recommendations = await _recommendationRepository.GetRecommendationsAsync(id, count);
+            return Ok(recommendations);
         }
     }
 }

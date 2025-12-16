@@ -64,9 +64,6 @@ namespace AnimeHubClient.Services
             );
         }
 
-
-      
-
         // PRIVATE UNIFIED HELPER METHOD
         private async Task<string?> UploadFileInternalAsync(
             IBrowserFile file,
@@ -126,57 +123,6 @@ namespace AnimeHubClient.Services
                 return oldUrl;
             }
         }
-
-        /*
-        // PRIVATE HELPER METHOD
-        private async Task<string?> UploadFileAsync(IBrowserFile file, string endpoint)
-        {
-            var maxFileSize = 100 * 1024 * 1024;
-
-            if (file.Size > maxFileSize)
-            {
-                return null;
-            }
-
-            try
-            {
-                var content = new MultipartFormDataContent();
-
-                // Read the file stream into the content, limiting the stream length
-                var fileContent = new StreamContent(file.OpenReadStream(maxFileSize));
-                fileContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(file.ContentType);
-
-                // The API controller expects the file under the name "file"
-                content.Add(fileContent, "file", file.Name);
-
-                var response = await _httpClient.PostAsync(endpoint, content);
-
-                if (response.IsSuccessStatusCode)
-                {
-                    var path = await response.Content.ReadAsStringAsync();
-
-                    // Clean up and return the path
-
-                    return path.Trim('"').Replace("\\", "/");
-                    //var relativePath = await response.Content.ReadAsStringAsync();
-                    //relativePath = relativePath.Trim('"').Replace("\\", "/");
-
-                    //// Prepend the API Base Address
-                    //var absoluteUrl = new Uri(_httpClient.BaseAddress!, relativePath).ToString();
-
-                    //return absoluteUrl;
-                }
-                else
-                {
-                    return null;
-                }
-            }
-            catch (Exception)
-            {
-                return null;
-            }
-        }
-        */
 
         public async Task<(List<AnimeListReadDto>? Items, PagedListMetadata? Metadata)> GetPagedAnimeListAsync(Dictionary<string, string?> queryParams, CancellationToken cancellationToken)
         {
@@ -258,6 +204,20 @@ namespace AnimeHubClient.Services
                 "oldTrailerUrl",
                 MAX_VIDEO_SIZE_MB
             );
+        }
+
+        public async Task<List<AnimeListReadDto>> GetRecommendationsAsync(int animeId, int count = 6)
+        {
+            try
+            {
+                var result = await _httpClient.GetFromJsonAsync<List<AnimeListReadDto>>($"{API_BASE_URL}/{animeId}/recommendations?count={count}");
+                return result ?? new List<AnimeListReadDto>();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error fetching recommendations: {ex.Message}");
+                return new List<AnimeListReadDto>();
+            }
         }
     }
 }

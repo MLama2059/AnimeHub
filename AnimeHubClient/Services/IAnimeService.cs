@@ -28,5 +28,8 @@ namespace AnimeHubClient.Services
       
         // Method for AnimeCatalog.razor
         Task<(List<AnimeListReadDto>? Items, PagedListMetadata? Metadata)> GetAnimeCatalogAsync(int pageNumber, int pageSize, string orderBy, string? filterQuery, string? filterOn = "Title");
+
+        // Method for recommendations
+        Task<List<AnimeListReadDto>> GetRecommendationsAsync(int animeId, int count = 6);
     }
 }

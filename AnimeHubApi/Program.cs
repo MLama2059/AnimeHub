@@ -26,6 +26,7 @@ builder.Services.AddScoped<IRatingRepository, RatingRepository>();
 builder.Services.AddScoped<IWatchlistRepository, WatchlistRepository>();
 builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<IFileService, FileService>();
+builder.Services.AddScoped<IRecommendationRepository, RecommendationRepository>();
 
 // Add the CORS service registration
 builder.Services.AddCors(options =>

@@ -117,10 +117,6 @@ else
                         }
 
                     </MudListItem>
-                    @* <MudListItem Icon="@Icons.Material.Filled.Category">
-                        <MudText Typo="Typo.subtitle1" Class="fw-bold">Category:</MudText>
-                        @Anime.CategoryName
-                    </MudListItem> *@
                 </MudList>
             </MudItem>
 
@@ -154,9 +150,8 @@ else
                     string fullPosterUrl = trailerBaseUrl + Anime.TrailerPosterUrl;
 
                     <MudText Typo="Typo.h6" Class="mt-4 mb-2 fw-bold">Official Trailer</MudText>
-                    <MudPaper Elevation="4" Class="mb-4 pa-1" Style="max-width: 300px;">
-                        <video controls style="width: 100%; height: auto; border-radius: 4px;"
-                               poster="@fullPosterUrl">
+                    <MudPaper Elevation="4" Class="mb-4 pa-1" Style="max-width: 400px;">
+                        <video controls style="width: 100%; height: auto; border-radius: 4px;" poster="@fullPosterUrl">
                             <source src="@fullTrailerUrl" type="video/mp4">
                             Your browser does not support the video tag.
                         </video>
@@ -171,23 +166,42 @@ else
                 <RatingSection AnimeId="@Id" />
             </MudItem>
         </MudGrid>
+
+        @* Recommendation Section *@
+        @if (Recommendations != null && Recommendations.Any())
+        {
+            <MudDivider Class="my-8" />
+
+            <div class="mb-4">
+                <MudText Typo="Typo.h5" Class="fw-bold">You Might Also Like</MudText>
+            </div>
+
+            <MudGrid Spacing="3" Class="mb-8">
+                @foreach (var anime in Recommendations)
+                {
+                    <MudItem xs="6" sm="4" md="2">
+                        <AnimeCard Anime="anime" />
+                    </MudItem>
+                }
+            </MudGrid>
+        }
     </MudContainer>
 }
 
 @code {
     [Parameter]
     public int Id { get; set; }
-    private bool IsLoading { get; set; } = true;
-    private bool IsActionLoading { get; set; } = false; // Separate loader for button actions
-
     private AnimeReadDto? Anime;
+    private List<AnimeListReadDto> Recommendations = new();
     private WatchStatus? CurrentWatchStatus = null;
     private bool IsAuthenticated;
+    private bool IsLoading { get; set; } = true;
+    private bool IsActionLoading { get; set; } = false; // Separate loader for button actions
 
     // Enum to hold the watching statuses for the dropdown
     private List<WatchStatus> Statuses = Enum.GetValues<WatchStatus>().ToList();
 
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnParametersSetAsync()
     {
         await LoadAnime();
     }
@@ -197,6 +211,7 @@ else
         IsLoading = true;
         Anime = null;
         CurrentWatchStatus = null;
+        Recommendations = new();
 
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
         IsAuthenticated = authState.User.Identity?.IsAuthenticated ?? false;
@@ -204,6 +219,8 @@ else
         try
         {
             Anime = await AnimeService.GetAnimeByIdAsync(Id);
+            // FETCH RECOMMENDATIONS (The Algorithm)
+            Recommendations = await AnimeService.GetRecommendationsAsync(Id, 6);
 
             if (Anime != null && IsAuthenticated)
             {
