@@ -7,6 +7,7 @@
 @inject IDialogService Dialog
 @inject ISnackbar Snackbar
 @inject IAnimeService AnimeService
+@inject AnimeStateContainer State
 
 <MudCard Elevation="4" Class="mt-4">
     <MudCardHeader>
@@ -36,8 +37,9 @@
         </div>
 
         <MudTable ServerData="ServerReload"
+                  CurrentPage="State.AdminPageIndex"
                   FixedHeader="true"
-                  Height="450px"
+                  Height="480px"
                   Hover="true"
                   Bordered="true"
                   Striped="true"
@@ -87,7 +89,11 @@
 
 @code {
     private MudTable<AnimeListReadDto>? MudTable;
-    private string SearchTerm { get; set; } = string.Empty;
+    private string SearchTerm
+    {
+        get => State.AdminSearchTerm;
+        set => State.AdminSearchTerm = value;
+    }
 
     private Dictionary<string, string> SortMapping = new()
     {
@@ -102,6 +108,7 @@
     // NOTE: MudTable.ServerData expects a Func<TableState, CancellationToken, Task<TableData<T>>>
     private async Task<TableData<AnimeListReadDto>> ServerReload(TableState state, CancellationToken cancellationToken)
     {
+        State.AdminPageIndex = state.Page; // keep track of current page index in state container
         int pageNumber = state.Page + 1;
         int pageSize = state.PageSize;
 

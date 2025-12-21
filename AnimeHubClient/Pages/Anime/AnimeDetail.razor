@@ -7,6 +7,7 @@
 @inject IWatchlistService WatchlistService
 @inject IConfiguration Configuration
 @inject ISnackbar Snackbar
+@inject NavigationManager Navigation
 @inject AuthenticationStateProvider AuthenticationStateProvider
 
 @if (IsLoading)
@@ -34,7 +35,7 @@ else
                 <div class="d-flex gap-2 mt-4 mb-4">
                     @if (!IsAuthenticated)
                     {
-                        <MudButton Variant="Variant.Filled" Color="Color.Dark" Disabled="true" StartIcon="@Icons.Material.Filled.Lock" FullWidth="true">
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Login" FullWidth="true" OnClick="NavigateToLogin">
                             Log In to Add
                         </MudButton>
                     }
@@ -305,9 +306,13 @@ else
         }
         finally
         {
-            IsLoading = false;
+            IsActionLoading = false;
         }
     }
 
-    
+    private void NavigateToLogin()
+    {
+        var returnUrl = Uri.EscapeDataString(Navigation.Uri);
+        Navigation.NavigateTo($"/login?returnUrl={returnUrl}");
+    }
 }

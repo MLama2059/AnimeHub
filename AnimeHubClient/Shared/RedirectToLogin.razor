@@ -1,0 +1,21 @@
+﻿@using Microsoft.AspNetCore.Components.Authorization;
+@inject NavigationManager Navigation
+
+@code {
+    [CascadingParameter]
+    private Task<AuthenticationState> AuthenticationStateTask { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateTask;
+
+        if (authState?.User?.Identity is null || !authState.User.Identity.IsAuthenticated)
+        {
+            // Capture the current page URL(where the user tried to go)
+            var returnUrl = Uri.EscapeDataString(Navigation.Uri);
+
+            // Send them to Login, passing this page as the ReturnUrl
+            Navigation.NavigateTo($"/login?returnUrl={returnUrl}", forceLoad: true);
+        }
+    }
+}

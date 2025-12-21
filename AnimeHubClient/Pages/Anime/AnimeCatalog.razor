@@ -1,11 +1,12 @@
 ﻿@page "/animes"
+@implements IDisposable
 @using AnimeHub.Shared.Models.Dtos
 @using AnimeHubClient.Services
 @using Microsoft.AspNetCore.WebUtilities
 @inject ISnackbar Snackbar
 @inject IJSRuntime JSRuntime
 @inject IAnimeService AnimeService
-@implements IDisposable
+@inject AnimeStateContainer State
 
 <MudPaper Elevation="4" Class="mt-4">
     <MudCard>
@@ -24,24 +25,25 @@
                           Clearable="true"
                           Style="max-width:300px;"
                           Value="SearchInput"
-                          ValueChanged="@(async (v) => await OnSearchChanged(v))" />
+                          ValueChanged="OnSearchChanged" />
         </MudCardContent>
     </MudCard>
 
-    @* Anime Card Grid and Loading State *@
+    @* Anime Card Grid - Keeping your exact Bootstrap structure *@
     <div class="container my-4">
         <div class="col-12 mt-5 pt-5 section-card">
             <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 row-cols-xl-5 g-4 justify-content-start">
+
                 @if (IsLoading && AnimesList.Count == 0)
                 {
-                    @for (int i = 0; i < 6; i++)
+                    @for (int i = 0; i < 10; i++)
                     {
                         <div class="col d-flex justify-content-center">
                             <AnimeCardSkeleton />
                         </div>
                     }
                 }
-                else if (AnimesList != null && AnimesList.Any())
+                else if (AnimesList.Any())
                 {
                     @foreach (var anime in AnimesList)
                     {
@@ -50,28 +52,28 @@
                         </div>
                     }
                 }
-                else
+                else if (!IsLoading)
                 {
-                    <p class="text-center w-100 p-5">No Results.</p>
+                    <p class="text-center w-100 p-5">No Results Found for "@FilterQuery"</p>
+                }
+
+                @* Infinite Scroll Skeletons - Shows only when fetching next page *@
+                @if (IsLoading && AnimesList.Count > 0)
+                {
+                    @for (int i = 0; i < 5; i++)
+                    {
+                        <div class="col d-flex justify-content-center">
+                            <AnimeCardSkeleton />
+                        </div>
+                    }
                 }
             </div>
         </div>
 
-        @* Infinite Scroll Loading Indicator *@
-        @if (IsLoading && AnimesList.Count > 0)
-        {
-            @* Show skeleton cards horizontally only when loading MORE data (list is not empty) *@
-            <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 row-cols-xl-5 g-4 justify-content-start pt-4">
-                @for (int i = 0; i < 6; i++)
-                {
-                    <div class="col d-flex justify-content-center">
-                        <AnimeCardSkeleton />
-                    </div>
-                }
-            </div>
-        }
-        @* End of List Message *@
-        else if (!HasMorePages && AnimesList.Any())
+        @* Invisible trigger for Intersection Observer *@
+        <div id="scroll-trigger" style="height: 50px;"></div>
+
+        @if (!HasMorePages && AnimesList.Any())
         {
             <MudText Align="Align.Center" Class="py-4 text-muted fw-bold">
                 You've reached the end of the catalog! (@AnimesList.Count total items)
@@ -80,91 +82,60 @@
     </div>
 </MudPaper>
 
+<MudScrollToTop>
+    <MudFab Color="Color.Primary" StartIcon="@Icons.Material.Filled.ArrowUpward" />
+</MudScrollToTop>
+
 @code {
-    private List<AnimeListReadDto> AnimesList = new();
-    private PagedListMetadata Metadata = new();
-    private bool IsLoading { get; set; } = true;
-    private int CurrentPage { get; set; } = 1;
-    private int PageSize { get; set; } = 20;
-    private bool HasMorePages { get; set; } = true;
-    private string OrderBy { get; set; } = "title";
-    private const string FilterOn = "Title";
-    // Properties for Debouncing/Search
-    private string FilterQuery { get; set; } = string.Empty; // Actual filter sent to API
-    private string SearchInput { get; set; } = string.Empty; // Value from the input box
+    // State Redirection
+    private List<AnimeListReadDto> AnimesList => State.CatalogItems;
+    private string FilterQuery { get => State.CatalogSearchTerm; set => State.CatalogSearchTerm = value; }
+    private int CurrentPage { get => State.CatalogCurrentPage; set => State.CatalogCurrentPage = value; }
+    private bool HasMorePages { get => State.CatalogHasMorePages; set => State.CatalogHasMorePages = value; }
+
+    private string SearchInput = string.Empty;
+    private bool IsLoading { get; set; } = false;
     private CancellationTokenSource _debounceCts = new();
 
     protected override async Task OnInitializedAsync()
     {
-        // Set initial SearchInput value to match FilterQuery (for consistency)
         SearchInput = FilterQuery;
-        await LoadAnimes();
+
+        // If coming back from Anime Details, don't reload data
+        if (AnimesList.Count == 0)
+        {
+            await LoadAnimes();
+        }
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
-            // Register the .NET method to be called when the user scrolls near the bottom
             await JSRuntime.InvokeVoidAsync("setupInfiniteScroll", DotNetObjectReference.Create(this));
-        }
-    }
-
-    // JS INTEROP METHOD
-    [JSInvokable]
-    public async Task LoadMoreData()
-    {
-        // Only load if we aren't already loading and there are more pages available
-        if (!IsLoading && HasMorePages)
-        {
-            CurrentPage++;
-            await LoadAnimes(append: true); // Pass a flag to indicate appending
         }
     }
 
     private async Task LoadAnimes(bool append = false)
     {
-        if (append && !HasMorePages) return;
-
         IsLoading = true;
-        if (append) StateHasChanged();
+        StateHasChanged();
 
         try
         {
             var (newAnimes, metadata) = await AnimeService.GetAnimeCatalogAsync(
-                CurrentPage,
-                PageSize,
-                OrderBy,
-                FilterQuery,
-                FilterOn // This parameter is optional but included for completeness
-            );
+                CurrentPage, 20, "title", FilterQuery);
 
-            // Append or Replace logic
             if (append)
-            {
-                AnimesList.AddRange(newAnimes ?? new());
-            }
+                State.CatalogItems.AddRange(newAnimes ?? new());
             else
-            {
-                AnimesList = newAnimes ?? new();
-                CurrentPage = 1;
-            }
+                State.CatalogItems = newAnimes ?? new();
 
-            // Update Metadata for HasMorePages
-            if (metadata != null)
-            {
-                Metadata = metadata;
-                HasMorePages = Metadata.HasNext;
-            }
-            else if (!append) // If no metadata on first load, assume no more pages
-            {
-                HasMorePages = false;
-            }
+            HasMorePages = metadata?.HasNext ?? false;
         }
         catch (Exception ex)
         {
-            // Console.Error.WriteLine($"Error fetching category data: {ex.Message}");
-            Snackbar.Add($"Error loading catalog: {ex.Message}", Severity.Error);
+            Snackbar.Add($"Error: {ex.Message}", Severity.Error);
         }
         finally
         {
@@ -176,28 +147,31 @@
     private async Task OnSearchChanged(string value)
     {
         SearchInput = value;
-        // Cancel any pending/previous search operation
         _debounceCts.Cancel();
         _debounceCts = new();
 
         try
         {
-            // Wait for 500ms before calling the API 
-            await Task.Delay(200, _debounceCts.Token);
-
-            // Update the *official* filter property used by LoadAnimes
-            FilterQuery = SearchInput;
+            await Task.Delay(400, _debounceCts.Token);
+            FilterQuery = value;
             CurrentPage = 1;
             HasMorePages = true;
-            await LoadAnimes();
+            State.CatalogItems.Clear(); // Clear list for new search
+            await LoadAnimes(append: false);
         }
-        catch (TaskCanceledException)
+        catch (TaskCanceledException) { }
+    }
+
+    [JSInvokable]
+    public async Task LoadMoreData()
+    {
+        if (!IsLoading && HasMorePages)
         {
-            // Ignore if the task was canceled
+            CurrentPage++;
+            await LoadAnimes(append: true);
         }
     }
 
-    // LIFECYCLE CLEANUP: Prevent memory leaks from the CancellationTokenSource
     public void Dispose()
     {
         _debounceCts.Cancel();

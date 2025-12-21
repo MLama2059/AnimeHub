@@ -52,6 +52,9 @@
     private LoginRequestDto LoginRequest { get; set; } = new();
     private bool IsLoading { get; set; } = true;
     private bool IsPasswordVisible = false;
+    // Catches the ?returnUrl=... from the URL
+    [SupplyParameterFromQuery]
+    public string? ReturnUrl { get; set; }
 
     protected override void OnInitialized()
     {
@@ -73,7 +76,7 @@
             Snackbar.Add("Login successful! Welcome.", Severity.Success);
 
             // Navigate the user to the home page or a dashboard
-            Navigation.NavigateTo("/", forceLoad: true);
+            Navigation.NavigateTo(ReturnUrl ?? "/", forceLoad: true);
         }
         else
         {

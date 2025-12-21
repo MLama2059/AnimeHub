@@ -23,6 +23,7 @@ builder.Services.AddAuthorizationCore(); // Adds core authorization services
 builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthStateProvider>(); // Tells Blazor to use your custom provider
 builder.Services.AddBlazoredLocalStorage(); // Registers the ILocalStorageService
 builder.Services.AddScoped<JwtAuthorizationMessageHandler>(); // Register the custom handler
+builder.Services.AddScoped<AnimeStateContainer>();
 
 builder.Services.AddHttpClient<IAnimeService, AnimeService>(client =>
     client.BaseAddress = apiUrl)

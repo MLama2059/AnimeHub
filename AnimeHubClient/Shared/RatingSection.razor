@@ -48,9 +48,19 @@
             </MudPaper>
         </Authorized>
         <NotAuthorized>
-            <MudAlert Severity="Severity.Info" Class="mb-4">
-                <MudLink Href="/login" Typo="Typo.body2" Class="fw-bold">Log in</MudLink> to rate this anime and leave a comment!
-            </MudAlert>
+            <MudPaper Class="pa-6 mt-4 d-flex flex-column align-center border-dashed" Elevation="0" Style="background-color: var(--mud-palette-background-grey); border: 2px dashed var(--mud-palette-divider);">
+                <MudIcon Icon="@Icons.Material.Filled.RateReview" Size="Size.Large" Color="Color.Primary" Class="mb-2" />
+                <MudText Typo="Typo.h6">Share your thoughts!</MudText>
+                <MudText Typo="Typo.body2" Align="Align.Center" Class="mb-4">
+                    You must be logged in to rate this anime and join the discussion.
+                </MudText>
+                <MudButton Variant="Variant.Filled"
+                           Color="Color.Primary"
+                           StartIcon="@Icons.Material.Filled.Login"
+                           OnClick="NavigateToLogin">
+                    Login to Review
+                </MudButton>
+            </MudPaper>
         </NotAuthorized>
     </AuthorizeView>
 
@@ -160,25 +170,31 @@
 
         IsSubmitting = true;
 
-        var dto = new RatingCreateDto
+        try
         {
-            AnimeId = AnimeId,
-            Rating = UserRatingInput,
-            Comment = UserCommentInput
-        };
+            var dto = new RatingCreateDto
+            {
+                AnimeId = AnimeId,
+                Rating = UserRatingInput,
+                Comment = UserCommentInput
+            };
 
-        var result = await RatingService.UpsertRatingAsync(dto);
+            var result = await RatingService.UpsertRatingAsync(dto);
 
-        if (result != null)
+            if (result != null)
+            {
+                Snackbar.Add("Review submitted!", Severity.Success);
+                MyRating = result; // Update local state
+
+                // Refresh the list to show the new/updated comment immediately
+                Reviews = await RatingService.GetRatingsForAnimeAsync(AnimeId);
+            } 
+        }
+        finally
         {
-            Snackbar.Add("Review submitted!", Severity.Success);
-            MyRating = result; // Update local state
-
-            // Refresh the list to show the new/updated comment immediately
-            await LoadData();
+            IsSubmitting = false;
         }
 
-        IsSubmitting = false;
     }
 
     private async Task DeleteRating(int ratingId)
@@ -194,11 +210,15 @@
 
         if (success)
         {
-            // Update UI by removing the deleted item
+            Snackbar.Add("Review deleted.", Severity.Success);
+            // This one call handles resetting EVERYTHING (MyRating, Inputs, and the List)
             await LoadData();
-            MyRating = null; // Clear the input form
-            UserRatingInput = 0;
-            UserCommentInput = "";
         }
+    }
+
+    private void NavigateToLogin()
+    {
+        var returnUrl = Uri.EscapeDataString(Navigation.Uri);
+        Navigation.NavigateTo($"/login?returnUrl={returnUrl}");
     }
 }
