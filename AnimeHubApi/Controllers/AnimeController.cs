@@ -72,7 +72,7 @@ namespace AnimeHubApi.Controllers
         [HttpGet("top")]
         public async Task<IActionResult> GetTopRatedAnimes()
         {
-            var animes = await _animeRepository.GetTopRatedAnimesAsync(10);
+            var animes = await _animeRepository.GetTopRatedAnimesAsync(6);
 
             return Ok(animes);
         }

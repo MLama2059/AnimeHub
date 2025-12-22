@@ -8,8 +8,8 @@
 @inject IAnimeService AnimeService
 @inject AnimeStateContainer State
 
-<MudPaper Elevation="4" Class="mt-4">
-    <MudCard>
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-4">
+    <MudCard Elevation="0">
         <MudCardHeader>
             <CardHeaderContent>
                 <MudText Align="Align.Center" Typo="Typo.h4" Class="fw-bold">Anime Catalog</MudText>
@@ -29,46 +29,47 @@
         </MudCardContent>
     </MudCard>
 
-    @* Anime Card Grid - Keeping your exact Bootstrap structure *@
-    <div class="container my-4">
-        <div class="col-12 mt-5 pt-5 section-card">
-            <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 row-cols-xl-5 g-4 justify-content-start">
+    @* Anime Card Grid *@
+    <MudPaper Class="pa-6 section-paper" Elevation="4">
+        @if (IsLoading && AnimesList.Count == 0)
+        {
+            <MudGrid Justify="Justify.Center">
+                @for (int i = 0; i < 6; i++)
+                {
+                    <MudItem lg="2" md="3" sm="4" xs="6" Class="d-flex justify-content-center">
+                        <AnimeCardSkeleton />
+                    </MudItem>
+                }
+            </MudGrid>
+        }
+        else if (AnimesList.Any())
+        {
+            <MudGrid Justify="Justify.Center" Spacing="4">
+                @foreach (var anime in AnimesList)
+                {
+                    <MudItem lg="2" md="3" sm="4" xs="6" Class="d-flex justify-content-center">
+                        <AnimeCard Anime="anime" />
+                    </MudItem>
+                }
+            </MudGrid>
+        }
+        else if (!IsLoading)
+        {
+            <MudText Align="Align.Center">No Results Found for "@FilterQuery"</MudText>
+        }
 
-                @if (IsLoading && AnimesList.Count == 0)
+        @* Infinite Scroll Skeletons - Shows only when fetching next page *@
+        @if (IsLoading && AnimesList.Count > 0)
+        {
+            <MudGrid Justify="Justify.Center">
+                @for (int i = 0; i < 6; i++)
                 {
-                    @for (int i = 0; i < 10; i++)
-                    {
-                        <div class="col d-flex justify-content-center">
-                            <AnimeCardSkeleton />
-                        </div>
-                    }
+                    <MudItem lg="2" md="3" sm="4" xs="6" Class="d-flex justify-content-center">
+                        <AnimeCardSkeleton />
+                    </MudItem>
                 }
-                else if (AnimesList.Any())
-                {
-                    @foreach (var anime in AnimesList)
-                    {
-                        <div class="col d-flex justify-content-center">
-                            <AnimeCard Anime="anime" />
-                        </div>
-                    }
-                }
-                else if (!IsLoading)
-                {
-                    <p class="text-center w-100 p-5">No Results Found for "@FilterQuery"</p>
-                }
-
-                @* Infinite Scroll Skeletons - Shows only when fetching next page *@
-                @if (IsLoading && AnimesList.Count > 0)
-                {
-                    @for (int i = 0; i < 5; i++)
-                    {
-                        <div class="col d-flex justify-content-center">
-                            <AnimeCardSkeleton />
-                        </div>
-                    }
-                }
-            </div>
-        </div>
+            </MudGrid>
+        }
 
         @* Invisible trigger for Intersection Observer *@
         <div id="scroll-trigger" style="height: 50px;"></div>
@@ -79,8 +80,8 @@
                 You've reached the end of the catalog! (@AnimesList.Count total items)
             </MudText>
         }
-    </div>
-</MudPaper>
+    </MudPaper>
+</MudContainer>
 
 <MudScrollToTop>
     <MudFab Color="Color.Primary" StartIcon="@Icons.Material.Filled.ArrowUpward" />
