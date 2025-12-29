@@ -340,11 +340,13 @@ main {
 .quick-view-popover {
     pointer-events: none; /* Prevents flickering when mouse moves over the popover itself */
     margin-left: 15px; /* Spacing between the card and the popover */
+    border-radius: 10px;
 }
 
 .quick-view-content {
     background-color: #ffffff;
     border: 1px solid rgba(0,0,0,0.05);
+    border-radius: 10px;
 }
 
 .section-card {
