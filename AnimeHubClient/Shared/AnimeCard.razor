@@ -1,7 +1,7 @@
 ﻿@inject IConfiguration Configuration
 @inject NavigationManager NavigationManager
 
-<MudCard Elevation="0" Class="anime-card">
+<MudCard Elevation="0" Class="anime-card" @onmouseenter="OpenPopover" @onmouseleave="ClosePopover">
     <MudCardMedia Image="@(Configuration["ApiBaseUrl"]?.ToString() + Anime.ImageUrl)" Class="anime-img-top" @onclick="NavigateToDetails" Alt="@Anime.Title" />
 
     <MudCardContent Class="card-body">
@@ -9,12 +9,24 @@
     </MudCardContent>
 </MudCard>
 
+@* Quick View Popover *@
+<MudPopover Open="IsPopoverOpen" Elevation="4" AnchorOrigin="Origin.TopRight" TransformOrigin="Origin.TopLeft" Class="pa-0 quick-view-popover">
+    @if (IsPopoverOpen)
+    {
+        <AnimeQuickView AnimeId="Anime.Id" />
+    }
+</MudPopover>
+@* <div class="anime-card-container" @onmouseenter="OpenPopover" @onmouseleave="ClosePopover">
+</div> *@
+
+
 @code {
     [Parameter]
-    public AnimeListReadDto Anime { get; set; } = default!;
+    public AnimeListReadDto Anime { get; set; } = new();
+    private bool IsPopoverOpen { get; set; } = false;
 
-    private void NavigateToDetails()
-    {
-        NavigationManager.NavigateTo($"/anime/{Anime.Id}");
-    }
+    private void OpenPopover() => IsPopoverOpen = true;
+    private void ClosePopover() => IsPopoverOpen = false;
+
+    private void NavigateToDetails() => NavigationManager.NavigateTo($"/anime/{Anime.Id}");
 }

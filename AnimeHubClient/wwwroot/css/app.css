@@ -291,6 +291,13 @@ main {
 }
 
 /* Anime Card Styles */
+.anime-card-container {
+    position: relative;
+    display: inline-block;
+    width: 100%;
+    cursor: pointer;
+}
+
 .anime-card {
     width: 14rem;
     border-radius: 15px;
@@ -327,6 +334,17 @@ main {
     -webkit-line-clamp: 2;
     word-break: break-word;
     cursor: pointer;
+}
+
+/* Popover Styling */
+.quick-view-popover {
+    pointer-events: none; /* Prevents flickering when mouse moves over the popover itself */
+    margin-left: 15px; /* Spacing between the card and the popover */
+}
+
+.quick-view-content {
+    background-color: #ffffff;
+    border: 1px solid rgba(0,0,0,0.05);
 }
 
 .section-card {
