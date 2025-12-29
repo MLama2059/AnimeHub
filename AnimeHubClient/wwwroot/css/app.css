@@ -294,15 +294,15 @@ main {
 .anime-card {
     width: 14rem;
     border-radius: 15px;
-    background: #fdfdfd;
+    background: #fdfdfd !important;
 }
 
     /* Card title hover uses Primary color variable */
-    .anime-card .card-body a h6 {
+    .anime-card .card-body .anime-title {
         transition: color 0.3s ease;
     }
 
-    .anime-card:hover .card-body a h6 {
+    .anime-card:hover .card-body .anime-title {
         color: var(--bs-primary) !important;
     }
 
@@ -312,6 +312,7 @@ main {
     aspect-ratio: 400 / 600;
     object-fit: cover;
     border-radius: 15px;
+    cursor: pointer;
     transition: transform 0.5s ease;
 }
 
@@ -325,6 +326,7 @@ main {
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 2;
     word-break: break-word;
+    cursor: pointer;
 }
 
 .section-card {

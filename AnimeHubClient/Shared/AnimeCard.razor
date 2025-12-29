@@ -1,19 +1,20 @@
 ﻿@inject IConfiguration Configuration
+@inject NavigationManager NavigationManager
 
-<div class="card anime-card border-0">
-    <a href="anime/@Anime.Id">
-        <img src="@(Configuration["ApiBaseUrl"]?.ToString() + Anime.ImageUrl)" class="card-img-top anime-img-top" alt="@Anime.Title" />
-    </a>
+<MudCard Elevation="0" Class="anime-card">
+    <MudCardMedia Image="@(Configuration["ApiBaseUrl"]?.ToString() + Anime.ImageUrl)" Class="anime-img-top" @onclick="NavigateToDetails" Alt="@Anime.Title" />
 
-    <div class="card-body">
-        <a href="anime/@Anime.Id" class="text-decoration-none">
-            <h6 class="card-title fw-bold anime-title">@Anime.Title</h6>
-        </a>
-    </div>
-</div>
+    <MudCardContent Class="card-body">
+        <MudText Typo="Typo.body2" Class="fw-bold anime-title" @onclick="NavigateToDetails">@Anime.Title</MudText>
+    </MudCardContent>
+</MudCard>
 
 @code {
     [Parameter]
     public AnimeListReadDto Anime { get; set; } = default!;
 
+    private void NavigateToDetails()
+    {
+        NavigationManager.NavigateTo($"/anime/{Anime.Id}");
+    }
 }
