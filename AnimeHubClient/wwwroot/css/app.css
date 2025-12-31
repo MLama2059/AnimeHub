@@ -292,10 +292,11 @@ main {
 
 /* Anime Card Styles */
 .anime-card-container {
-    position: relative;
-    display: inline-block;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
     width: 100%;
-    cursor: pointer;
+    position: relative; /* This helps with internal positioning */
 }
 
 .anime-card {
@@ -352,10 +353,38 @@ main {
 }
 
 .quick-view-content {
+    position: relative;
     background-color: #ffffff;
     border: 1px solid rgba(0,0,0,0.05);
     border-radius: 10px;
     width: 280px;
+}
+
+    /* Common Triangle Styles */
+    .quick-view-content::before {
+        content: "";
+        position: absolute;
+        top: 25px;
+        width: 0;
+        height: 0;
+        border-top: 10px solid transparent;
+        border-bottom: 10px solid transparent;
+/*        z-index: 10;*/
+    }
+
+/* STATE 1: Popover is on the RIGHT (Triangle is on the left pointing left) */
+.popover-not-flipped .quick-view-content::before {
+    left: -10px; /* Stick to the left edge of popover */
+    border-right: 10px solid #ffffff;
+    border-left: none;
+}
+
+/* STATE 2: Popover is on the LEFT (Triangle is on the right pointing right) */
+.popover-is-flipped .quick-view-content::before {
+    right: -10px; /* Stick to the right edge of popover */
+    left: auto;
+    border-left: 10px solid #ffffff;
+    border-right: none;
 }
 
 .section-card {
