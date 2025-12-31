@@ -13,7 +13,9 @@
 <MudPopover Open="IsPopoverOpen" Elevation="4" AnchorOrigin="Origin.TopRight" TransformOrigin="Origin.TopLeft" Class="pa-0 quick-view-popover">
     @if (IsPopoverOpen)
     {
-        <AnimeQuickView AnimeId="Anime.Id" />
+        <div class="popover-gap-handler">
+            <AnimeQuickView AnimeId="Anime.Id" />
+        </div>
     }
 </MudPopover>
 @* <div class="anime-card-container" @onmouseenter="OpenPopover" @onmouseleave="ClosePopover">

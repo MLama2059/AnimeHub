@@ -2,15 +2,15 @@
 @inject IAnimeService AnimeService
 @if (IsLoading)
 {
-    <MudPaper Class="pa-4 d-flex flex-column align-center justify-center" Style="width: 280px; height: 180px;">
+    <MudPaper Class="pa-4 d-flex flex-column align-center justify-center">
         <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Small" />
         <MudText Typo="Typo.caption" Class="mt-2">Fetching details...</MudText>
     </MudPaper>
 }
 else if (Anime != null)
 {
-    <MudPaper Class="pa-4 quick-view-content" Style="width: 280px; border-radius: 10px;">
-        <div class="d-flex justify-content-between align-items-center mb-1">
+    <MudPaper Class="pa-4 quick-view-content">
+        <div class="d-flex justify-content-between align-items-center mb-3">
             <MudText Typo="Typo.body1" Class="fw-bold">@Anime.Season @Anime.PremieredYear</MudText>
             <div class="d-flex align-items-center">
                 <MudIcon Icon="@Icons.Material.Filled.Star" Color="Color.Primary" Size="Size.Small" Class="me-1" />
@@ -30,9 +30,9 @@ else if (Anime != null)
             <MudText Typo="Typo.caption" Color="Color.Error" Class="fw-bold mb-2 d-block">N/A</MudText>
         }
 
-        <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-3">@Anime.CategoryName  •  @Anime.Episodes</MudText>
+        <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-3">@Anime.CategoryName  •  @Anime.Episodes @(Anime.Episodes == 1 ? "episode" : "episodes")</MudText>
 
-        <MudChipSet T="Color" Class="mb-4">
+        <MudChipSet T="Color">
             @if (Anime.Genres != null && Anime.Genres.Any())
             {
                 @foreach (var genre in Anime.Genres.Take(3))
