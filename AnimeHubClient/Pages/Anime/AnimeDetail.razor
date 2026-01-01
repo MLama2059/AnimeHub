@@ -41,7 +41,7 @@ else
                     }
                     else
                     {
-                        <MudButtonGroup Color="@(CurrentWatchStatus.HasValue ? Color.Info : Color.Primary)"
+                        <MudButtonGroup Color="@(CurrentWatchStatus.HasValue? Color.Info: Color.Primary)"
                                         Variant="Variant.Filled"
                                         FullWidth="true"
                                         Class="flex-grow-1">
@@ -125,7 +125,7 @@ else
             <MudItem xs="12" md="8" lg="9">
                 <MudText Typo="Typo.h3" Class="fw-bold mb-1">@Anime.Title</MudText>
                 <MudText Typo="Typo.subtitle1" Class="text-muted mb-3">@Anime.CategoryName</MudText>
-                
+
                 @* Genres Chip Group *@
                 <MudText Typo="Typo.subtitle1" Class="fw-bold mb-2">Genres</MudText>
                 <MudChipSet T="Color" Class="mb-4">
@@ -177,10 +177,10 @@ else
                 <MudText Typo="Typo.h5" Class="fw-bold">You Might Also Like</MudText>
             </div>
 
-            <MudGrid Spacing="4" Class="mb-8">
+            <MudGrid Justify="Justify.Center" Spacing="4" Class="mb-8">
                 @foreach (var anime in Recommendations)
                 {
-                    <MudItem xs="6" sm="4" md="3" lg="2">
+                    <MudItem lg="2" md="3" sm="4" xs="6" Class="d-flex justify-content-center">
                         <AnimeCard Anime="anime" />
                     </MudItem>
                 }

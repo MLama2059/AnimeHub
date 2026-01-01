@@ -1,54 +1,19 @@
 ﻿@inject IConfiguration Configuration
-@inject IJSRuntime JSRuntime
-@inject NavigationManager NavigationManager
 
-<div @ref="CardRef" class="anime-card-container" @onmouseenter="HandleMouseEnter" @onmouseleave="ClosePopover">
-    <MudCard Elevation="0" Class="anime-card">
-        <MudCardMedia Image="@(Configuration["ApiBaseUrl"]?.ToString() + Anime.ImageUrl)" Class="anime-img-top" @onclick="NavigateToDetails" />
+<div class="card anime-card border-0">
+    <a href="anime/@Anime.Id">
+        <img src="@(Configuration["ApiBaseUrl"]?.ToString() + Anime.ImageUrl)" class="card-img-top anime-img-top" alt="@Anime.Title" />
+    </a>
 
-        <MudCardContent Class="card-body">
-            <MudText Typo="Typo.body2" Class="fw-bold anime-title" @onclick="NavigateToDetails">@Anime.Title</MudText>
-        </MudCardContent>
-    </MudCard>
-
-    @* Quick View Popover *@
-    <MudPopover Open="IsPopoverOpen"
-                Class="@(IsFlipped ? "popover-is-flipped quick-view-popover" : "popover-not-flipped quick-view-popover")"
-                Elevation="4"
-                AnchorOrigin="Origin.TopRight"
-                TransformOrigin="Origin.TopLeft">
-        @if (IsPopoverOpen)
-        {
-            <div class="popover-gap-handler">
-                <AnimeQuickView AnimeId="Anime.Id" />
-            </div>
-        }
-    </MudPopover>
+    <div class="card-body">
+        <a href="anime/@Anime.Id" class="text-decoration-none">
+            <h6 class="card-title fw-bold anime-title">@Anime.Title</h6>
+        </a>
+    </div>
 </div>
 
-
-    @code {
+@code {
     [Parameter]
-    public AnimeListReadDto Anime { get; set; } = new();
-    private ElementReference CardRef;
-    private bool IsFlipped { get; set; } = false;
-    private bool IsPopoverOpen { get; set; } = false;
+    public AnimeListReadDto Anime { get; set; } = default!;
 
-    private void OpenPopover() => IsPopoverOpen = true;
-    private void ClosePopover() => IsPopoverOpen = false;
-
-    private async Task HandleMouseEnter()
-    {
-        try
-        {
-            IsFlipped = await JSRuntime.InvokeAsync<bool>("checkIfPopoverWillFlip", CardRef);
-        }
-        catch
-        {
-            IsFlipped = false;
-        }
-        IsPopoverOpen = true;
-    }
-
-    private void NavigateToDetails() => NavigationManager.NavigateTo($"/anime/{Anime.Id}");
 }
