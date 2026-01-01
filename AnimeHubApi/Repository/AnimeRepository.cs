@@ -53,7 +53,9 @@ namespace AnimeHubApi.Repository
                 PremieredYear = a.PremieredYear,
                 Status = a.Status.ToString(),
                 CategoryId = a.CategoryId,
-                CategoryName = a.Category.Name
+                CategoryName = a.Category.Name,
+                Genres = a.AnimeGenres.Select(ag => ag.Genre.Name).ToList(),
+                Studios = a.AnimeStudios.Select(ast => ast.Studio.Name).ToList()
             });
 
             // Apply filtering
@@ -165,7 +167,9 @@ namespace AnimeHubApi.Repository
                     PremieredYear = a.PremieredYear,
                     Status = a.Status.ToString(),
                     CategoryId = a.CategoryId,
-                    CategoryName = a.Category.Name
+                    CategoryName = a.Category.Name,
+                    Genres = a.AnimeGenres.Select(ag => ag.Genre.Name).ToList(),
+                    Studios = a.AnimeStudios.Select(ast => ast.Studio.Name).ToList()
                 })
                 .AsNoTracking()
                 .ToListAsync();

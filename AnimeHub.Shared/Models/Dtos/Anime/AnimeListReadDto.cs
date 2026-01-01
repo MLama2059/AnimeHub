@@ -16,5 +16,7 @@ namespace AnimeHub.Shared.Models.Dtos.Anime
         public string Status { get; set; } = string.Empty;
         public int? CategoryId { get; set; }
         public string? CategoryName { get; set; }
+        public List<string> Genres { get; set; } = new();
+        public List<string> Studios { get; set; } = new();
     }
 }

@@ -19,6 +19,9 @@ namespace AnimeHubApi.Repository
         {
             var allAnimes = await _context.Animes
                 .Include(a => a.AnimeGenres)
+                .ThenInclude(ag => ag.Genre)
+                .Include(a => a.AnimeStudios)
+                .ThenInclude(ast => ast.Studio)
                 .Include(a => a.Category)
                 .AsNoTracking()
                 .ToListAsync();
@@ -91,7 +94,9 @@ namespace AnimeHubApi.Repository
                 PremieredYear = a.PremieredYear,
                 Status = a.Status.ToString(),
                 CategoryId = a.CategoryId,
-                CategoryName = a.Category.Name
+                CategoryName = a.Category.Name,
+                Genres = a.AnimeGenres.Select(ag => ag.Genre.Name).ToList(),
+                Studios = a.AnimeStudios.Select(ast => ast.Studio.Name).ToList()
             }).ToList();
         }
     }

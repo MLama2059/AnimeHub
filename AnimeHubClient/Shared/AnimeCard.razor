@@ -1,6 +1,7 @@
 ﻿@inject IConfiguration Configuration
+@inject IJSRuntime JSRuntime
 
-<div class="card anime-card border-0">
+<div class="card anime-card border-0" @ref="cardRef" @onmouseenter="OnMouseEnter" @onmouseleave="OnMouseLeave">
     <a href="anime/@Anime.Id">
         <img src="@(Configuration["ApiBaseUrl"]?.ToString() + Anime.ImageUrl)" class="card-img-top anime-img-top" alt="@Anime.Title" />
     </a>
@@ -10,10 +11,105 @@
             <h6 class="card-title fw-bold anime-title">@Anime.Title</h6>
         </a>
     </div>
+
+    @if (ShowPopup)
+    {
+        <div class="quick-view @(PopupVisible ? "show" : "") @(FlipLeft ? "left" : "right")">
+            <MudPaper Elevation="8" Class="pa-4 quick-view-paper">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <MudText Typo="Typo.body1" Class="fw-bold">@Anime.Season @Anime.PremieredYear</MudText>
+                    <div class="d-flex align-items-center">
+                        <MudIcon Icon="@Icons.Material.Filled.Star" Color="Color.Primary" Size="Size.Small" Class="me-1" />
+                        <MudText Typo="Typo.subtitle2" Class="fw-bold">@Anime.Rating</MudText>
+                    </div>
+                </div>
+
+                @if (Anime.Studios != null && Anime.Studios.Any())
+                {
+                    @foreach (var studio in Anime.Studios)
+                    {
+                        <MudText Typo="Typo.caption" Color="Color.Error" Class="fw-bold mb-2 d-block">@studio</MudText>
+                    }
+                }
+                else
+                {
+                    <MudText Typo="Typo.caption" Color="Color.Error" Class="fw-bold mb-2 d-block">N/A</MudText>
+                }
+
+                <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-3">@Anime.CategoryName  •  @Anime.Episodes @(Anime.Episodes == 1 ? "episode" : "episodes")</MudText>
+
+                <MudChipSet T="Color">
+                    @if (Anime.Genres != null && Anime.Genres.Any())
+                    {
+                        @foreach (var genre in Anime.Genres.Take(3))
+                        {
+                            <MudChip Text="@genre" Size="Size.Small" Color="Color.Primary" Variant="Variant.Filled" />
+                        }
+                    }
+                    else
+                    {
+                        <MudText Typo="Typo.body2">N/A</MudText>
+                    }
+                </MudChipSet>
+            </MudPaper>
+
+        </div>
+    }
 </div>
 
 @code {
     [Parameter]
     public AnimeListReadDto Anime { get; set; } = default!;
+    private bool ShowPopup { get; set; } = false;
+    private bool PopupVisible { get; set; } = false;
+    private bool FlipLeft { get; set; } = false;
+    private bool _rendered;
+    private CancellationTokenSource _hoverCts = new();
+    private ElementReference cardRef;
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender)
+            _rendered = true;
+    }
+
+    private async Task OnMouseEnter()
+    {
+        _hoverCts.Cancel();
+        _hoverCts = new();
+
+        try
+        {
+            await Task.Delay(120, _hoverCts.Token); // ⭐ hover delay
+            ShowPopup = true;
+
+            await DetectEdgeAsync(); // decide left/right
+
+            await Task.Delay(1);
+            PopupVisible = true;
+
+            StateHasChanged();
+        }
+        catch (TaskCanceledException) { }
+    }
+
+    private void OnMouseLeave()
+    {
+        _hoverCts.Cancel();
+        PopupVisible = false;
+        ShowPopup = false;
+    }
+
+    private async Task DetectEdgeAsync()
+    {
+        if (!_rendered)
+            return;
+
+        FlipLeft = await JSRuntime.InvokeAsync<bool>(
+            "isNearRightEdge",
+            cardRef
+        );
+    }
+
 
 }
