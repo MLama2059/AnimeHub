@@ -337,14 +337,15 @@ main {
     z-index: 50;
     pointer-events: none;
     opacity: 0;
-    transform: translateX(-6px) scale(0.98);
+    transform: scale(0.98);
     transition: opacity 120ms cubic-bezier(0.2, 0, 0.38, 0.9), transform 120ms cubic-bezier(0.2, 0, 0.38, 0.9);
+    transform-origin: left center;
 }
 
     /* Visible state */
     .quick-view.show {
         opacity: 1;
-        transform: translateX(0) scale(1);
+        transform: scale(1);
     }
 
     .quick-view.right {
@@ -354,13 +355,44 @@ main {
     .quick-view.left {
         right: 105%;
         left: auto;
+        transform-origin: right center;
     }
+
+.quick-view-inner {
+    position: relative;
+}
+
+.quick-view.right .quick-view-inner::before {
+    content: "";
+    position: absolute;
+    left: -9px;
+    top: 28px;
+    width: 0;
+    height: 0;
+    border-top: 8px solid transparent;
+    border-bottom: 8px solid transparent;
+    border-right: 10px solid #ffffff;
+}
+
+.quick-view.left .quick-view-inner::before {
+    content: "";
+    position: absolute;
+    right: -9px;
+    top: 28px;
+    width: 0;
+    height: 0;
+    border-top: 8px solid transparent;
+    border-bottom: 8px solid transparent;
+    border-left: 10px solid #ffffff;
+}
+
 
 
 /* Paper styling */
 .quick-view-paper {
     border-radius: 12px;
     background: #ffffff;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.18);
 }
 
 /* Animation */
