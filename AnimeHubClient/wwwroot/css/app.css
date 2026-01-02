@@ -337,7 +337,7 @@ main {
     z-index: 50;
     pointer-events: none;
     opacity: 0;
-    transform: scale(0.98);
+    transform: translateX(-4px) scale(0.98);
     transition: opacity 120ms cubic-bezier(0.2, 0, 0.38, 0.9), transform 120ms cubic-bezier(0.2, 0, 0.38, 0.9);
     transform-origin: left center;
 }
@@ -345,7 +345,7 @@ main {
     /* Visible state */
     .quick-view.show {
         opacity: 1;
-        transform: scale(1);
+        transform: translateX(0) scale(1);
     }
 
     .quick-view.right {
@@ -362,8 +362,11 @@ main {
     position: relative;
 }
 
+   
+
+
 .quick-view.right .quick-view-inner::before {
-    content: "";
+    /*    content: "";
     position: absolute;
     left: -9px;
     top: 28px;
@@ -371,11 +374,21 @@ main {
     height: 0;
     border-top: 8px solid transparent;
     border-bottom: 8px solid transparent;
-    border-right: 10px solid #ffffff;
+    border-right: 10px solid #ffffff;*/
+    content: "";
+    position: absolute;
+    top: 28px;
+    width: 14px;
+    height: 14px;
+    background: rgba(255, 255, 255, 0.72);
+    backdrop-filter: blur(14px);
+    transform: rotate(45deg);
+    z-index: -1;
+    left: -9px;
 }
 
 .quick-view.left .quick-view-inner::before {
-    content: "";
+    /*    content: "";
     position: absolute;
     right: -9px;
     top: 28px;
@@ -383,30 +396,40 @@ main {
     height: 0;
     border-top: 8px solid transparent;
     border-bottom: 8px solid transparent;
-    border-left: 10px solid #ffffff;
+    border-left: 10px solid #ffffff;*/
+    content: "";
+    position: absolute;
+    top: 28px;
+    width: 14px;
+    height: 14px;
+    background: rgba(255, 255, 255, 0.72);
+    backdrop-filter: blur(14px);
+    transform: rotate(45deg);
+    z-index: -1;
+    right: -9px;
 }
 
+/* Disable hover popover on tablets & mobile */
+@media (max-width: 992px) {
+    .quick-view {
+        display: none !important;
+    }
+}
 
 
 /* Paper styling */
 .quick-view-paper {
-    border-radius: 12px;
-    background: #ffffff;
-    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.18);
+    border-radius: 14px;
+    /*    background: #ffffff;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.18);*/
+    background: rgba(255, 255, 255, 0.72);
+    backdrop-filter: blur(14px) saturate(1.2);
+    -webkit-backdrop-filter: blur(14px) saturate(1.2);
+    /* Soft border */
+/*    border: 1px solid rgba(255, 255, 255, 0.35);*/
+    /* Depth */
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.4);
 }
-
-/* Animation */
-/*@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateX(-5px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateX(0);
-    }
-}*/
 
 
 .section-card {
