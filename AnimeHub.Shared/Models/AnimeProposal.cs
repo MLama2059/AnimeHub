@@ -37,7 +37,7 @@ namespace AnimeHub.Shared.Models
         public string? TrailerPosterUrl { get; set; }
         [Range(0, 10)]
         public double? Rating { get; set; }
-        public Status Status { get; set; }
+        public Status? Status { get; set; }
 
         // Foreign Key -> Category
         public int? CategoryId { get; set; }
