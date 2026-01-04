@@ -11,8 +11,10 @@
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)Models\Anime.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\AnimeGenre.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Models\AnimeProposal.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\AnimeStudio.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\Category.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Models\Dtos\AnimeProposal\AnimeProposalCreateDto.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\Dtos\Anime\AnimeCreateDto.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\Dtos\Anime\AnimeListReadDto.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\Dtos\Anime\AnimeReadDto.cs" />
@@ -35,6 +37,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)Models\Dtos\User\RegistrationRequestDto.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\Dtos\User\RoleConstants.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\Dtos\User\UserResponseDto.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Models\Enums\ProposalStatus.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Models\Enums\ProposalType.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\Enums\Season.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\Enums\Status.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\Enums\WatchStatus.cs" />

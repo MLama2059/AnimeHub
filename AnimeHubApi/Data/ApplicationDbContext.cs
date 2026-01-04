@@ -16,6 +16,7 @@ namespace AnimeHubApi.Data
         public DbSet<User> Users => Set<User>();
         public DbSet<UserAnimeRating> UserAnimeRatings => Set<UserAnimeRating>();
         public DbSet<UserAnime> UserAnimes => Set<UserAnime>();
+        public DbSet<AnimeProposal> AnimeProposals => Set<AnimeProposal>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -211,6 +212,20 @@ namespace AnimeHubApi.Data
             modelBuilder.Entity<UserAnime>()
                 .HasIndex(ua => new { ua.UserId, ua.AnimeId })
                 .IsUnique();
+
+            // Configure Proposal Relationship
+            modelBuilder.Entity<AnimeProposal>()
+                .HasOne(p => p.User)
+                .WithMany() // Assuming User doesn't need a list of proposals for now
+                .HasForeignKey(p => p.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Allow TargetAnimeId to be nullable (for Create requests)
+            modelBuilder.Entity<AnimeProposal>()
+                .HasOne(p => p.TargetAnime)
+                .WithMany()
+                .HasForeignKey(p => p.TargetAnimeId)
+                .OnDelete(DeleteBehavior.SetNull); // If Anime is deleted, keep the proposal history
         }
     }
 }
