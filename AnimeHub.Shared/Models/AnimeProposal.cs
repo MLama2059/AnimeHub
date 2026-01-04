@@ -11,8 +11,8 @@ namespace AnimeHub.Shared.Models
         public int Id { get; set; }
 
         // Metadata
-        public string UserId { get; set; } // The User who submitted it
-        public User User { get; set; }
+        public int UserId { get; set; } // The User who submitted it
+        public User User { get; set; } = null!;
 
         public ProposalStatus ProposalStatus { get; set; } = ProposalStatus.Pending;
         public ProposalType ProposalType { get; set; }
