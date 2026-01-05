@@ -79,12 +79,30 @@ namespace AnimeHubApi.Repository
                 animeToSave.AnimeStudios.Clear();
             }
 
+            // --- FILE MOVING LOGIC ---
+            // We use the "MoveFile" method we just created.
+            // 1. ImageUrl -> Images/Animes
+            if (!string.IsNullOrEmpty(proposal.ImageUrl))
+            {
+                animeToSave.ImageUrl = _fileService.MoveFile(proposal.ImageUrl, "Animes");
+            }
+
+            // 2. TrailerPosterUrl -> Images/Posters
+            if (!string.IsNullOrEmpty(proposal.TrailerPosterUrl))
+            {
+                animeToSave.TrailerPosterUrl = _fileService.MoveFile(proposal.TrailerPosterUrl, "Posters");
+            }
+
+            // 3. TrailerUrl -> Videos/Trailers
+            if (!string.IsNullOrEmpty(proposal.TrailerUrl))
+            {
+                animeToSave.TrailerUrl = _fileService.MoveFile(proposal.TrailerUrl, "Trailers");
+            }
+
             // --- MAP DATA FROM PROPOSAL TO REAL ENTITY ---
             animeToSave.Title = proposal.Title;
             animeToSave.Description = proposal.Description;
-            animeToSave.ImageUrl = proposal.ImageUrl;
-            animeToSave.TrailerUrl = proposal.TrailerUrl;
-            animeToSave.TrailerPosterUrl = proposal.TrailerPosterUrl;
+            // Note: We already set the URLs above via MoveFile
             animeToSave.Rating = proposal.Rating;
             animeToSave.Episodes = proposal.Episodes;
             animeToSave.Season = proposal.Season;

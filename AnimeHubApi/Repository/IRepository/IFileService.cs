@@ -7,5 +7,9 @@
 
         // Handle multiple related files (for entity deletion)
         void DeleteFiles(IEnumerable<string?> filePaths);
+
+        // New method for moving temp files to permanent storage
+        string MoveFile(string? relativeTempPath, string destinationSubFolder);
+        Task<string> SaveFileAsync(IFormFile file, string[] allowedExtensions);
     }
 }

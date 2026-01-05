@@ -15,6 +15,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Models\AnimeStudio.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\Category.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\Dtos\AnimeProposal\AnimeProposalCreateDto.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Models\Dtos\AnimeProposal\RejectProposalDto.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\Dtos\Anime\AnimeCreateDto.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\Dtos\Anime\AnimeListReadDto.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\Dtos\Anime\AnimeReadDto.cs" />
