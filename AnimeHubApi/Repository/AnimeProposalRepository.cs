@@ -155,7 +155,7 @@ namespace AnimeHubApi.Repository
             return true;
         }
 
-        public async Task<IEnumerable<AnimeProposal>> GetPendingProposalsAsync()
+        public async Task<IEnumerable<AnimeProposal>> GetAllProposalsAsync()
         {
             return await _context.AnimeProposals
                 .Include(p => p.User)
@@ -164,5 +164,11 @@ namespace AnimeHubApi.Repository
                 .ToListAsync();
         }
 
+        public async Task<AnimeProposal?> GetProposalByIdAsync(int proposalId)
+        {
+            return await _context.AnimeProposals
+                .Include(p => p.User)
+                .FirstOrDefaultAsync(p => p.Id == proposalId);
+        }
     }
 }

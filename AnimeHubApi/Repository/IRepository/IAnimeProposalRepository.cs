@@ -8,6 +8,7 @@ namespace AnimeHubApi.Repository.IRepository
         Task<AnimeProposal> CreateProposalAsync(int userId, AnimeProposalCreateDto dto);
         Task<bool> ApproveProposalAsync(int proposalId);
         Task<bool> RejectProposalAsync(int proposalId, string feedback);
-        Task<IEnumerable<AnimeProposal>> GetPendingProposalsAsync();
+        Task<IEnumerable<AnimeProposal>> GetAllProposalsAsync();
+        Task<AnimeProposal?> GetProposalByIdAsync(int proposalId);
     }
 }

@@ -10,6 +10,6 @@
 
         // New method for moving temp files to permanent storage
         string MoveFile(string? relativeTempPath, string destinationSubFolder);
-        Task<string> SaveFileAsync(IFormFile file, string[] allowedExtensions);
+        Task<string> SaveProposalFileAsync(IFormFile file, string[] allowedExtensions);
     }
 }

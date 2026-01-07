@@ -59,75 +59,19 @@ namespace AnimeHubApi.Repository
             }
         }
 
-        public string MoveFile(string? relativeTempPath, string destinationSubFolder)
+        public async Task<string> SaveProposalFileAsync(IFormFile file, string[] allowedExtensions)
         {
-            if (string.IsNullOrEmpty(relativeTempPath)) return string.Empty;
-
-            // 1. Get the absolute path starting from the API project root
-            // relativeTempPath usually looks like "Images/Temp/filename.jpg"
-            var sourceFullPath = GetFullPath(relativeTempPath);
-
-            // If the source file doesn't exist (maybe already moved or deleted), return original path
-            if (!File.Exists(sourceFullPath)) return relativeTempPath;
-
-            try
-            {
-                // 1. Determine Parent Folder (Images vs Videos)
-                // Logic: If destination is "Trailers", it goes to Videos. Otherwise, it goes to Images (Animes/Posters).
-                string parentFolder = destinationSubFolder.Equals("Trailers", StringComparison.OrdinalIgnoreCase)
-                                      ? "Videos"
-                                      : "Images";
-
-                // 2. Build Destination Paths
-                var fileName = Path.GetFileName(sourceFullPath);
-
-                // Example: "Images/Animes/hero.jpg"
-                var destinationRelativePath = Path.Combine(parentFolder, destinationSubFolder, fileName).Replace("\\", "/");
-                var destinationFullPath = GetFullPath(destinationRelativePath);
-
-                // 3. Ensure Directory Exists
-                var destinationDirectory = Path.GetDirectoryName(destinationFullPath);
-                if (!string.IsNullOrEmpty(destinationDirectory) && !Directory.Exists(destinationDirectory))
-                {
-                    Directory.CreateDirectory(destinationDirectory);
-                }
-
-                // 4. Move the File (Overwrite if exists to prevent errors)
-                File.Move(sourceFullPath, destinationFullPath, overwrite: true);
-
-                return destinationRelativePath;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error moving file from {relativeTempPath}: {ex.Message}");
-                // Return the original path so we don't lose the reference in DB if move fails
-                return relativeTempPath;
-            }
-        }
-
-        public async Task<string> SaveFileAsync(IFormFile file, string[] allowedExtensions)
-        {
-            if (file == null)
-            {
-                throw new ArgumentNullException(nameof(file));
-            }
-
             var extension = Path.GetExtension(file.FileName).ToLower();
             if (!allowedExtensions.Contains(extension))
-            {
                 throw new ArgumentException($"Invalid file type {extension}");
-            }
 
-            // Smart Folder Selection:
-            // If it's a video extension, go to Videos/Temp. Otherwise Images/Temp.
+            // Logic: Videos go to Videos/Temp, Images go to Images/Temp
             string parentFolder = (extension == ".mp4" || extension == ".mkv") ? "Videos" : "Images";
             string targetFolder = Path.Combine(_webHostEnvironment.ContentRootPath, parentFolder, "Temp");
 
-            if (!Directory.Exists(targetFolder))
-            {
-                Directory.CreateDirectory(targetFolder);
-            }
+            if (!Directory.Exists(targetFolder)) Directory.CreateDirectory(targetFolder);
 
+            // Create unique filename
             var fileName = $"{Guid.NewGuid()}{extension}";
             var filePath = Path.Combine(targetFolder, fileName);
 
@@ -136,8 +80,49 @@ namespace AnimeHubApi.Repository
                 await file.CopyToAsync(stream);
             }
 
-            // Return relative path like "Images/Temp/guid.jpg"
+            // Return relative path (e.g., "Images/Temp/guid.jpg")
             return Path.Combine(parentFolder, "Temp", fileName).Replace("\\", "/");
         }
+
+        public string MoveFile(string? relativeTempPath, string destinationSubFolder)
+        {
+            // If no path provided, nothing to move
+            if (string.IsNullOrEmpty(relativeTempPath)) return string.Empty;
+
+            // Get full physical path of the temp file
+            var sourceFullPath = Path.Combine(_webHostEnvironment.ContentRootPath, relativeTempPath);
+
+            // If file doesn't exist (maybe user didn't upload one), return empty or original
+            if (!File.Exists(sourceFullPath)) return relativeTempPath;
+
+            try
+            {
+                // Determine destination (Images/Animes or Videos/Trailers)
+                // Note: destinationSubFolder passed from Controller will be "Animes" or "Trailers"
+                string parentFolder = destinationSubFolder.Equals("Trailers", StringComparison.OrdinalIgnoreCase) ? "Videos" : "Images";
+
+                var fileName = Path.GetFileName(sourceFullPath);
+
+                // Final Path: Images/Animes/filename.jpg
+                var destinationRelativePath = Path.Combine(parentFolder, destinationSubFolder, fileName).Replace("\\", "/");
+                var destinationFullPath = Path.Combine(_webHostEnvironment.ContentRootPath, parentFolder, destinationSubFolder, fileName);
+
+                var destDir = Path.GetDirectoryName(destinationFullPath);
+                if (!Directory.Exists(destDir)) Directory.CreateDirectory(destDir!);
+
+                // Move the file (Renames/Moves file on disk)
+                File.Move(sourceFullPath, destinationFullPath, overwrite: true);
+
+                return destinationRelativePath;
+            }
+            catch (Exception ex)
+            {
+                // Log error
+                Console.WriteLine($"Error moving file: {ex.Message}");
+                return relativeTempPath; // Fallback
+            }
+        }
+
+        // Don't forget to update your IFileService interface to include these signatures!
     }
 }

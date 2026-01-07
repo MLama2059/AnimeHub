@@ -1,4 +1,6 @@
-﻿using AnimeHub.Shared.Models.Dtos.AnimeProposal;
+﻿using AnimeHub.Shared.Models.Dtos.Anime;
+using AnimeHub.Shared.Models.Dtos.AnimeProposal;
+using AnimeHub.Shared.Models.Enums;
 using AnimeHubApi.Repository.IRepository;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -21,84 +23,101 @@ namespace AnimeHubApi.Controllers
             _fileService = fileService;
         }
 
+        // 1. ENDPOINT: Upload Proposal File (Saves to Temp)
+        // Client calls this when user selects a file in the Proposal Form
         [HttpPost("upload-temp")]
-        public async Task<IActionResult> UploadTempFile(IFormFile file)
+        public async Task<IActionResult> UploadTempFile(IFormFile file, [FromQuery] string type)
         {
+            if (file == null || file.Length == 0)
+            {
+                return BadRequest("No file uploaded.");
+            }
+
             try
             {
-                // Allowed formats for both Images and Videos
-                var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".webp", ".mp4", ".mkv" };
+                string[] allowedExtensions;
+                if (type == "video") allowedExtensions = new[] { ".mp4", ".mkv" };
+                else allowedExtensions = new[] { ".jpg", ".jpeg", ".png" };
 
-                var path = await _fileService.SaveFileAsync(file, allowedExtensions);
+                // Saves to Images/Temp or Videos/Temp
+                var path = await _fileService.SaveProposalFileAsync(file, allowedExtensions);
 
                 // Return the path so the Frontend can put it into the ProposalDTO
-                return Ok(new { filePath = path });
+                return Ok(path);
             }
-            catch (ArgumentException ex)
+            catch (Exception ex)
             {
                 return BadRequest(ex.Message);
             }
-            catch (Exception)
-            {
-                return StatusCode(500, "Internal server error while uploading file.");
-            }
         }
 
-        // USER ACTIONS
+        // 2. ENDPOINT: Create Proposal (Saves DTO with Temp paths to DB)
         [HttpPost]
         public async Task<IActionResult> CreateProposal([FromBody] AnimeProposalCreateDto dto)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            // Securely get the User ID from the JWT Token
-            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-            if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out int userId))
-            {
-                return Unauthorized("Invalid User ID in token.");
-            }
-
             try
             {
+                // Securely get the User ID from the JWT Token
+                var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+                if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out int userId))
+                {
+                    return Unauthorized("Invalid User ID in token.");
+                }
+
+                // Just save the data. The paths in dto (ImageUrl, etc.) point to /Temp/
                 var createdProposal = await _proposalRepository.CreateProposalAsync(userId, dto);
-                return Ok(createdProposal);
+                return CreatedAtAction(nameof(GetProposalById), new { id = createdProposal.Id }, createdProposal);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                // Log exception in real app
-                return StatusCode(500, "Error creating proposal.");
+                return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
 
-        // ADMIN ACTIONS
-        [HttpGet("pending")]
-        [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> GetPendingProposals()
+        // 3. GET ALL (Pending Proposals)
+        [HttpGet]
+        // [Authorize(Roles = "Admin")] // Only admins should see the list
+        public async Task<IActionResult> GetAllProposals()
         {
-            var proposals = await _proposalRepository.GetPendingProposalsAsync();
+            var proposals = await _proposalRepository.GetAllProposalsAsync();
             return Ok(proposals);
         }
 
+        // 4. GET BY ID
+        [HttpGet("{id}")]
+        // [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> GetProposalById(int id)
+        {
+            var proposal = await _proposalRepository.GetProposalByIdAsync(id);
+            if (proposal == null) return NotFound();
+            return Ok(proposal);
+        }
+
+        // 5. ENDPOINT: Approve Proposal
+        // This is the CRITICAL step. It moves files and creates the actual Anime.
         [HttpPost("{id}/approve")]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> ApproveProposal(int id)
         {
-            var result = await _proposalRepository.ApproveProposalAsync(id);
+            var success = await _proposalRepository.ApproveProposalAsync(id);
 
-            if (!result)
+            if (!success)
             {
-                return BadRequest("Proposal could not be approved. It might not exist, or is not in 'Pending' status.");
+                return BadRequest("Could not approve proposal. It may not exist, is not 'Pending', or the target anime was not found.");
             }
 
-            return Ok(new { message = "Proposal approved and Anime created/updated successfully." });
+            return Ok(new { Message = "Proposal approved and Anime created/updated successfully." });
         }
 
         [HttpPost("{id}/reject")]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> RejectProposal(int id, [FromBody] RejectProposalDto dto)
+        public async Task<IActionResult> RejectProposal(int id, [FromBody] string feedback)
         {
-            var result = await _proposalRepository.RejectProposalAsync(id, dto.Feedback);
+            var success = await _proposalRepository.RejectProposalAsync(id, feedback);
 
-            if (!result)
+            if (!success)
             {
                 return NotFound("Proposal not found.");
             }
