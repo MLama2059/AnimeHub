@@ -49,6 +49,9 @@ builder.Services.AddHttpClient<IAuthService, AuthService>(client =>
     // This ensures the HttpClient injected into AuthService knows the base URI (https://localhost:7114)
     client.BaseAddress = apiUrl);
 
+builder.Services.AddHttpClient<IAnimeProposalService, AnimeProposalService>(client =>
+    client.BaseAddress = apiUrl);
+
 // Add MudBlazor services and configure snackbar defaults
 builder.Services.AddMudServices(config =>
 {
