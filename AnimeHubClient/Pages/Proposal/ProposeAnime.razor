@@ -2,6 +2,7 @@
 @using AnimeHub.Shared.Models.Dtos.AnimeProposal
 @using AnimeHub.Shared.Models.Dtos.Studio
 @using AnimeHub.Shared.Models.Enums
+@using AnimeHubClient.Extensions
 @using AnimeHubClient.Services
 @inject ILookUpService LookUpService
 @inject IAnimeProposalService ProposalService
@@ -16,7 +17,7 @@
         </CardHeaderContent>
     </MudCardHeader>
     <MudCardContent>
-        <EditForm Model="Proposal" OnValidSubmit="SubmitProposal">
+        <EditForm Model="Proposal" FormName="AnimeProposalForm" OnValidSubmit="SubmitProposal">
             <DataAnnotationsValidator />
 
             <MudTextField Variant="Variant.Outlined" Label="Anime Title" @bind-Value="Proposal.Title" For="@(() => Proposal.Title)" Class="my-3" />
@@ -36,7 +37,7 @@
                     <MudSelect T="int?" Label="Season" Variant="Variant.Outlined" @bind-Value="Proposal.Season" For="@(() => Proposal.Season)" Class="my-3">
                         @foreach (var seasonValue in Enum.GetValues(typeof(Season)))
                         {
-                            <MudSelectItem T="int" Value="@((int)seasonValue)">@seasonValue.ToString()</MudSelectItem>
+                            <MudSelectItem T="int?" Value="@((int)seasonValue)">@seasonValue.ToString()</MudSelectItem>
                         }
                     </MudSelect>
                 </MudItem>
@@ -45,22 +46,37 @@
                 </MudItem>
             </MudGrid>
 
+            <MudSelect T="Status ?" Label="Status" Variant="Variant.Outlined" @bind-Value="@ProposalAnimeStatusEnum" Class="my-3">
+                @foreach (Status statusValue in Enum.GetValues(typeof(Status)))
+                {
+                    <MudSelectItem T="Status ?" Value="@statusValue">@statusValue.GetDisplayName()</MudSelectItem>
+                }
+            </MudSelect>
+
             @* Categories *@
             <MudSelect T="int?" Label="Category" Variant="Variant.Outlined" @bind-Value="Proposal.CategoryId" For="@(() => Proposal.CategoryId)" Class="my-3">
                 @foreach (var category in Categories)
                 {
-                    <MudSelectItem T="int" Value="@category.Id">@category.Name</MudSelectItem>
+                    <MudSelectItem T="int?" Value="@category.Id">@category.Name</MudSelectItem>
                 }
             </MudSelect>
 
             @* Studios *@
-            <MudSelect T="int" Label="Studios" Variant="Variant.Outlined" SelectedValues="Proposal.StudioIds"
+            <MudSelect T="int"
+                       Label="Studios"
+                       Variant="Variant.Outlined"
+                       SelectedValues="Proposal.StudioIds"
                        SelectedValuesChanged="@(vals => Proposal.StudioIds = new List<int>(vals))"
-                       MultiSelection="true" Clearable="true"
-                       ToStringFunc="@(new Func<int, string>(ConvertStudioIdToName))" Class="my-3">
-                @foreach (var studio in Studios)
+                       MultiSelection="true"
+                       Clearable="true"
+                       ToStringFunc="@(new Func<int, string>(ConvertStudioIdToName))"
+                       Class="my-3">
+                @if (Studios != null)
                 {
-                    <MudSelectItem T="int" Value="@studio.Id">@studio.Name</MudSelectItem>
+                    @foreach (var studio in Studios)
+                    {
+                        <MudSelectItem T="int" Value="@studio.Id">@studio.Name</MudSelectItem>
+                    }
                 }
             </MudSelect>
 
@@ -68,13 +84,20 @@
             <MudPaper Elevation="2" Class="p-3 mt-3">
                 <MudText Typo="Typo.subtitle1" Class="mb-2">Genres</MudText>
                 <MudGrid>
-                    @foreach (var genre in Genres)
+                    @if (Genres != null)
                     {
-                        <MudItem xs="6" sm="4" md="3" lg="2">
-                            <MudCheckBox T="bool" Label="@genre.Name" Dense="true" Size="Size.Small" Color="Color.Primary"
-                                         Value="@Proposal.GenreIds.Contains(genre.Id)"
-                                         ValueChanged="e => ToggleGenre(genre.Id, e)" />
-                        </MudItem>
+                        @foreach (var genre in Genres)
+                        {
+                            <MudItem xs="6" sm="4" md="3" lg="2">
+                                <MudCheckBox T="bool"
+                                             Label="@genre.Name"
+                                             Dense="true"
+                                             Size="Size.Small"
+                                             Color="Color.Primary"
+                                             Value="@Proposal.GenreIds.Contains(genre.Id)"
+                                             ValueChanged="e => ToggleGenre(genre.Id, e)" />
+                            </MudItem>
+                        }
                     }
                 </MudGrid>
             </MudPaper>
@@ -83,7 +106,7 @@
             <MudFileUpload T="IBrowserFile" OnFilesChanged="OnImageFileSelected" Class="mt-3">
                 <ActivatorContent>
                     <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Image">
-                        Upload Cover Image
+                        Upload Image
                     </MudButton>
                 </ActivatorContent>
             </MudFileUpload>
@@ -190,6 +213,12 @@
     }
 
     private string ConvertStudioIdToName(int id) => Studios?.FirstOrDefault(s => s.Id == id)?.Name ?? $"ID {id}";
+
+    private Status? ProposalAnimeStatusEnum
+    {
+        get => Proposal.Status.HasValue ? (Status)Proposal.Status.Value : null;
+        set => Proposal.Status = value.HasValue ? (int)value.Value : null;
+    }
 
     private async Task OnImageFileSelected(InputFileChangeEventArgs e)
     {

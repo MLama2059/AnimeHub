@@ -50,7 +50,8 @@ builder.Services.AddHttpClient<IAuthService, AuthService>(client =>
     client.BaseAddress = apiUrl);
 
 builder.Services.AddHttpClient<IAnimeProposalService, AnimeProposalService>(client =>
-    client.BaseAddress = apiUrl);
+    client.BaseAddress = apiUrl)
+    .AddHttpMessageHandler<JwtAuthorizationMessageHandler>();
 
 // Add MudBlazor services and configure snackbar defaults
 builder.Services.AddMudServices(config =>
