@@ -1,0 +1,19 @@
+﻿<MudDialog>
+    <DialogContent>
+        <MudText Class="mb-3">Please provide a reason for rejection:</MudText>
+        <MudTextField T="string" @bind-Value="Reason" Label="Reason" Variant="Variant.Outlined" Lines="3" AutoFocus="true" Immediate="true" />
+    </DialogContent>
+    <DialogActions>
+        <MudButton Color="Color.Default" OnClick="Cancel">Cancel</MudButton>
+        <MudButton Color="Color.Error" Variant="Variant.Filled" OnClick="Submit" Disabled="@string.IsNullOrWhiteSpace(Reason)">Reject</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter]
+    IMudDialogInstance MudDialogInstance { get; set; } = default!;
+    private string Reason { get; set; } = string.Empty;
+
+    void Submit() => MudDialogInstance.Close(DialogResult.Ok(Reason));
+    void Cancel() => MudDialogInstance.Cancel();
+}
