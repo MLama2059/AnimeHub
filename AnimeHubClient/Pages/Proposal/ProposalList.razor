@@ -2,7 +2,7 @@
 @using AnimeHub.Shared.Models.Enums
 @using AnimeHubClient.Services
 @inject IAnimeProposalService ProposalService
-@inject IDialogService Dialog
+@inject IDialogService DialogService
 @inject ISnackbar Snackbar
 
 <MudCard Elevation="4" Class="mt-4">
@@ -14,21 +14,14 @@
     <MudCardContent>
         <MudTable Items="@Proposals" Hover="true" Bordered="true" Striped="true" Loading="@IsLoading">
             <HeaderContent>
-                <MudTh>Image</MudTh>
                 <MudTh>Title</MudTh>
+                <MudTh>Submitted By</MudTh>
                 <MudTh>Status</MudTh>
-                <MudTh>User</MudTh>
-                <MudTh>Actions</MudTh>
+                <MudTh Style="text-align: center;">Actions</MudTh>
             </HeaderContent>
             <RowTemplate>
-                <MudTd DataLabel="Image">
-                    @* Note: These images are in Temp folder, ensure static file serving is enabled for Temp if you want to see them here *@
-                    @if (!string.IsNullOrEmpty(context.ImageUrl))
-                    {
-                        <MudImage Src="@(context.ImageUrl)" Height="50" Class="rounded" />
-                    }
-                </MudTd>
                 <MudTd DataLabel="Title">@context.Title</MudTd>
+                <MudTd DataLabel="Submitted By">User ID: @context.UserId</MudTd>
                 <MudTd DataLabel="Status">
                     @if (context.ProposalStatus == ProposalStatus.Pending) // Pending
                     {
@@ -43,12 +36,14 @@
                         <MudChip T="string" Color="Color.Error" Size="Size.Small">Rejected</MudChip>
                     }
                 </MudTd>
-                <MudTd DataLabel="User">@context.UserId</MudTd>
-                <MudTd DataLabel="Actions">
+                <MudTd DataLabel="Actions" Style="text-align:center;">
                     @if (context.ProposalStatus == ProposalStatus.Pending) // Only show actions for Pending
                     {
-                        <MudButton OnClick="@(() => Approve(context.Id))" Variant="Variant.Filled" Color="Color.Success" Size="Size.Small" Class="mr-2">Approve</MudButton>
-                        <MudButton OnClick="@(() => Reject(context.Id))" Variant="Variant.Filled" Color="Color.Error" Size="Size.Small">Reject</MudButton>
+                        <MudButton OnClick="@(() => OpenDetails(context))" Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" StartIcon="@Icons.Material.Filled.Visibility">Review</MudButton>
+                    }
+                    else
+                    {
+                        <MudButton OnClick="@(() => OpenDetails(context))" Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" StartIcon="@Icons.Material.Filled.History">View Details</MudButton>
                     }
                 </MudTd>
             </RowTemplate>
@@ -71,61 +66,26 @@
     private async Task LoadProposals()
     {
         IsLoading = true;
-        Proposals = await ProposalService.GetAllProposalsAsync();
+        Proposals = (await ProposalService.GetAllProposalsAsync()).OrderBy(x => x.ProposalStatus).ThenBy(x => x.Id);
         IsLoading = false;
     }
 
-    private async Task Approve(int id)
+    private async Task OpenDetails(AnimeProposal proposal)
     {
-        var parameters = new DialogParameters<ConfirmationDialog>
+        var parameters = new DialogParameters<ProposalDetailsDialog>
         {
-            { x => x.ContentText, "Are you sure you want to approve?" },
-            { x => x.ButtonText, "Approve" }
+            { x => x.Proposal, proposal }
         };
 
-        var options = new DialogOptions
-        {
-            CloseButton = true,
-            MaxWidth = MaxWidth.ExtraExtraLarge,
-            FullWidth = false,
-        };
+        var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Medium, FullWidth = true };
 
-        var dialog = await Dialog.ShowAsync<ConfirmationDialog>("Confirm Approval", parameters, options);
+        var dialog = await DialogService.ShowAsync<ProposalDetailsDialog>("Proposal Details", parameters, options);
         var result = await dialog.Result;
 
-        if (result != null && !result.Canceled)
+        // If the dialog returns true (meaning an action was taken), reload the list
+        if (!result.Canceled && result.Data is bool data && data == true)
         {
-            var success = await ProposalService.ApproveProposalAsync(id);
-            if (success)
-            {
-                Snackbar.Add("Anime approved and published successfully.", Severity.Success);
-                await LoadProposals();
-            }
-            else
-            {
-                Snackbar.Add("Error approving proposal.", Severity.Error);
-            }
-        }
-    }
-
-    private async Task Reject(int id)
-    {
-        // Open a custom dialog to get feedback reason
-        var parameters = new DialogParameters();
-        var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Small, FullWidth = true };
-
-        var dialog = await Dialog.ShowAsync<RejectProposalDialog>("Reject Proposal", parameters, options);
-        var result = await dialog.Result;
-
-        if (!result.Canceled)
-        {
-            string feedback = result.Data.ToString();
-            var success = await ProposalService.RejectProposalAsync(id, feedback);
-            if (success)
-            {
-                Snackbar.Add("Proposal Rejected.", Severity.Info);
-                await LoadProposals();
-            }
+            await LoadProposals();
         }
     }
 }

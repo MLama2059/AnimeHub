@@ -1,0 +1,206 @@
+﻿@using AnimeHub.Shared.Models.Dtos.Studio
+@using AnimeHub.Shared.Models.Enums
+@using AnimeHubClient.Services
+@using System.Text.Json
+@inject IAnimeProposalService ProposalService
+@inject ILookUpService LookUpService
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h6">
+            <MudIcon Icon ="@Icons.Material.Filled.RateReview" Class="mr-3 mb-n1" />
+            Review Proposal
+        </MudText>
+    </TitleContent>
+
+    <DialogContent>
+        @if (IsLoading)
+        {
+            <div class="d-flex justify-content-center my-4">
+                <MudProgressCircular Indeterminate="true" Color="Color.Primary" Size="Size.Large" />
+            </div>
+        }
+        else
+        {
+            <MudGrid>
+                <MudItem xs="12" sm="4">
+                    @if (!string.IsNullOrEmpty(Proposal.ImageUrl))
+                    {
+                        <MudImage Src="@Proposal.ImageUrl" Alt="Cover" Elevation="4" Class="rounded-lg w-100" Style="max-height: 300px; object-fit: cover;" />
+                    }
+                    else
+                    {
+                        <MudPaper Class="d-flex align-content-center justify-content-center py-8" Outlined="true">
+                            <MudText Typo="Typo.caption" Color="Color.Default">No Image Available</MudText>
+                        </MudPaper>
+                    }
+                </MudItem>
+
+                <MudItem xs="12" sm="8">
+                    <MudText Typo="Typo.h5" Class="fw-bold">@Proposal.Title</MudText>
+
+                    <MudChip T="string" Color="Color.Primary" Size="Size.Small" Class="mt-2">@CategoryName</MudChip>
+                    <MudText Typo="Typo.body2" Class="mt-3">@Proposal.Description</MudText>
+
+                    <MudDivider Class="my-3" />
+
+                    <MudGrid>
+                        <MudItem xs="6">
+                            <MudText Typo="Typo.subtitle2" Color="Color.Secondary">Episodes</MudText>
+                            <MudText>@Proposal.Episodes</MudText>
+                        </MudItem>
+                        <MudItem xs="6">
+                            <MudText Typo="Typo.subtitle2" Color="Color.Secondary">Rating</MudText>
+                            <MudText>@Proposal.Rating</MudText>
+                        </MudItem>
+                        <MudItem xs="6">
+                            <MudText Typo="Typo.subtitle2" Color="Color.Secondary">Season</MudText>
+                            <MudText>@Proposal.Season @Proposal.PremieredYear</MudText>
+                        </MudItem>
+                        <MudItem xs="6">
+                            <MudText Typo="Typo.subtitle2" Color="Color.Secondary">Studios</MudText>
+                            <MudText>@StudioNames</MudText>
+                        </MudItem>
+                    </MudGrid>
+
+                    <MudDivider Class="my-3" />
+
+                    <MudText Typo="Typo.subtitle2" Color="Color.Secondary" Class="mt-5">Genres</MudText>
+                    <div class="d-flex flex-wrap gap-1">
+                        @foreach (var genre in GenreNames)
+                        {
+                            <MudChip T="string" Variant="Variant.Outlined" Color="Color.Primary" Size="Size.Small">@genre</MudChip>
+                        }
+                        @if (!GenreNames.Any())
+                        {
+                            <MudText Typo="Typo.caption">None</MudText>
+                        }
+                    </div>
+                </MudItem>
+            </MudGrid>
+        }
+    </DialogContent>
+    <DialogActions>
+        @* <MudButton OnClick="Cancel">Close</MudButton> *@
+        <MudSpacer />
+        @if (Proposal.ProposalStatus == 0) // Only show actions if Pending
+        {
+            <MudButton Variant="Variant.Filled" Color="Color.Error" OnClick="Reject">Reject</MudButton>
+            <MudButton Variant="Variant.Filled" Color="Color.Success" OnClick="Approve" Class="ml-2">Approve</MudButton>
+        }
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter]
+    IMudDialogInstance MudDialog { get; set; } = default!;
+    [Parameter]
+    public AnimeProposal Proposal { get; set; } = new();
+
+    private bool IsLoading = true;
+    private string CategoryName = string.Empty;
+    private string StudioNames = string.Empty;
+    private List<string> GenreNames = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            // Fetch all lookup data
+            var categoryTask = LookUpService.GetCategoriesAsync();
+            var genreTask = LookUpService.GetGenresAsync();
+            var studioTask = LookUpService.GetStudiosAsync();
+
+            await Task.WhenAll(categoryTask, genreTask, studioTask);
+
+            var categories = categoryTask.Result ?? new List<CategoryReadDto>();
+            var genres = genreTask.Result ?? new List<GenreReadDto>();
+            var studios = studioTask.Result ?? new List<StudioReadDto>();
+
+            // Map data
+            if (Proposal.CategoryId.HasValue)
+            {
+                CategoryName = categories.FirstOrDefault(c => c.Id == Proposal.CategoryId)?.Name ?? "Unknown";
+            }
+
+            if (!string.IsNullOrEmpty(Proposal.SerializedGenreIds))
+            {
+                var genreIds = JsonSerializer.Deserialize<List<int>>(Proposal.SerializedGenreIds) ?? new List<int>();
+                GenreNames = genres
+                    .Where(g => genreIds.Contains(g.Id))
+                    .Select(g => g.Name)
+                    .ToList();
+            }
+
+            if (!string.IsNullOrEmpty(Proposal.SerializedStudioIds))
+            {
+                var studioIds = JsonSerializer.Deserialize<List<int>>(Proposal.SerializedStudioIds) ?? new List<int>();
+                var sNames = studios
+                    .Where(s => studioIds.Contains(s.Id))
+                    .Select(s => s.Name);
+                StudioNames = string.Join(", ", sNames);
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading proposal details: {ex.Message}");
+            Snackbar.Add("Error loading some details", Severity.Warning);
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+
+    private async Task Approve()
+    {
+        // Nested Confirm Dialog
+        var parameters = new DialogParameters<ConfirmationDialog>
+        {
+            { x => x.ContentText, "Are you sure you want to approve this proposal? It will be published immediately." },
+            { x => x.ButtonText, "Approve" }
+        };
+
+        var dialog = await DialogService.ShowAsync<ConfirmationDialog>("Confirm Approval", parameters);
+        var result = await dialog.Result;
+
+        if (result != null && !result.Canceled)
+        {
+            var success = await ProposalService.ApproveProposalAsync(Proposal.Id);
+            if (success)
+            {
+                Snackbar.Add("Approved Successfully", Severity.Success);
+                MudDialog.Close(DialogResult.Ok(true)); // Return true to refresh list
+            }
+            else
+            {
+                Snackbar.Add("Failed to approve", Severity.Error);
+            }
+        }
+    }
+
+    private async Task Reject()
+    {
+        // Nested Reject Dialog
+        var dialog = await DialogService.ShowAsync<RejectProposalDialog>("Reject Proposal");
+        var result = await dialog.Result;
+
+        if (result != null && !result.Canceled)
+        {
+            string feedback = result.Data.ToString();
+            var success = await ProposalService.RejectProposalAsync(Proposal.Id, feedback);
+            if (success)
+            {
+                Snackbar.Add("Rejected Successfully", Severity.Info);
+                MudDialog.Close(DialogResult.Ok(true)); // Return true to refresh list
+            }
+            else
+            {
+                Snackbar.Add("Failed to reject", Severity.Error);
+            }
+        }
+    }
+}
