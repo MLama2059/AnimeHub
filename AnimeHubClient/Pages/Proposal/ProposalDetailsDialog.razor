@@ -6,6 +6,8 @@
 @inject ILookUpService LookUpService
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar
+@inject IConfiguration Configuration
+
 <MudDialog>
     <TitleContent>
         <MudText Typo="Typo.h6">
@@ -27,7 +29,7 @@
                 <MudItem xs="12" sm="4">
                     @if (!string.IsNullOrEmpty(Proposal.ImageUrl))
                     {
-                        <MudImage Src="@Proposal.ImageUrl" Alt="Cover" Elevation="4" Class="rounded-lg w-100" Style="max-height: 300px; object-fit: cover;" />
+                        <MudImage Src="@($"{ApiBaseUrl}{Proposal.ImageUrl.Replace("\\", "/")}")" Alt="Cover" Elevation="4" Class="rounded-lg" Style="width: 100%; height: auto; object-fit: cover;" />
                     }
                     else
                     {
@@ -39,44 +41,46 @@
 
                 <MudItem xs="12" sm="8">
                     <MudText Typo="Typo.h5" Class="fw-bold">@Proposal.Title</MudText>
-
-                    <MudChip T="string" Color="Color.Primary" Size="Size.Small" Class="mt-2">@CategoryName</MudChip>
+                    <MudText Typo="Typo.subtitle2" Class="text-muted mt-2">@CategoryName</MudText>
                     <MudText Typo="Typo.body2" Class="mt-3">@Proposal.Description</MudText>
 
                     <MudDivider Class="my-3" />
 
                     <MudGrid>
                         <MudItem xs="6">
-                            <MudText Typo="Typo.subtitle2" Color="Color.Secondary">Episodes</MudText>
-                            <MudText>@Proposal.Episodes</MudText>
+                            <MudText Typo="Typo.subtitle1" Color="Color.Secondary">Episodes</MudText>
+                            <MudText Typo="Typo.subtitle2">@Proposal.Episodes</MudText>
                         </MudItem>
                         <MudItem xs="6">
-                            <MudText Typo="Typo.subtitle2" Color="Color.Secondary">Rating</MudText>
-                            <MudText>@Proposal.Rating</MudText>
+                            <MudText Typo="Typo.subtitle1" Color="Color.Secondary">Rating</MudText>
+                            <MudText Typo="Typo.subtitle2">@Proposal.Rating</MudText>
                         </MudItem>
                         <MudItem xs="6">
-                            <MudText Typo="Typo.subtitle2" Color="Color.Secondary">Season</MudText>
-                            <MudText>@Proposal.Season @Proposal.PremieredYear</MudText>
+                            <MudText Typo="Typo.subtitle1" Color="Color.Secondary">Season</MudText>
+                            <MudText Typo="Typo.subtitle2">@Proposal.Season @Proposal.PremieredYear</MudText>
                         </MudItem>
                         <MudItem xs="6">
-                            <MudText Typo="Typo.subtitle2" Color="Color.Secondary">Studios</MudText>
-                            <MudText>@StudioNames</MudText>
+                            <MudText Typo="Typo.subtitle1" Color="Color.Secondary">Studios</MudText>
+                            <MudText Typo="Typo.subtitle2">@StudioNames</MudText>
                         </MudItem>
                     </MudGrid>
 
                     <MudDivider Class="my-3" />
 
-                    <MudText Typo="Typo.subtitle2" Color="Color.Secondary" Class="mt-5">Genres</MudText>
-                    <div class="d-flex flex-wrap gap-1">
-                        @foreach (var genre in GenreNames)
+                    <MudText Typo="Typo.subtitle1" Color="Color.Secondary" Class="mt-5">Genres</MudText>
+                    <MudChipSet T="Color">
+                        @if (GenreNames != null && GenreNames.Any())
                         {
-                            <MudChip T="string" Variant="Variant.Outlined" Color="Color.Primary" Size="Size.Small">@genre</MudChip>
+                            @foreach (var genre in GenreNames)
+                            {
+                                <MudChip Text="@genre" Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" />
+                            }
                         }
-                        @if (!GenreNames.Any())
+                        else
                         {
-                            <MudText Typo="Typo.caption">None</MudText>
+                            <MudText Typo="Typo.body2">N/A</MudText>
                         }
-                    </div>
+                    </MudChipSet>
                 </MudItem>
             </MudGrid>
         }
@@ -102,6 +106,7 @@
     private string CategoryName = string.Empty;
     private string StudioNames = string.Empty;
     private List<string> GenreNames = new();
+    private string ApiBaseUrl => Configuration["ApiBaseUrl"] ?? "";
 
     protected override async Task OnInitializedAsync()
     {
@@ -160,7 +165,7 @@
         // Nested Confirm Dialog
         var parameters = new DialogParameters<ConfirmationDialog>
         {
-            { x => x.ContentText, "Are you sure you want to approve this proposal? It will be published immediately." },
+            { x => x.ContentText, "Are you sure you want to approve this proposal?" },
             { x => x.ButtonText, "Approve" }
         };
 
