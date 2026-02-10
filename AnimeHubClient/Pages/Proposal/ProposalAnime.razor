@@ -1,4 +1,5 @@
 ﻿@page "/proposal-anime"
+@page "/proposal-anime/{TargetAnimeId:int?}"
 @using AnimeHub.Shared.Models.Dtos.AnimeProposal
 @using AnimeHub.Shared.Models.Dtos.Studio
 @using AnimeHub.Shared.Models.Enums
@@ -7,13 +8,20 @@
 @inject ILookUpService LookUpService
 @inject IAnimeProposalService ProposalService
 @inject ISnackbar Snackbar
+@inject IAnimeService AnimeService
+@inject IConfiguration Configuration
 @inject NavigationManager Navigation
+@inject HttpClient Http
 
 <MudCard Elevation="4" Class="mt-4">
     <MudCardHeader>
         <CardHeaderContent>
-            <MudText Align="Align.Center" Typo="Typo.h4" Class="fw-bold">Propose New Anime</MudText>
-            <MudText Align="Align.Center" Typo="Typo.body2">Fill out the details below. An admin will review your submission.</MudText>
+            <MudText Align="Align.Center" Typo="Typo.h4" Class="fw-bold">
+                @(TargetAnimeId.HasValue? "Propose Changes" : "Propose New Anime")
+            </MudText>
+            <MudText Align="Align.Center" Typo="Typo.body2">
+                @(TargetAnimeId.HasValue ? "Modify the details below to suggest an update." : "Fill out the details below. An admin will review your submission.")
+            </MudText>
         </CardHeaderContent>
     </MudCardHeader>
     <MudCardContent>
@@ -113,7 +121,15 @@
 
             @if (!string.IsNullOrEmpty(PreviewImageUrl))
             {
-                <MudImage Src="@PreviewImageUrl" Alt="Preview" Elevation="25" Class="rounded-lg ma-4 d-block mx-auto" Style="max-height:200px; max-width: 100%;" />
+                @* Show the local Base64 preview if a new file was just picked *@
+                <MudImage Src="@PreviewImageUrl" Alt="New Preview" Elevation="25"
+                          Class="rounded-lg ma-4 d-block mx-auto" Style="max-height:200px; max-width: 100%;" />
+            }
+            else if (!string.IsNullOrEmpty(UploadedImageUrl))
+            {
+                @* Show the existing image from the server *@
+                <MudImage Src="@($"{ApiBaseUrl}{UploadedImageUrl}")" Alt="Current Image" Elevation="25"
+                          Class="rounded-lg ma-4 d-block mx-auto" Style="max-height:200px; max-width: 100%;" />
             }
 
             <MudCardActions Class="py-4">
@@ -135,6 +151,8 @@
 </MudCard>
 
 @code {
+    [Parameter]
+    public int? TargetAnimeId { get; set; }
     private AnimeProposalCreateDto Proposal { get; set; } = new() { GenreIds = new List<int>(), StudioIds = new List<int>() };
     private List<CategoryReadDto> Categories { get; set; } = new();
     private List<GenreReadDto> Genres { get; set; } = new();
@@ -142,10 +160,16 @@
 
     private bool IsLoading { get; set; } = false;
     private IBrowserFile? SelectedImageFile;
-    private string? PreviewImageUrl;
+    private string? PreviewImageUrl;   // For local Base64 previews (newly selected)
+    private string? UploadedImageUrl;  // For existing server paths
+
+    // Helper to get the API URL
+    private string ApiBaseUrl => Configuration["ApiBaseUrl"] ?? "";
 
     protected override async Task OnInitializedAsync()
     {
+        IsLoading = true;
+
         var categoriesTask = LookUpService.GetCategoriesAsync();
         var genresTask = LookUpService.GetGenresAsync();
         var studiosTask = LookUpService.GetStudiosAsync();
@@ -155,48 +179,85 @@
         Categories = categoriesTask.Result?.OrderBy(c => c.Name).ToList() ?? new();
         Genres = genresTask.Result?.OrderBy(g => g.Name).ToList() ?? new();
         Studios = studiosTask.Result?.OrderBy(s => s.Name).ToList() ?? new();
+
+        if (TargetAnimeId.HasValue)
+        {
+            await LoadExistingAnimeData(TargetAnimeId.Value);
+        }
+
+        IsLoading = false;
+    }
+
+    private async Task LoadExistingAnimeData(int animeId)
+    {
+        var anime = await AnimeService.GetAnimeByIdAsync(animeId);
+        if (anime != null)
+        {
+            // Map Existing Anime Data to Proposal DTO
+            Proposal.TargetAnimeId = anime.Id;
+            Proposal.Title = anime.Title;
+            Proposal.Description = anime.Description;
+            Proposal.Rating = anime.Rating;
+            Proposal.Episodes = anime.Episodes;
+            Proposal.Season = (int?)Enum.Parse(typeof(Season), anime.Season);
+            Proposal.PremieredYear = anime.PremieredYear;
+            Proposal.Status = (int?)Enum.Parse(typeof(Status), anime.Status);
+            Proposal.CategoryId = anime.CategoryId;
+            Proposal.ImageUrl = anime.ImageUrl;
+            Proposal.TrailerUrl = anime.TrailerUrl;
+            Proposal.TrailerPosterUrl = anime.TrailerPosterUrl;
+
+            if (anime.GenreIds != null)
+            {
+                Proposal.GenreIds = new List<int>(anime.GenreIds);
+            }
+
+            if (anime.StudioIds != null)
+            {
+                Proposal.StudioIds = anime.StudioIds.ToList();
+            }
+
+            // Set the server path for the preview
+            UploadedImageUrl = anime.ImageUrl?.Replace("\\", "/");
+
+            // Ensure we clear any old local preview when loading a new anime
+            PreviewImageUrl = null;
+        }
+        else
+        {
+            Snackbar.Add("Could not find the anime to edit.", Severity.Error);
+            Navigation.NavigateTo("/");
+        }
     }
 
     private async Task SubmitProposal()
     {
         IsLoading = true;
-
         try
         {
-            // 1. Upload Temp Image if selected
+            // 1. Handle Image Upload via Service
             if (SelectedImageFile != null)
             {
-                var content = new MultipartFormDataContent();
-                var fileContent = new StreamContent(SelectedImageFile.OpenReadStream(5 * 1024 * 1024)); // Limit to 5MB
-                fileContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(SelectedImageFile.ContentType);
-                content.Add(fileContent, "file", SelectedImageFile.Name);
-
-                // Call the service we made earlier
-                var tempPath = await ProposalService.UploadTempFileAsync(content, "image");
+                var tempPath = await ProposalService.UploadProposalImageAsync(SelectedImageFile);
                 if (string.IsNullOrEmpty(tempPath))
                 {
                     Snackbar.Add("Failed to upload image.", Severity.Error);
-                    IsLoading = false;
                     return;
                 }
                 Proposal.ImageUrl = tempPath;
             }
 
-            // 2. Submit Data
+            // 2. Submit the Proposal
             var result = await ProposalService.CreateProposalAsync(Proposal);
             if (result != null)
             {
                 Snackbar.Add("Proposal submitted successfully!", Severity.Success);
                 Navigation.NavigateTo("/");
             }
-            else
-            {
-                Snackbar.Add("Failed to submit proposal.", Severity.Error);
-            }
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Image upload failed: {ex.Message}", Severity.Error);
+            Snackbar.Add($"Submission failed: {ex.Message}", Severity.Error);
         }
         finally
         {
@@ -205,7 +266,6 @@
     }
 
     // --- Helper Methods (Same as Admin form) ---
-
     private void ToggleGenre(int genreId, bool isChecked)
     {
         if (isChecked && !Proposal.GenreIds.Contains(genreId)) Proposal.GenreIds.Add(genreId);

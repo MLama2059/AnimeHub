@@ -1,5 +1,6 @@
 ﻿using AnimeHub.Shared.Models;
 using AnimeHub.Shared.Models.Dtos.AnimeProposal;
+using Microsoft.AspNetCore.Components.Forms;
 using System.Net.Http.Json;
 
 namespace AnimeHubClient.Services
@@ -24,6 +25,16 @@ namespace AnimeHubClient.Services
             }
 
             return null;
+        }
+
+        public async Task<string?> UploadProposalImageAsync(IBrowserFile file)
+        {
+            var content = new MultipartFormDataContent();
+            var fileContent = new StreamContent(file.OpenReadStream(5 * 1024 * 1024));
+            fileContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(file.ContentType);
+            content.Add(fileContent, "file", file.Name);
+
+            return await UploadTempFileAsync(content, "image");
         }
 
         public async Task<AnimeProposal?> CreateProposalAsync(AnimeProposalCreateDto dto)

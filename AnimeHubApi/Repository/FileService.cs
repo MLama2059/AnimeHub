@@ -89,6 +89,11 @@ namespace AnimeHubApi.Repository
             // If no path provided, nothing to move
             if (string.IsNullOrEmpty(relativeTempPath)) return string.Empty;
 
+            // EXPERT TWEAK: If it's not a Temp file, it's already in the right place. 
+            // Just return the path as is.
+            if (!relativeTempPath.Contains("/Temp/", StringComparison.OrdinalIgnoreCase))
+                return relativeTempPath;
+
             // Get full physical path of the temp file
             var sourceFullPath = Path.Combine(_webHostEnvironment.ContentRootPath, relativeTempPath);
 
@@ -122,7 +127,5 @@ namespace AnimeHubApi.Repository
                 return relativeTempPath; // Fallback
             }
         }
-
-        // Don't forget to update your IFileService interface to include these signatures!
     }
 }
