@@ -123,7 +123,18 @@ else
 
             @* --- Right Column: Header, Description, Reviews --- *@
             <MudItem xs="12" md="8" lg="9">
-                <MudText Typo="Typo.h3" Class="fw-bold mb-1">@Anime.Title</MudText>
+                <div class="d-flex align-items-center justify-content-between mb-1">
+                    <MudText Typo="Typo.h3" Class="fw-bold">@Anime.Title</MudText>
+
+                    <AuthorizeView>
+                        <Authorized>
+                            <MudTooltip Text="Spot an error? Propose an update!">
+                                <MudIconButton Icon="@Icons.Material.Filled.EditNote" Color="Color.Primary" Size="Size.Large" OnClick="@(() => Navigation.NavigateTo($"/proposal-anime/{Id}"))" />
+                            </MudTooltip>
+                        </Authorized>
+                    </AuthorizeView>
+
+                </div>
                 <MudText Typo="Typo.subtitle1" Class="text-muted mb-3">@Anime.CategoryName</MudText>
 
                 @* Genres Chip Group *@

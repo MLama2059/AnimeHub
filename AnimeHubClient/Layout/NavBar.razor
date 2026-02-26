@@ -44,7 +44,9 @@
                             <li class="nav-item">
                                 <NavLink class="nav-link" href="/admin/categories">Category</NavLink>
                             </li>
-                            @* <li><hr class="dropdown-divider"></li> *@
+                            <li class="nav-item">
+                                <NavLink class="nav-link" href="/admin/proposal-list">Proposal</NavLink>
+                            </li>
                         </ul>
                     </li>
            
@@ -72,15 +74,6 @@
 </nav>
 
 @code {
-    // private List<CategoryReadDto>? Categories;
-    // private List<GenreReadDto>? Genres;
-
-    // protected override async Task OnInitializedAsync()
-    // {
-    //     Categories = await Http.GetFromJsonAsync<List<CategoryReadDto>>("api/category");
-    //     Genres = await Http.GetFromJsonAsync<List<GenreReadDto>>("api/genre");
-    // }
-
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)

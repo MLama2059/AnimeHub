@@ -2,6 +2,7 @@
 @using AnimeHub.Shared.Models.Dtos
 @using AnimeHub.Shared.Models.Dtos.Anime
 @using AnimeHubClient.Services
+@using Microsoft.AspNetCore.Components.Authorization
 @using MudBlazor
 @inject NavigationManager Navigation
 @inject ISnackbar Snackbar
@@ -49,6 +50,18 @@
                                        Class="hero-cta-button hero-cta-outline-light">
                                 <MudIcon Icon="@Icons.Material.Filled.Whatshot" Class="me-1" Size="Size.Small" />Trending
                             </MudButton>
+                            <AuthorizeView>
+                                <Authorized>
+                                    <MudButton Href="/propose"
+                                               Variant="Variant.Outlined"
+                                               Color="Color.Info"
+                                               Size="Size.Large"
+                                               Class="hero-cta-button ms-2"
+                                               Style="border-color: var(--mud-palette-info); color: white;">
+                                        <MudIcon Icon="@Icons.Material.Filled.Add" Class="me-1" Size="Size.Small" />Propose New
+                                    </MudButton>
+                                </Authorized>
+                            </AuthorizeView>
                         </div>
                     </div>
                 </div>
