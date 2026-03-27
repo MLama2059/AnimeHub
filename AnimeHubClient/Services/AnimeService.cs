@@ -147,7 +147,7 @@ namespace AnimeHubClient.Services
             return (items, metadata);
         }
 
-        public async Task<(List<AnimeListReadDto>? Items, PagedListMetadata? Metadata)> GetAnimeCatalogAsync(int pageNumber, int pageSize, string orderBy, string? filterQuery, string? filterOn = "Title")
+        public async Task<(List<AnimeListReadDto>? Items, PagedListMetadata? Metadata)> GetAnimeCatalogAsync(int pageNumber, int pageSize, string orderBy, string? filterQuery, int? categoryId = null, int? genreId = null, int? year = null, string? season = null)
         {
             var queryParams = new Dictionary<string, string?>
             {
@@ -156,18 +156,25 @@ namespace AnimeHubClient.Services
                 {"orderBy", orderBy}
             };
 
+            // Add search term if exists
             if (!string.IsNullOrWhiteSpace(filterQuery))
             {
-                queryParams.Add("filterOn", filterOn);
+                queryParams.Add("filterOn", "Title");
                 queryParams.Add("filterQuery", filterQuery);
             }
+
+            // Add new filters to query params
+            if (categoryId.HasValue) queryParams.Add("categoryId", categoryId.Value.ToString());
+            if (genreId.HasValue) queryParams.Add("genreId", genreId.Value.ToString());
+            if (year.HasValue) queryParams.Add("year", year.Value.ToString());
+            if (!string.IsNullOrWhiteSpace(season)) queryParams.Add("season", season);
 
             // Convert queryParams dictionary into a URL query string
             var queryString = await new FormUrlEncodedContent(queryParams).ReadAsStringAsync();
 
             // NOTE: We do not pass CancellationToken here as the UI is handling the debounce/cancellation logic
             var response = await _httpClient.GetAsync($"{API_BASE_URL}?{queryString}");
-            response.EnsureSuccessStatusCode();
+            if (!response.IsSuccessStatusCode) return (null, null);
 
             PagedListMetadata? metadata = null;
             if (response.Headers.TryGetValues("X-Pagination", out var headerValues))

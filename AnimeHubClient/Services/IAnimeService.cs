@@ -27,7 +27,7 @@ namespace AnimeHubClient.Services
         Task<(List<AnimeListReadDto>? Items, PagedListMetadata? Metadata)> GetPagedAnimeListAsync(Dictionary<string, string?> queryParams, CancellationToken cancellationToken);
       
         // Method for AnimeCatalog.razor
-        Task<(List<AnimeListReadDto>? Items, PagedListMetadata? Metadata)> GetAnimeCatalogAsync(int pageNumber, int pageSize, string orderBy, string? filterQuery, string? filterOn = "Title");
+        Task<(List<AnimeListReadDto>? Items, PagedListMetadata? Metadata)> GetAnimeCatalogAsync(int pageNumber, int pageSize, string orderBy, string? filterQuery, int? categoryId = null, int? genreId = null, int? year = null, string? season = null);
 
         // Method for recommendations
         Task<List<AnimeListReadDto>> GetRecommendationsAsync(int animeId, int count = 6);
