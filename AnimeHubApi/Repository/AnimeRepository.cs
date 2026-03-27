@@ -26,19 +26,51 @@ namespace AnimeHubApi.Repository
             // Use .AsNoTracking() for read-only queries for better performance
             var query = _context.Animes
                 .Include(a => a.Category)
+                .Include(a => a.AnimeGenres)
                 .AsNoTracking();
 
             // Apply Searching
-            if (!string.IsNullOrWhiteSpace(apiParams.FilterOn) && !string.IsNullOrWhiteSpace(apiParams.FilterQuery))
-            {
-                var filterOn = apiParams.FilterOn.ToLowerInvariant();
-                var filterQuery = apiParams.FilterQuery.ToLowerInvariant();
+            //if (!string.IsNullOrWhiteSpace(apiParams.FilterOn) && !string.IsNullOrWhiteSpace(apiParams.FilterQuery))
+            //{
+            //    var filterOn = apiParams.FilterOn.ToLowerInvariant();
+            //    var filterQuery = apiParams.FilterQuery.ToLowerInvariant();
 
-                if (filterOn.Equals("title"))
+            //    if (filterOn.Equals("title"))
+            //    {
+            //        query = query.Where(a => a.Title.ToLower().Contains(filterQuery));
+            //    }
+            //}
+            if (!string.IsNullOrWhiteSpace(apiParams.FilterQuery))
+            {
+                var search = apiParams.FilterQuery.ToLower();
+                query = query.Where(a => a.Title.ToLower().Contains(search));
+            }
+
+            // AFilter by format
+            if (apiParams.CategoryId.HasValue)
+            {
+                query = query.Where(a => a.CategoryId == apiParams.CategoryId.Value);
+            }
+
+            // Filter by year
+            if (apiParams.Year.HasValue)
+            {
+                query = query.Where(a => a.PremieredYear == apiParams.Year.Value);
+            }
+
+            // Filter by genre
+            if (apiParams.GenreId.HasValue)
+            {
+                query = query.Where(a => a.AnimeGenres.Any(ag => ag.GenreId == apiParams.GenreId.Value));
+            }
+
+            // Filter by season 
+            if (!string.IsNullOrWhiteSpace(apiParams.Season))
+            {
+                if (Enum.TryParse<Season>(apiParams.Season, true, out var season))
                 {
-                    query = query.Where(a => a.Title.ToLower().Contains(filterQuery));
+                    query = query.Where(a => a.Season == season);
                 }
-                // Add more 'else if' blocks here if you want to filter other fields later (e.g., CategoryName)
             }
 
             // Apply Projection
