@@ -19,79 +19,88 @@
 
         <MudCardContent>
             <MudGrid Spacing="2" Class="align-content-center">
-                <MudItem xs="12" md="3">
-                    <MudTextField T="string"
-                                  Label="Search"
-                                  Placeholder="Search anime"
-                                  Adornment="Adornment.Start"
-                                  AdornmentIcon="@Icons.Material.Filled.Search"
-                                  Immediate="true"
-                                  Clearable="true"
-                                  Variant="Variant.Outlined"
-                                  Margin="Margin.Dense"
-                                  Value="SearchInput"
-                                  ValueChanged="OnSearchChanged" />
-                </MudItem>
+                @if (IsInitialLoading)
+                {
+                    <MudItem xs="12">
+                        <MudProgressLinear Color="Color.Primary" Indeterminate="true" />
+                    </MudItem>
+                }
+                else
+                {
+                    <MudItem xs="12" md="3">
+                        <MudTextField T="string"
+                                      Label="Search"
+                                      Placeholder="Search anime"
+                                      Adornment="Adornment.Start"
+                                      AdornmentIcon="@Icons.Material.Filled.Search"
+                                      Immediate="true"
+                                      Clearable="true"
+                                      Variant="Variant.Outlined"
+                                      Margin="Margin.Dense"
+                                      Value="SearchInput"
+                                      ValueChanged="OnSearchChanged" />
+                    </MudItem>
 
-                @* Format Dropdown *@
-                <MudItem xs="6" md="2">
-                    <MudSelect T="int?" Label="Format"
-                               Value="SelectedCategoryId"
-                               ValueChanged="async (val) => { SelectedCategoryId = val; await OnFilterChanged(); }"
-                               Variant="Variant.Outlined" Margin="Margin.Dense" Clearable="true" Dense="true">
-                        @foreach (var cat in _categories)
-                        {
-                            <MudSelectItem T="int?" Value="@cat.Id">@cat.Name</MudSelectItem>
-                        }
-                    </MudSelect>
-                </MudItem>
+                    @* Format Dropdown *@
+                    <MudItem xs="6" md="2">
+                        <MudSelect T="int?" Label="Format"
+                                   Value="SelectedCategoryId"
+                                   ValueChanged="async (val) => { SelectedCategoryId = val; await OnFilterChanged(); }"
+                                   Variant="Variant.Outlined" Margin="Margin.Dense" Clearable="true" Dense="true">
+                            @foreach (var cat in _categories)
+                            {
+                                <MudSelectItem T="int?" Value="@cat.Id">@cat.Name</MudSelectItem>
+                            }
+                        </MudSelect>
+                    </MudItem>
 
-                @* Genre Dropdown *@
-                <MudItem xs="6" md="2">
-                    <MudSelect T="int?" Label="Genre"
-                               Value="SelectedGenreId"
-                               ValueChanged="async (val) => { SelectedGenreId = val; await OnFilterChanged(); }"
-                               Variant="Variant.Outlined" Margin="Margin.Dense" Clearable="true" Dense="true">
-                        @foreach (var genre in _genres)
-                        {
-                            <MudSelectItem T="int?" Value="@genre.Id">@genre.Name</MudSelectItem>
-                        }
-                    </MudSelect>
-                </MudItem>
+                    @* Genre Dropdown *@
+                    <MudItem xs="6" md="2">
+                        <MudSelect T="int?" Label="Genre"
+                                   Value="SelectedGenreId"
+                                   ValueChanged="async (val) => { SelectedGenreId = val; await OnFilterChanged(); }"
+                                   Variant="Variant.Outlined" Margin="Margin.Dense" Clearable="true" Dense="true">
+                            @foreach (var genre in _genres)
+                            {
+                                <MudSelectItem T="int?" Value="@genre.Id">@genre.Name</MudSelectItem>
+                            }
+                        </MudSelect>
+                    </MudItem>
 
-                @* Year Dropdown *@
-                <MudItem xs="6" md="2">
-                    <MudSelect T="int?" Label="Year"
-                               Value="SelectedYear"
-                               ValueChanged="async (val) => { SelectedYear = val; await OnFilterChanged(); }"
-                               Variant="Variant.Outlined" Margin="Margin.Dense" Clearable="true" Dense="true">
-                        @foreach (var year in _years)
-                        {
-                            <MudSelectItem T="int?" Value="@year">@year</MudSelectItem>
-                        }
-                    </MudSelect>
-                </MudItem>
+                    @* Year Dropdown *@
+                    <MudItem xs="6" md="2">
+                        <MudSelect T="int?" Label="Year"
+                                   Value="SelectedYear"
+                                   ValueChanged="async (val) => { SelectedYear = val; await OnFilterChanged(); }"
+                                   Variant="Variant.Outlined" Margin="Margin.Dense" Clearable="true" Dense="true">
+                            @foreach (var year in _years)
+                            {
+                                <MudSelectItem T="int?" Value="@year">@year</MudSelectItem>
+                            }
+                        </MudSelect>
+                    </MudItem>
 
-                @* Season Dropdown *@
-                <MudItem xs="6" md="2">
-                    <MudSelect T="string" Label="Season"
-                               Value="SelectedSeason"
-                               ValueChanged="async (val) => { SelectedSeason = val; await OnFilterChanged(); }"
-                               Variant="Variant.Outlined" Margin="Margin.Dense" Clearable="true" Dense="true">
-                        @foreach (var season in _seasons)
-                        {
-                            <MudSelectItem T="string" Value="@season">@season</MudSelectItem>
-                        }
-                    </MudSelect>
-                </MudItem>
+                    @* Season Dropdown *@
+                    <MudItem xs="6" md="2">
+                        <MudSelect T="string" Label="Season"
+                                   Value="SelectedSeason"
+                                   ValueChanged="async (val) => { SelectedSeason = val; await OnFilterChanged(); }"
+                                   Variant="Variant.Outlined" Margin="Margin.Dense" Clearable="true" Dense="true">
+                            @foreach (var season in _seasons)
+                            {
+                                <MudSelectItem T="string" Value="@season">@season</MudSelectItem>
+                            }
+                        </MudSelect>
+                    </MudItem>
 
-                @* Reset Button *@
-                <MudItem xs="12" md="1" Class="d-flex justify-center">
-                    <MudIconButton Icon="@Icons.Material.Filled.FilterListOff"
-                                   Color="Color.Error"
-                                   OnClick="async () => { State.ClearCatalogState(); SearchInput = string.Empty; await OnFilterChanged(); }"
-                                   Title="Clear Filters" />
-                </MudItem>
+                    @* Reset Button *@
+                    <MudItem xs="12" md="1" Class="d-flex justify-center">
+                        <MudIconButton Icon="@Icons.Material.Filled.FilterListOff"
+                                       Color="Color.Error"
+                                       OnClick="async () => { State.ClearCatalogState(); SearchInput = string.Empty; await OnFilterChanged(); }"
+                                       Title="Clear Filters" />
+                    </MudItem>
+                }
             </MudGrid>
             
         </MudCardContent>
@@ -169,26 +178,32 @@
     private string? SelectedSeason { get => State.SelectedSeason; set => State.SelectedSeason = value; }
 
     @* UI Data Lists *@
-    private List<GenreReadDto> _genres = new();
-    private List<CategoryReadDto> _categories = new();
+    private List<GenreReadDto> _genres => State.Genres;
+    private List<CategoryReadDto> _categories => State.Categories;
     private List<int> _years = Enumerable.Range(1990, (DateTime.Now.Year - 1989) + 1).Reverse().ToList();
     private List<string> _seasons = new() { "Winter", "Spring", "Summer", "Fall" };
 
     private string SearchInput = string.Empty;
     private bool IsLoading { get; set; } = false;
+    private bool IsInitialLoading { get; set; } = true; // NEW: Track first-time load
     private CancellationTokenSource _debounceCts = new();
 
     protected override async Task OnInitializedAsync()
     {
         SearchInput = FilterQuery;
 
-        // Lookup
-        var genresTask = LookUpService.GetGenresAsync();
-        var categoriesTask = LookUpService.GetCategoriesAsync();
-        await Task.WhenAll(genresTask, categoriesTask);
+        // ONLY fetch if we don't already have them in State
+        if (!State.Genres.Any() || !State.Categories.Any())
+        {
+            var genresTask = LookUpService.GetGenresAsync();
+            var categoriesTask = LookUpService.GetCategoriesAsync();
+            await Task.WhenAll(genresTask, categoriesTask);
 
-        _genres = await genresTask ?? new();
-        _categories = await categoriesTask ?? new();
+            State.Genres = await genresTask ?? new();
+            State.Categories = await categoriesTask ?? new();
+        }
+
+        IsInitialLoading = false; // Data is now ready
 
         // If coming back from Anime Details, don't reload data
         if (AnimesList.Count == 0)
