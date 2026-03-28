@@ -1,4 +1,6 @@
 ﻿using AnimeHub.Shared.Models.Dtos.Anime;
+using AnimeHub.Shared.Models.Dtos.Category;
+using AnimeHub.Shared.Models.Dtos.Genre;
 
 namespace AnimeHubClient.Services
 {
@@ -21,13 +23,16 @@ namespace AnimeHubClient.Services
         public int? SelectedYear { get; set; }
         public string? SelectedSeason { get; set; }
 
+        // Cached lists
+        public List<CategoryReadDto> Categories { get; set; } = new();
+        public List<GenreReadDto> Genres { get; set; } = new();
+
         // Logic to clear if needed
         public void ClearCatalogState()
         {
             CatalogSearchTerm = string.Empty;
             CatalogItems.Clear();
             CatalogCurrentPage = 1;
-            CatalogOrderBy = "title_asc";
 
             // Reset the new filters
             SelectedCategoryId = null;
