@@ -282,6 +282,12 @@ main {
         border-color: var(--bs-primary) !important;
     }
 
+.section-title-alt {
+    border-left: 5px solid var(--mud-palette-primary);
+    padding-left: 15px;
+    font-weight: 800;
+}
+
 /* MudPaper styling to match your old section-card div */
 .section-paper {
     background: #fdfdfd !important;
