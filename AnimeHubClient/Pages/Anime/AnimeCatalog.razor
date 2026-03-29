@@ -8,6 +8,7 @@
 @inject IAnimeService AnimeService
 @inject AnimeStateContainer State
 @inject ILookUpService LookUpService
+@inject NavigationManager Navigation
 
 <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-4">
     <MudCard Elevation="0">
@@ -30,7 +31,6 @@
                     <MudItem xs="12" md="3">
                         <MudTextField T="string"
                                       Label="Search"
-                                      Placeholder="Search anime"
                                       Adornment="Adornment.Start"
                                       AdornmentIcon="@Icons.Material.Filled.Search"
                                       Immediate="true"
@@ -192,6 +192,19 @@
     {
         SearchInput = FilterQuery;
 
+        // Parse Query Parameters from URL
+        var uri = Navigation.ToAbsoluteUri(Navigation.Uri);
+        var query = QueryHelpers.ParseQuery(uri.Query);
+
+        if (query.TryGetValue("genreId", out var gId))
+            SelectedGenreId = int.Parse(gId!);
+    
+        if (query.TryGetValue("categoryId", out var cId))
+            SelectedCategoryId = int.Parse(cId!);
+
+        if (query.TryGetValue("season", out var ssn))
+            SelectedSeason = ssn;
+
         // ONLY fetch if we don't already have them in State
         if (!State.Genres.Any() || !State.Categories.Any())
         {
@@ -204,6 +217,7 @@
         }
 
         IsInitialLoading = false; // Data is now ready
+        State.CatalogItems.Clear();
 
         // If coming back from Anime Details, don't reload data
         if (AnimesList.Count == 0)

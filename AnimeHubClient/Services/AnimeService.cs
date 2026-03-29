@@ -28,6 +28,11 @@ namespace AnimeHubClient.Services
             return await _httpClient.GetFromJsonAsync<List<AnimeListReadDto>>($"{API_BASE_URL}/top");
         }
 
+        public async Task<List<AnimeListReadDto>?> GetLatestAnimesAsync()
+        {
+            return await _httpClient.GetFromJsonAsync<List<AnimeListReadDto>>($"{API_BASE_URL}/latest");
+        }
+
         // CRUD OPERATIONS (Used by LoadAnime and UpsertAnime)
         public async Task<AnimeReadDto?> GetAnimeByIdAsync(int id)
         {

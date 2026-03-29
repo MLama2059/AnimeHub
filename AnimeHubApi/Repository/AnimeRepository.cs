@@ -30,16 +30,6 @@ namespace AnimeHubApi.Repository
                 .AsNoTracking();
 
             // Apply Searching
-            //if (!string.IsNullOrWhiteSpace(apiParams.FilterOn) && !string.IsNullOrWhiteSpace(apiParams.FilterQuery))
-            //{
-            //    var filterOn = apiParams.FilterOn.ToLowerInvariant();
-            //    var filterQuery = apiParams.FilterQuery.ToLowerInvariant();
-
-            //    if (filterOn.Equals("title"))
-            //    {
-            //        query = query.Where(a => a.Title.ToLower().Contains(filterQuery));
-            //    }
-            //}
             if (!string.IsNullOrWhiteSpace(apiParams.FilterQuery))
             {
                 var search = apiParams.FilterQuery.ToLower();
@@ -155,6 +145,7 @@ namespace AnimeHubApi.Repository
         public async Task<AnimeReadDto?> GetByIdAsync(int id)
         {
             return await _context.Animes
+                .AsNoTracking()
                 .Include(a => a.Category)
                 .Include(a => a.AnimeGenres).ThenInclude(ag => ag.Genre)
                 .Include(a => a.AnimeStudios).ThenInclude(ast => ast.Studio)
@@ -178,7 +169,6 @@ namespace AnimeHubApi.Repository
                     Studios = a.AnimeStudios.Select(ast => ast.Studio.Name).ToList(),
                     StudioIds = a.AnimeStudios.Select(ast => ast.StudioId).ToHashSet(),
                 })
-                .AsNoTracking()
                 .FirstOrDefaultAsync(a => a.Id == id);
         }
 
@@ -186,6 +176,7 @@ namespace AnimeHubApi.Repository
         public async Task<IEnumerable<AnimeListReadDto>> GetTopRatedAnimesAsync(int count)
         {
             return await _context.Animes
+                .AsNoTracking()
                 .OrderByDescending(a => a.Rating)
                 .Take(count)
                 .Select(a => new AnimeListReadDto
@@ -203,7 +194,31 @@ namespace AnimeHubApi.Repository
                     Genres = a.AnimeGenres.Select(ag => ag.Genre.Name).ToList(),
                     Studios = a.AnimeStudios.Select(ast => ast.Studio.Name).ToList()
                 })
+                .ToListAsync();
+        }
+
+        public async Task<IEnumerable<AnimeListReadDto>> GetLatestAnimesAsync(int count)
+        {
+            return await _context.Animes
                 .AsNoTracking()
+                .OrderByDescending(a => a.PremieredYear)
+                .ThenByDescending(a => a.Season)
+                .Take(count)
+                .Select(a => new AnimeListReadDto
+                {
+                    Id = a.Id,
+                    Title = a.Title,
+                    ImageUrl = a.ImageUrl,
+                    Rating = a.Rating,
+                    Episodes = a.Episodes,
+                    Season = a.Season.ToString(),
+                    PremieredYear = a.PremieredYear,
+                    Status = a.Status.ToString(),
+                    CategoryId = a.CategoryId,
+                    CategoryName = a.Category.Name,
+                    Genres = a.AnimeGenres.Select(ag => ag.Genre.Name).ToList(),
+                    Studios = a.AnimeStudios.Select(ast => ast.Studio.Name).ToList()
+                })
                 .ToListAsync();
         }
 

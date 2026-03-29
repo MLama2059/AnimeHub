@@ -136,7 +136,7 @@ namespace AnimeHubApi.Repository
 
                 return true;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 await transaction.RollbackAsync();
                 // Log ex.Message here

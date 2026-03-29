@@ -77,6 +77,14 @@ namespace AnimeHubApi.Controllers
             return Ok(animes);
         }
 
+        // GET endpoint for Latest Anime
+        [HttpGet("latest")]
+        public async Task<IActionResult> GetLatestAnimes()
+        {
+            var animes = await _animeRepository.GetLatestAnimesAsync(6);
+            return Ok(animes);
+        }
+
         [Authorize(Roles = RoleConstants.Admin)]
         [HttpPost]
         public async Task<IActionResult> AddAnime([FromBody] AnimeCreateDto animeDto)

@@ -17,6 +17,7 @@ namespace AnimeHubClient.Services
 
         // Lookup Data Loader
         Task<List<AnimeListReadDto>?> GetTopRatedAnimesAsync();
+        Task<List<AnimeListReadDto>?> GetLatestAnimesAsync();
 
         // File Uploads
         Task<string?> UploadImageAsync(IBrowserFile file, string? oldImageUrl);
