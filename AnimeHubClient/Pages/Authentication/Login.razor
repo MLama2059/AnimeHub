@@ -1,9 +1,11 @@
 ﻿@page "/login"
 @using AnimeHub.Shared.Models.Dtos.User
 @using AnimeHubClient.Services
+@using Microsoft.AspNetCore.Components.Authorization
 @inject IAuthService AuthService
 @inject ISnackbar Snackbar
 @inject NavigationManager Navigation
+@inject AuthenticationStateProvider AuthStateProvider
 
 <MudGrid Justify="Justify.Center" Class="mt-12">
     <MudItem xs="12" sm="8" md="6" lg="4">
@@ -56,8 +58,17 @@
     [SupplyParameterFromQuery]
     public string? ReturnUrl { get; set; }
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
+        // Check if user is already logged in
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        if (authState.User.Identity?.IsAuthenticated ?? false)
+        {
+            // If already logged in, redirect away immediately
+            Navigation.NavigateTo(ReturnUrl ?? "/", replace: true);
+            return;
+        }
+
         LoginRequest = new LoginRequestDto();
         IsLoading = false;
     }
@@ -75,8 +86,10 @@
             // Login successful: token is stored, AuthStateProvider is notified
             Snackbar.Add("Login successful! Welcome.", Severity.Success);
 
-            // Navigate the user to the home page or a dashboard
-            Navigation.NavigateTo(ReturnUrl ?? "/", forceLoad: true);
+            // CRITICAL CHANGE: Use replace: true to remove /login from history
+            // We keep forceLoad: true because it's a reliable way to refresh the
+            // entire app state/headers after a token is set.
+            Navigation.NavigateTo(ReturnUrl ?? "/", forceLoad: true, replace: true);
         }
         else
         {
