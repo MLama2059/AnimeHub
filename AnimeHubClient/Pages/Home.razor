@@ -9,64 +9,63 @@
 @inject IAnimeService AnimeService
 @inject ILookUpService LookUpService
 
+<style>
+    /* HERO FIXES */
+    
+</style>
+
 <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-6">
-    @* --- 1. CINEMATIC BANNER --- *@
+    @* HERO SECTION *@
+    <div class="hero-wrapper">
+        <MudCarousel Class="h-100" ShowArrows="false" ShowBullets="true" AutoCycle="true" TData="object">
+            <MudCarouselItem Transition="Transition.Fade">
+                <MudImage Src="/images/hero1.jpg" ObjectFit="ObjectFit.Cover" Class="w-100 h-100" />
+            </MudCarouselItem>
+            <MudCarouselItem Transition="Transition.Fade">
+                <MudImage Src="/images/hero6.jpg" ObjectFit="ObjectFit.Cover" Class="w-100 h-100" />
+            </MudCarouselItem>
+            <MudCarouselItem Transition="Transition.Fade">
+                <MudImage Src="/images/hero7.jpg" ObjectFit="ObjectFit.Cover" Class="w-100 h-100" />
+            </MudCarouselItem>
+        </MudCarousel>
+
+        <div class="hero-overlay-cinematic"></div>
+
+        <div class="hero-content-left">
+            <h1 class="hero-title-large">
+                Your Anime <br />
+                Universe <span style="color:var(--mud-palette-primary)">Refined.</span>
+            </h1>
+            <p class="hero-description mt-6 mb-10">
+                Join thousands of fans tracking their favorite series.
+                Rate, review, and organize your anime journey in one place.
+            </p>
+
+            <div class="d-flex gap-4">
+                <MudButton Href="animes" Variant="Variant.Filled" Color="Color.Primary" Size="Size.Large" Style="border-radius:12px; height:54px;">
+                    Start Browsing
+                </MudButton>
+                
+                <AuthorizeView>
+                    <Authorized>
+                        <MudButton Href="/proposal-anime" Variant="Variant.Outlined" Color="Color.Info" Size="Size.Large" Style="border-radius:12px; height:54px;">
+                            <MudIcon Icon="@Icons.Material.Filled.Add" Class="me-2" /> Propose New
+                        </MudButton>
+                    </Authorized>
+                </AuthorizeView>
+            </div>
+        </div>
+    </div>
+
+    @* CONTENT ROWS *@
     <MudGrid Justify="Justify.Center">
-        <MudItem xs="12">
-            <div style="position:relative; height:65vh;">
-                <MudCarousel Class="mud-carousel-custom" Style="height:65vh" NextIcon="@Icons.Material.Outlined.ArrowCircleRight" PreviousIcon="@Icons.Material.Filled.ArrowCircleLeft" ShowArrows="true" AutoCycle="true" TData="object">
-                    <MudCarouselItem Transition="Transition.Fade">
-                        <div class="hero-image-overlay" style="background-image: url('/images/hero1.jpg');"></div>
-                    </MudCarouselItem>
-                    <MudCarouselItem Transition="Transition.Fade">
-                        <div class="hero-image-overlay" style="background-image: url('/images/hero6.jpg');"></div>
-                    </MudCarouselItem>
-                    <MudCarouselItem Transition="Transition.Fade">
-                        <div class="hero-image-overlay" style="background-image: url('/images/hero7.jpg');"></div>
-                    </MudCarouselItem>
-                    <MudCarouselItem Transition="Transition.Fade">
-                        <div class="hero-image-overlay" style="background-image: url('/images/hero4.jpg');"></div>
-                    </MudCarouselItem>
-                </MudCarousel>
-
-                @* Overlay section *@
-                <div class="hero-content-overlay">
-                    <div class="hero-content">
-                        <h1 class="hero-title">Welcome to <span class="highlight">AnimeHub</span></h1>
-                        <p class="hero-subtitle">Your destination for all things anime. Discover, rate, and explore a world of stories.</p>
-                        <div class="hero-cta">
-                            <MudButton Href="animes"
-                                       Variant="Variant.Filled"
-                                       Color="Color.Primary"
-                                       Size="Size.Large"
-                                       Class="hero-cta-button">
-                                Browse Anime
-                            </MudButton>
-
-                            <AuthorizeView>
-                                <Authorized>
-                                    <MudButton Href="/propose"
-                                               Variant="Variant.Outlined"
-                                               Color="Color.Info"
-                                               Size="Size.Large"
-                                               Class="hero-cta-button ms-2"
-                                               Style="border-color: var(--mud-palette-info); color: white;">
-                                        <MudIcon Icon="@Icons.Material.Filled.Add" Class="me-1" Size="Size.Small" />Propose New
-                                    </MudButton>
-                                </Authorized>
-                            </AuthorizeView>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </MudItem>
-
-        @* --- 2. TOP RATED SECTION --- *@
-        <MudItem xs="12" Class="mt-8">
-            <div class="d-flex align-center justify-space-between mb-4">
+        @* Top Rated *@
+        <MudItem xs="12" Class="mt-10">
+            <div class="d-flex align-center justify-space-between mb-6">
                 <MudText Typo="Typo.h5" Class="section-title-alt">Top Rated</MudText>
-                <MudButton Variant="Variant.Text" EndIcon="@Icons.Material.Filled.ChevronRight" Href="/animes">View All</MudButton>
+                <MudButton Href="/animes" Color="Color.Primary" EndIcon="@Icons.Material.Filled.ChevronRight">All Anime</MudButton>
             </div>
+
             @if (IsLoading)
             {
                 <MudGrid Justify="Justify.Center">
@@ -95,12 +94,12 @@
             }
         </MudItem>
 
-        @* --- 3. LATEST ANIME SECTION --- *@
-        <MudItem xs="12" Class="mt-8">
-            <div class="d-flex align-center justify-space-between mb-4">
-                <MudText Typo="Typo.h5" Class="section-title-alt">Latest Releases</MudText>
-                <MudButton Variant="Variant.Text" EndIcon="@Icons.Material.Filled.ChevronRight" Href="/animes">View All</MudButton>
+        @* Latest Releases *@
+        <MudItem xs="12" Class="mt-10">
+            <div class="d-flex align-center justify-space-between mb-6">
+                <MudText Typo="Typo.h5" Class="section-title-alt">Latest Updates</MudText>
             </div>
+
             @if (IsLoading)
             {
                 <MudGrid Justify="Justify.Center">
@@ -129,44 +128,55 @@
             }
         </MudItem>
 
-        @* --- 4. BROWSE BY CATEGORIES / GENRES / SEASONS --- *@
-        <MudItem xs="12" md="4" Class="mt-8">
-            <MudPaper Class="pa-6 glass-panel h-100" Elevation="0">
-                <MudText Typo="Typo.h6" Class="fw-bold mb-4" StartIcon="@Icons.Material.Filled.Category">Formats</MudText>
+        @* DISCOVERY CHIPS *@
+        <MudItem xs="12" md="4" Class="mt-10">
+            <MudPaper Class="pa-6 glass-card h-100" Elevation="1">
+                <MudText Typo="Typo.h6" Color="Color.Primary" Class="fw-bold mb-4">Formats</MudText>
                 <div class="d-flex flex-wrap gap-2">
                     @foreach (var cat in Categories ?? new())
                     {
-                        <MudChip T="string" Variant="Variant.Outlined" Color="Color.Primary"
-                                 OnClick="@(() => Navigation.NavigateTo($"/animes?categoryId={cat.Id}"))">@cat.Name</MudChip>
+                        <MudChip T="string" Variant="Variant.Outlined" Color="Color.Primary" OnClick="@(() => Navigation.NavigateTo($"/animes?categoryId={cat.Id}"))">@cat.Name</MudChip>
                     }
                 </div>
             </MudPaper>
         </MudItem>
 
-        <MudItem xs="12" md="4" Class="mt-8">
-            <MudPaper Class="pa-6 glass-panel h-100" Elevation="0">
-                <MudText Typo="Typo.h6" Class="fw-bold mb-4">Popular Genres</MudText>
+        <MudItem xs="12" md="4" Class="mt-10">
+            <MudPaper Class="pa-6 glass-card h-100" Elevation="2">
+                <MudText Typo="Typo.h6" Color="Color.Secondary" Class="fw-bold mb-4">Popular Genres</MudText>
                 <div class="d-flex flex-wrap gap-2">
-                    @foreach (var genre in Genres ?? new())
+                    @foreach (var genre in PopularGenres ?? new())
                     {
-                        <MudChip T="string" Variant="Variant.Text" Color="Color.Secondary"
-                                 OnClick="@(() => Navigation.NavigateTo($"/animes?genreId={genre.Id}"))">@genre.Name</MudChip>
+                        <MudChip T="string" Variant="Variant.Text" Color="Color.Secondary" OnClick="@(() => Navigation.NavigateTo($"/animes?genreId={genre.Id}"))">@genre.Name</MudChip>
                     }
                 </div>
             </MudPaper>
         </MudItem>
 
-        <MudItem xs="12" md="4" Class="mt-8">
-            <MudPaper Class="pa-6 glass-panel h-100" Elevation="0">
-                <MudText Typo="Typo.h6" Class="fw-bold mb-4">Seasons</MudText>
+        <MudItem xs="12" md="4" Class="mt-10">
+            <MudPaper Class="pa-6 glass-card h-100" Elevation="3">
+                <MudText Typo="Typo.h6" Color="Color.Info" Class="fw-bold mb-4">Seasons</MudText>
                 <div class="d-flex flex-wrap gap-2">
-                    @foreach (var season in _seasons)
+                    @foreach (var season in Seasons)
                     {
-                        <MudChip T="string" Variant="Variant.Filled" Color="Color.Info"
-                                 OnClick="@(() => Navigation.NavigateTo($"/animes?season={season}"))">@season</MudChip>
+                        <MudChip T="string" Variant="Variant.Filled" Color="Color.Info" OnClick="@(() => Navigation.NavigateTo($"/animes?season={season}"))">@season</MudChip>
                     }
                 </div>
             </MudPaper>
+        </MudItem>
+
+        @* FOOTER *@
+        <MudItem xs="12">
+            <div class="footer-cta shadow-lg">
+                <MudText Typo="Typo.h4" Class="fw-bold mb-2">Ready to start your watchlist?</MudText>
+                <MudText Typo="Typo.body1" Class="mb-8" Style="opacity: 0.7">Create an account to keep track of every episode you watch.</MudText>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Large" Href="/register" Style="px-12; height:50px; border-radius:12px;">
+                    Get Started Free
+                </MudButton>
+                <div class="mt-12">
+                    <MudText Typo="Typo.caption" Style="opacity: 0.5;">&copy; @DateTime.Now.Year AnimeHub. All rights reserved.</MudText>
+                </div>
+            </div>
         </MudItem>
     </MudGrid>
 </MudContainer>
@@ -176,8 +186,8 @@
     private List<AnimeListReadDto>? TopRatedAnimes;
     private List<AnimeListReadDto>? LatestAnimes;
     private List<CategoryReadDto>? Categories;
-    private List<GenreReadDto>? Genres;
-    private List<string> _seasons = new() { "Winter", "Spring", "Summer", "Fall" };
+    private List<GenreReadDto>? PopularGenres;
+    private List<string> Seasons = new() { "Winter", "Spring", "Summer", "Fall" };
 
     protected override async Task OnInitializedAsync()
     {
@@ -193,15 +203,18 @@
             TopRatedAnimes = (await topRatedTask)?.Take(6).ToList();
             LatestAnimes = (await latestTask)?.Take(6).ToList();
             Categories = await categoriesTask;
-            Genres = await genresTask;
+            
+            // LOGIC: Static Popularity Priority
+            var allGenres = await genresTask ?? new();
+            var priorityGenres = new List<string> { "Action", "Adventure", "Comedy", "Drama", "Fantasy", "Romance", "Sci-Fi", "Slice of Life", "Supernatural", "Mystery" };
+            
+            PopularGenres = allGenres
+                .OrderByDescending(g => priorityGenres.Contains(g.Name))
+                .ThenBy(g => g.Name)
+                .Take(10)
+                .ToList();
         }
-        catch
-        {
-            Snackbar.Add("Error loading discovery sections.", Severity.Error);
-        }
-        finally
-        {
-            IsLoading = false;
-        }
+        catch { Snackbar.Add("Connection issues. Please try again later.", Severity.Error); }
+        finally { IsLoading = false; }
     }
 }
