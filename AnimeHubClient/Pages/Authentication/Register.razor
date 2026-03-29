@@ -1,9 +1,11 @@
 ﻿@page "/register"
 @using AnimeHub.Shared.Models.Dtos.User
 @using AnimeHubClient.Services
+@using Microsoft.AspNetCore.Components.Authorization
 @inject IAuthService AuthService
 @inject ISnackbar Snackbar
 @inject NavigationManager Navigation
+@inject AuthenticationStateProvider AuthStateProvider
 
 <MudGrid Justify="Justify.Center" Class="mt-12">
     <MudItem xs="12" sm="8" md="6" lg="4">
@@ -44,9 +46,15 @@
     private bool IsLoading { get; set; } = true;
     private bool IsPasswordVisible = false;
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        // Initialization remains clean
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        if (authState.User.Identity?.IsAuthenticated == true)
+        {
+            Navigation.NavigateTo("/", replace: true);
+            return;
+        }
+
         RegisterRequest = new RegistrationRequestDto();
         IsLoading = false;
     }
@@ -61,7 +69,8 @@
         if (result)
         {
             Snackbar.Add("Registration successful. Please log in.", Severity.Success);
-            Navigation.NavigateTo("/login");
+            // Use replace: true so the user doesn't "go back" into the registration form
+            Navigation.NavigateTo("/login", replace: true);
         }
         else
         {
