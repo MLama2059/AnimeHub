@@ -132,7 +132,7 @@
         }
         else if (!IsLoading)
         {
-            <MudText Align="Align.Center">No Results Found for "@FilterQuery"</MudText>
+            <MudText Align="Align.Center">No Results Found</MudText>
         }
 
         @* Infinite Scroll Skeletons - Shows only when fetching next page *@
@@ -208,6 +208,7 @@
         // If coming back from Anime Details, don't reload data
         if (AnimesList.Count == 0)
         {
+            CurrentPage = 1;
             await LoadAnimes();
         }
     }
@@ -227,6 +228,8 @@
 
         try
         {
+            if (CurrentPage < 1) CurrentPage = 1;
+
             var (newAnimes, metadata) = await AnimeService.GetAnimeCatalogAsync(CurrentPage, 20, "title", FilterQuery, SelectedCategoryId, SelectedGenreId, SelectedYear, SelectedSeason);
 
             if (append)
