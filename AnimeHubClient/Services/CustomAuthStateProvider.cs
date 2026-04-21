@@ -10,10 +10,11 @@ using System.Linq;
 
 namespace AnimeHubClient.Services
 {
-    public class CustomAuthStateProvider : AuthenticationStateProvider
+    public class CustomAuthStateProvider : AuthenticationStateProvider, IDisposable
     {
         private readonly ILocalStorageService _localStorage;
         private readonly HttpClient _httpClient;
+        private readonly Timer? _tokenExpiryTimer;
 
         // Define an anonymous/unauthenticated user identity
         private static readonly ClaimsPrincipal Anonymous = new(new ClaimsIdentity());
@@ -22,44 +23,71 @@ namespace AnimeHubClient.Services
         {
             _localStorage = localStorage;
             _httpClient = httpClient;
+            // Start timer to check every 60 seconds
+            _tokenExpiryTimer = new Timer(async _ => await ValidateTokenAsync(), null, TimeSpan.Zero, TimeSpan.FromSeconds(60));
         }
 
         public override async Task<AuthenticationState> GetAuthenticationStateAsync()
         {
-            // 1. Get the token from Local Storage
-            var token = await _localStorage.GetItemAsync<string>("authToken");
-
-            if (string.IsNullOrWhiteSpace(token))
+            var identity = await GetValidatedIdentityAsync();
+            if (identity.IsAuthenticated)
             {
-                // No token found, user is anonymous
-                return new AuthenticationState(Anonymous);
+                var token = await _localStorage.GetItemAsync<string>("authToken");
+                _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("bearer", token);
+            }
+            else
+            {
+                _httpClient.DefaultRequestHeaders.Authorization = null;
             }
 
-            var identity = CreateClaimsIdentityFromToken(token);
-            var claims = identity.Claims;
+            return new AuthenticationState(new ClaimsPrincipal(identity));
+        }
 
-            var expClaim = claims.FirstOrDefault(c => c.Type == "exp");
+        private async Task ValidateTokenAsync()
+        {
+            var identity = await GetValidatedIdentityAsync();
 
-            // Check expiry
-            if (expClaim != null)
+            // If the shared logic says we are "unauthenticated" but we haven't notified the UI yet
+            if (!identity.IsAuthenticated)
             {
-                var expiryTime = DateTimeOffset.FromUnixTimeSeconds(long.Parse(expClaim.Value));
-
-                // If the token has expired, log the user out automatically
-                if (expiryTime.UtcDateTime <= DateTime.UtcNow)
+                var tokenInStorage = await _localStorage.GetItemAsync<string>("authToken");
+                if (!string.IsNullOrEmpty(tokenInStorage))
                 {
                     await _localStorage.RemoveItemAsync("authToken");
                     _httpClient.DefaultRequestHeaders.Authorization = null;
-                    return new AuthenticationState(Anonymous);
+                    NotifyUserLogout();
                 }
             }
-
-            // 2. Token found: Set Authorization header for HttpClient
-            _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("bearer", token);
-
-            // 3. Create ClaimsPrincipal from the token
-            return new AuthenticationState(new ClaimsPrincipal(CreateClaimsIdentityFromToken(token)));
         }
+
+        private async Task<ClaimsIdentity> GetValidatedIdentityAsync()
+        {
+            var token = await _localStorage.GetItemAsync<string>("authToken");
+
+            if (string.IsNullOrWhiteSpace(token)) return new ClaimsIdentity();
+
+            try
+            {
+                var identity = CreateClaimsIdentityFromToken(token);
+                var expClaim = identity.Claims.FirstOrDefault(c => c.Type == "exp");
+
+                if (expClaim != null)
+                {
+                    var expiryTime = DateTimeOffset.FromUnixTimeSeconds(long.Parse(expClaim.Value));
+                    if (expiryTime.UtcDateTime <= DateTime.UtcNow)
+                    {
+                        return new ClaimsIdentity(); // Expired
+                    }
+                }
+                return identity; // Valid
+            }
+            catch
+            {
+                return new ClaimsIdentity(); // Invalid/Corrupt token
+            }
+        }
+
+        public void Dispose() => _tokenExpiryTimer?.Dispose();
 
         // Called by AuthService upon successful login
         public void NotifyUserAuthentication(string token)
