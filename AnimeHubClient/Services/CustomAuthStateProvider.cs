@@ -35,6 +35,25 @@ namespace AnimeHubClient.Services
                 return new AuthenticationState(Anonymous);
             }
 
+            var identity = CreateClaimsIdentityFromToken(token);
+            var claims = identity.Claims;
+
+            var expClaim = claims.FirstOrDefault(c => c.Type == "exp");
+
+            // Check expiry
+            if (expClaim != null)
+            {
+                var expiryTime = DateTimeOffset.FromUnixTimeSeconds(long.Parse(expClaim.Value));
+
+                // If the token has expired, log the user out automatically
+                if (expiryTime.UtcDateTime <= DateTime.UtcNow)
+                {
+                    await _localStorage.RemoveItemAsync("authToken");
+                    _httpClient.DefaultRequestHeaders.Authorization = null;
+                    return new AuthenticationState(Anonymous);
+                }
+            }
+
             // 2. Token found: Set Authorization header for HttpClient
             _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("bearer", token);
 
