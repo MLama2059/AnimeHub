@@ -18,12 +18,12 @@ namespace AnimeHubApi.Repository
         public async Task<List<AnimeListReadDto>> GetRecommendationsAsync(int currentAnimeId, int count)
         {
             var allAnimes = await _context.Animes
+                .AsNoTracking()
                 .Include(a => a.AnimeGenres)
                 .ThenInclude(ag => ag.Genre)
                 .Include(a => a.AnimeStudios)
                 .ThenInclude(ast => ast.Studio)
                 .Include(a => a.Category)
-                .AsNoTracking()
                 .ToListAsync();
 
             // Find the target anime(the one the user is looking at)
@@ -56,15 +56,12 @@ namespace AnimeHubApi.Repository
                 // --- JACCARD SIMILARITY CALCULATION ---
 
                 // A. Intersection: How many genres do they share?
-                // Example: Target has [Action, Horror], Candidate has [Action, Comedy] -> Intersection = 1 (Action)
                 var intersection = targetGenreIds.Intersect(candidateGenreIds).Count();
 
                 // B. Union: How many unique genres exist between them total?
-                // Example: [Action, Horror, Comedy] -> Union = 3
                 var union = targetGenreIds.Union(candidateGenreIds).Count();
 
                 // C. Calculate Score: (Intersection / Union)
-                // 1 / 3 = 0.33
                 double score = (double)intersection / union;
 
                 // Only keep it if there is at least some similarity (Score > 0)
